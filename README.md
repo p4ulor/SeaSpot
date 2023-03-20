@@ -8,10 +8,10 @@ O sistema será assim composto por três componentes:
 - Aplicação Móvel para Android.
 
 Autores:
-- [Paulo Rosa](a44873@alunos.isel.pt)
-- [Raul Santos](a44806@alunos.isel.pt)
-- [Tiago Pilaro](a46147@alunos.isel.pt)
+- Paulo Rosa a44873@alunos.isel.pt
+- Raul Santos a44806@alunos.isel.pt
+- Tiago Pilaro a46147@alunos.isel.pt
 
 Orientadores: 
-- [José Simão](jose.simao@isel.pt), Sala F.0.15; 
-- [Nuno Cota](nuno.cota@isel.pt), Sala E.0.3.
+- José Simão jose.simao@isel.pt, Sala F.0.15; 
+- Nuno Cota nuno.cota@isel.pt, Sala E.0.3.
