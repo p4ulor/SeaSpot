@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name" translatable="false">SeaSpot</string>
+    <string name="device_no_bluet">This device doesn\'t support Bluetooth</string>
+    <string name="provide_permissions">Please give the app permissions</string>
+</resources>
