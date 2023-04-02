@@ -1,7 +1,7 @@
 # LILYGO® TTGO T-Beam v1.0 (868 MHz) AND TTN (The Things Network)
 ## LoRaWAN data transmission.
 
-This Python code uses LoRaWAN technology to send data wirelessly over a LoRa network using ABP (Activation By Personalisation) authentication method. The LoRa module is initialized in LoRaWAN mode, and the region is set to EU868. ABP authentication parameters are created, including Device Address, NwkSKey, and AppSKey.
+This is written in MicroPython and is used to join a LoRaWAN network and send data over the network using the LoRa radio module with ABP (Activation By Personalisation) authentication method. The LoRa module is initialized in LoRaWAN mode, and the region is set to EU868. ABP authentication parameters are created, including Device Address, NwkSKey, and AppSKey.
 ![SessionInformation](images/SessionInformation.png)
 
 ```python
@@ -44,21 +44,22 @@ def join_lora(force_join = False):
         return True
 # joining TTN
 join_lora(True)
-# wait until the module has joined the network
-while not lora.has_joined():
-    time.sleep(2.5)
-    print('Not yet joined...')
 # create a LoRa socket
 s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
 # set the LoRaWAN data rate
-s.setsockopt(socket.SOL_LORA, socket.SO_DR, 5)
+s.setsockopt(socket.SOL_LORA, socket.SO_DR, 0)
 # make the socket non-blocking
-s.setblocking(False)
+s.setblocking(True)
 # send some data
-s.send(bytes([0x06,0x08]))
+print("1")
+s.send((struct.pack('>h', 1)))
+print("2")
+s.send((struct.pack('>h', 2)))
+print("3")
+s.send((struct.pack('>h', 3)))
 ```
 
-After joining the network, a LoRa socket is created, and the LoRaWAN data rate is set. The socket is made non-blocking, and the code sends some data in bytes ([0x06, 0x08]).
+After joining the network, a LoRa socket is created. The socket is made non-blocking, and sends packets of data over the network using a LoRa socket.
 
 ![0608payloadsuccess](images/0608payloadsuccess.JPG)
 
