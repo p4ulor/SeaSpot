@@ -37,5 +37,8 @@ class PayloadSender:
 
     def set_payload(self, value):
         print("set payload with some data ",value)
-        #self.payload = (struct.pack('>h', value))
+        self.payload = (struct.pack('>h', value))
+
+    def set_payload_string(self, value):
+        print("set payload with some data ",value)
         self.payload = value.encode('utf-8')

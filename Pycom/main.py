@@ -48,12 +48,12 @@ s.setblocking(True)
 # creating Payload Sender packet
 lpp = payloadSender.PayloadSender(size=100, sock=s)
 
-"""
+
 lpp.set_payload(1)
 lpp.send(reset_payload=True)
 
 lpp.set_payload(2)
 lpp.send(reset_payload=True)
-"""
 
-lpp.set_payload("Hello, world")
+lpp.set_payload_string("Hello, world")
+lpp.send(reset_payload=True)
