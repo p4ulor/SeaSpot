@@ -61,6 +61,6 @@ s.send((struct.pack('>h', 3)))
 
 After joining the network, a LoRa socket is created. The socket is made non-blocking, and sends packets of data over the network using a LoRa socket.
 
-![0608payloadsuccess](images/0608payloadsuccess.JPG)
+![0608payloadsuccess](images/123packets.JPG)
 
 In summary, this code establishes a connection to a LoRaWAN network and sends some data wirelessly over the network using a LoRa module.
