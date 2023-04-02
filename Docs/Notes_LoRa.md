@@ -5,8 +5,7 @@
 
 `LoRa` (Long Range) is a wireless communication technology designed for long-range, low-power communication between devices. 
 
-- It uses spread spectrum modulation techniques to enable long-range communication. 
-
+- It uses spread spectrum modulation techniques to allow long-range communications.
 - `LoRa` can transmit data over distances of several kilometers with low power consumption, making it ideal for applications such as `IoT`(Internet of Things).
 
 ### Sources
