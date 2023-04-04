@@ -8,4 +8,11 @@ import isel.seaspot.bluetooth.BLE_Manager
 
 class MainViewModel(bleManager: BLE_Manager) : ViewModel() {
     var bleManager by mutableStateOf(bleManager)
+    var devicesFound by mutableStateOf( hashMapOf<String, String>())
+
+    init {
+        bleManager.postScan = {
+            devicesFound = bleManager.bleDevices
+        }
+    }
 }

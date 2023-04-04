@@ -13,13 +13,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import isel.seaspot.bluetooth.BLE_Manager
 import isel.seaspot.ui.theme.SeaSpotTheme
 import isel.seaspot.utils.isLocationOn
+import isel.seaspot.utils.log
+import isel.seaspot.utils.toast
 import isel.seaspot.utils.viewModelInit
 
 
@@ -77,10 +86,32 @@ fun MainScreen(vm: MainViewModel) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = {
-                vm.bleManager.scanLeDevice()
-            })
-            { Text("Turn on bluetooth and scan for devices") }
+            Row {
+                Button(onClick = {
+                    vm.bleManager.scanLeDevice()
+                }){
+                    Text("Turn on bluetooth and scan for devices")
+                }
+            }
+
+            Row (modifier = Modifier.padding(vertical = 20.dp)) {
+                if(vm.devicesFound.isNotEmpty()){
+                    LazyColumn (verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(items = vm.devicesFound.toList()){
+                            Button(onClick = {
+
+                            }) {
+                                Text(text = "Addr: ${it.first}, name: ${it.second}",
+                                    fontSize = 24.sp,
+                                    modifier = Modifier.fillMaxHeight(),
+                                    textAlign = TextAlign.Center,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

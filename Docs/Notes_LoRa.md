@@ -1,5 +1,6 @@
 # General utility links
 - [Getting started](https://www.thethingsnetwork.org/get-started). Choose `Join The Things Network` in the panel `Experiment and Explore with The Things Network`. Then go to [console](https://console.cloud.thethings.network/)
+- [Calculators](https://loratools.nl/#/)
 
 # LoRa
 

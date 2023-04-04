@@ -20,12 +20,15 @@ class BLE_Manager(
     private val activity: ComponentActivity,
     private val handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>
 ){
+    var postScan: () -> Unit = {}
     private val bluetoothManager: BluetoothManager = activity.getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
 
     private var scanning = false
     private val handler = Handler()
     private val SCAN_PERIOD: Long = 10000
+
+    var bleDevices = hashMapOf<String, String>()
 
     init {
         if(! haveThePermissionsBeenGranted(activity)){
@@ -58,6 +61,7 @@ class BLE_Manager(
             else if (!scanning) {
                 handler.postDelayed({
                     scanning = false
+                    postScan()
                     bluetoothLeScanner()?.stopScan(leScanCallback)
                 }, SCAN_PERIOD)
                 scanning = true
@@ -82,17 +86,17 @@ class BLE_Manager(
             toast("failed", activity)
         }
 
-        override fun onScanResult(callbackType: Int, result: ScanResult) {
+        override fun onScanResult(callbackType: Int, result: ScanResult) { //Note: this method is called multiple times
             try {
                 super.onScanResult(callbackType, result)
+                bleDevices.set(result.device.address, result.device.name)
                 log(result.toString())
-                log(result.device.name)
-                result.device
-                toast("ran", activity)
             } catch (e: Exception){
 
             }
         }
+
+
 
         override fun onBatchScanResults(results: List<ScanResult>) {
             log("BLE// onBatchScanResults")
