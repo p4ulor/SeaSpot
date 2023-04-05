@@ -1,5 +1,12 @@
 <resources>
-    <string name="app_name" translatable="false">SeaSpot</string>
+    <string name="app_name">SeaSpot</string>
     <string name="device_no_bluet">This device doesn\'t support Bluetooth</string>
     <string name="provide_permissions">Please give the app permissions</string>
+    <string name="scanning">Scanning...</string>
+    <string name="scanningDone">Scanning finished</string>
+    <string name="scanError">BLE scan error</string>
+    <string name="turnOnBlue">Turn on bluetooth and scan for devices</string>
+    <string name="name">Name</string>
+    <string name="addr">Address</string>
+    <string name="no_name">No name</string>
 </resources>

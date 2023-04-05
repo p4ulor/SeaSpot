@@ -3,8 +3,9 @@ Since the Android emulator (simulator) can't connect to real physical devices or
 
 ## Android and BLE
 - [Bluetooth setup needed before using BLE](https://developer.android.com/guide/topics/connectivity/bluetooth/setup)
-- [About Bluetooth Low Energy](https://developer.android.com/guide/topics/connectivity/bluetooth/ble-overview)
-- [Link 2](https://source.android.com/docs/core/connect/bluetooth/ble?hl=en)
+- [About Bluetooth Low Energy and how to start using it](https://developer.android.com/guide/topics/connectivity/bluetooth/ble-overview)
+- [About BLE article](https://source.android.com/docs/core/connect/bluetooth/ble?hl=en)
+- [Good Medium article about BLE](https://medium.com/@martijn.van.welie/making-android-ble-work-part-1-a736dcd53b02)
 - [Old repo about using BLE w/ Android](https://github.com/androidthings/sample-bluetooth-le-gattserver)
 
 ## About the map display
@@ -13,6 +14,10 @@ Near the end of the project, we intend to use the [Android SDK](https://docs.map
 ## For testing
 It's recommended to use another Android device which acts as a client or server to trade messages. Example app's to use:
 - [BLE Tool by CozyOZ](https://play.google.com/store/apps/details?id=com.cozyoz.bletool&hl=en_US)
+- [BLE Scanner (Connect & Notify) by Bluepixel Technologies](https://play.google.com/store/apps/details?id=com.macdom.ble.blescanner&hl=en_US)
 - [BLE Tool by LAPIS Semiconductor](https://play.google.com/store/apps/details?id=com.lapis_semi.bleapp&hl=en_US)
 
 The alternative would be to use an Arduino and setup a GATT server.
+
+## List of phones tested on
+- Samsung Galaxy A12. Android version: 13

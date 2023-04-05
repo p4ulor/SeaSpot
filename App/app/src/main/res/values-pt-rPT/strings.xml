@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SeaSpot</string>
+    <string name="device_no_bluet">Este dispositivo não suporta Bluetooth</string>
+    <string name="provide_permissions">Dê permissões à app</string>
+    <string name="scanning">A pesquisar</string>
+    <string name="scanningDone">Fim da pesquisa</string>
+    <string name="scanError">Erro na pesquisa por BLE</string>
+    <string name="turnOnBlue">Ligar bluetooth e procurar dispositivos</string>
+    <string name="name">Nome</string>
+    <string name="addr">Endereço</string>
+    <string name="no_name">Sem nome</string>
+</resources>

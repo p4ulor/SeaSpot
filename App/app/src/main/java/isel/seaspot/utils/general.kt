@@ -2,9 +2,7 @@ package isel.seaspot.utils
 
 import android.content.Context
 import android.util.Log
-import android.view.Gravity
 import android.widget.Toast
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import java.util.concurrent.Executors

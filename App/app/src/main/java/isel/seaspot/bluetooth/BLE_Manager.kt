@@ -4,14 +4,15 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Intent
 import android.os.Handler
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import isel.seaspot.R
 import isel.seaspot.utils.*
-
 
 //https://developer.android.com/guide/topics/connectivity/bluetooth/setup
 //https://developer.android.com/guide/topics/connectivity/bluetooth/find-ble-devices
@@ -62,18 +63,32 @@ class BLE_Manager(
                 handler.postDelayed({
                     scanning = false
                     postScan()
+                    toast(R.string.scanningDone, activity)
                     bluetoothLeScanner()?.stopScan(leScanCallback)
                 }, SCAN_PERIOD)
                 scanning = true
                 log("---started scanning---")
-                toast("LeScanner = "+bluetoothLeScanner().toString(), activity)
-                bluetoothLeScanner()?.startScan(leScanCallback)
+                //log("LeScanner = "+bluetoothLeScanner().toString())
+                toast(R.string.scanning, activity)
+
+                //EXPLORING TO FIND MORE DEVICES
+                val filters: MutableList<ScanFilter> = ArrayList()
+                val scanFilterBuilder = ScanFilter.Builder()
+                filters.add(scanFilterBuilder.build())
+
+                val settingsBuilder = ScanSettings.Builder()
+
+                settingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                settingsBuilder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+                // END EXPLORING TO FIND MORE DEVICES
+
+                bluetoothLeScanner()?.startScan(null, settingsBuilder.build(), leScanCallback)
             } else {
                 scanning = false
                 bluetoothLeScanner()?.stopScan(leScanCallback)
             }
         } catch (e: SecurityException){
-            log("Security exceptions, permissions weren't given")
+            log("Security exception, permissions weren't given")
             //askForPermissions(activity) //Note: asking for the permissions again, won't work purposely https://stackoverflow.com/a/67834147/9375488
             toast(R.string.provide_permissions, activity)
         }
@@ -83,20 +98,19 @@ class BLE_Manager(
     private val leScanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            toast("failed", activity)
+            toast(R.string.scanError, activity)
         }
 
         override fun onScanResult(callbackType: Int, result: ScanResult) { //Note: this method is called multiple times
             try {
                 super.onScanResult(callbackType, result)
-                bleDevices.set(result.device.address, result.device.name)
+                val name = if(result.device.name == null) "<${activity.getString(R.string.no_name)}>" else result.device.name
+                bleDevices.set(result.device.address, name)
                 log(result.toString())
             } catch (e: Exception){
-
+                log("Exception occured in onScanResult -> $e")
             }
         }
-
-
 
         override fun onBatchScanResults(results: List<ScanResult>) {
             log("BLE// onBatchScanResults")
