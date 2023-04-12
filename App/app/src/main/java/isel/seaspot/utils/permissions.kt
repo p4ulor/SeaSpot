@@ -19,22 +19,22 @@ val permissions = arrayOf(
     //Manifest.permission.ACCESS_BACKGROUND_LOCATION //Note: Adding this somehow breaks the prompts to ask for the permissions, and it won't show
 )
 
-fun haveThePermissionsBeenGranted(activity: ComponentActivity) : Boolean {
+fun haveThePermissionsBeenGranted(ctx: Context) : Boolean {
     return permissions.all {
-        isGranted(it, activity)
+        isGranted(it, ctx)
     }
 }
 
-private fun isGranted(permission: String, activity: ComponentActivity) : Boolean {
-    return ActivityCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
+private fun isGranted(permission: String, ctx: Context) : Boolean {
+    return ActivityCompat.checkSelfPermission(ctx, permission) == PackageManager.PERMISSION_GRANTED
 }
 
-fun isLocationOn(activity: ComponentActivity) : Boolean {
-    val lm: LocationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+fun isLocationOn(ctx: Context) : Boolean {
+    val lm: LocationManager = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     return lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
 }
 
-//Opens up all embed prompts needed to obtain the permissions
+//Opens up all embed prompts needed to obtain the permissions./Note: asking for the permissions repeatedly, won't work https://stackoverflow.com/a/67834147/9375488
 fun askForPermissions(activity: ComponentActivity) {
     log("Asking for permissions")
     activity.requestPermissions(permissions, Math.random().roundToInt())

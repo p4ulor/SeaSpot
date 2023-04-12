@@ -9,4 +9,7 @@
     <string name="name">Name</string>
     <string name="addr">Address</string>
     <string name="no_name">No name</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="connecting">Connecting...</string>
 </resources>

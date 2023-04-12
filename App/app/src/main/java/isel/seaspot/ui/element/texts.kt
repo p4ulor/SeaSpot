@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun Header(s: String) {
     Column(
-        modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(vertical = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(vertical = 40.dp, horizontal = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = s,

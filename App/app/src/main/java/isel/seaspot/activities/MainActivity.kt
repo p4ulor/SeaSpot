@@ -1,5 +1,6 @@
 package isel.seaspot.activities
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -13,28 +14,25 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import isel.seaspot.R
-import isel.seaspot.bluetooth.BLE_Manager
 import isel.seaspot.ui.element.Button
 import isel.seaspot.ui.element.Header
 import isel.seaspot.ui.element.ListOfDevices
 import isel.seaspot.ui.theme.SeaSpotTheme
-import isel.seaspot.utils.isLocationOn
-import isel.seaspot.utils.viewModelInit
+import isel.seaspot.utils.*
 
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels {
         viewModelInit {
-            MainViewModel(BLE_Manager(this, handleResultOfAskingForBTEnabling))
+            MainViewModel(application, handleResultOfAskingForBTEnabling)
         }
     }
 
@@ -45,12 +43,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if(! haveThePermissionsBeenGranted(this)){
+            askForPermissions(this)
+        }
+    }
+
     //https://stackoverflow.com/a/63654043/9375488 This must be declared here or it causes this https://stackoverflow.com/q/64476827/9375488
     private var handleResultOfAskingForBTEnabling = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            if (!isLocationOn(this)) {
+            if (! isLocationOn(this)) {
                 //Goes to settings. Easier approach. To enable GPS without existing the app, which requires more code, see: https://stackoverflow.com/q/29801368/9375488 https://youtu.be/nTgmnjg2pa0
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 handleResultOfAskingForLocationEnabling.launch(intent)
@@ -72,31 +77,42 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
+@Composable @SuppressLint("MissingPermission")
 fun MainScreen(vm: MainViewModel) {
+    val ctx = LocalContext.current
     SeaSpotTheme {
-        Surface(
-            color = MaterialTheme.colors.background
-        ) {
-            Header("SeaSpot")
-        }
+
+        Header("SeaSpot")
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
+                .fillMaxWidth().padding(paddingValues = PaddingValues(top = 150.dp)) ,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row {
-                Button({ vm.bleManager.scanLeDevice() }, stringResource(R.string.turnOnBlue))
+            Row(modifier = Modifier.padding(vertical = 1.dp)) {
+                Button({
+                    try {
+                        vm.scanForDevices()
+                    }
+                    catch (e: SecurityException) {
+                        log("Security exception, permissions weren't given")
+                        toast(R.string.provide_permissions, ctx)
+                    }
+               }, stringResource(R.string.turnOnBlue))
             }
 
-            Row(modifier = Modifier.padding(vertical = 20.dp)) {
+            Row(modifier = Modifier.padding(vertical = 1.dp)) {
                 if (vm.devicesFound.isNotEmpty()) {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(items = vm.devicesFound.toList()) {
-                            ListOfDevices({}, it.first, it.second)
+                            ListOfDevices({
+                                try {
+                                    vm.connect(it.first)
+                                } catch (e: Exception){
+                                    toast("$e", ctx)
+                                }
+                            }, it.first, if(it.second.name == null) "<${ctx.getString(R.string.no_name)}>" else it.second.name)
                         }
                     }
                 }
