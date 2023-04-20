@@ -64,3 +64,6 @@ After joining the network, a LoRa socket is created. The socket is made non-bloc
 ![0608payloadsuccess](images/123packets.JPG)
 
 In summary, this code establishes a connection to a LoRaWAN network and sends some data wirelessly over the network using a LoRa module.
+
+## Resources
+- [Pycom and LoRaWAN](https://docs-mk2.readthedocs.io/en/latest/firmwareapi/pycom/network/lora/)
