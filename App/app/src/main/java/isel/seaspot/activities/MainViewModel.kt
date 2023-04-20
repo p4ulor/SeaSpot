@@ -9,19 +9,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.navigation.NavHostController
 import isel.seaspot.bluetooth.BLE_Manager
 
 class MainViewModel(
     app: Application,
-    handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>
+    handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>,
+    navController: NavHostController
 ) : AndroidViewModel(app) {
 
     private val bleManager = BLE_Manager(app, handleResultOfAskingForBTEnabling)
-    var devicesFound by mutableStateOf( hashMapOf<String, BluetoothDevice>())
+    var devicesFound by mutableStateOf(hashMapOf<String, BluetoothDevice>())
+    var connectedDevice by mutableStateOf<BluetoothDevice?>(null)
 
     init {
         bleManager.postScan = {
-            devicesFound = bleManager.bleDevices
+            val devices = hashMapOf<String, BluetoothDevice>() //This is needed in order for the mutableStateOf() to detect that the reference changed, and thus update the view
+            bleManager.bleDevices.forEach {
+                devices.set(it.key, it.value)
+            }
+            devicesFound = devices
         }
     }
 
@@ -30,7 +37,13 @@ class MainViewModel(
     @SuppressLint("MissingPermission")
     fun connect(address: String) {
         val device = devicesFound.get(address) ?: throw Exception("Device not found for connection")
-        bleManager.connectGatt(device)
+        bleManager.connectGatt(device) {
+            connectedDevice = it
+        }
     }
 
+    fun disconnect(){
+        bleManager.disconnect()
+        connectedDevice = null
+    }
 }

@@ -27,3 +27,17 @@ fun Header(s: String) {
         )
     }
 }
+
+@Composable
+fun MediumHeader(s: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(vertical = 40.dp, horizontal = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = s,
+            fontSize = 30.sp,
+            fontFamily = FontFamily.Monospace,
+        )
+    }
+}

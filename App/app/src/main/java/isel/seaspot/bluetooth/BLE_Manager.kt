@@ -24,7 +24,8 @@ class BLE_Manager(
     var postScan: () -> Unit = {}
     private val bluetoothManager: BluetoothManager = ctx.getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
-    private var currentlyConnectedDevice: BluetoothGatt? = null
+    private var currentlyConnectedDevice: BluetoothDevice? = null
+    private var currentlyConnectedDeviceGatt: BluetoothGatt? = null
 
     private var scanning = false
     private val handler = Handler()
@@ -94,7 +95,7 @@ class BLE_Manager(
                 bleDevices.set(result.device.address, result.device)
                 log(result.toString())
             } catch (e: Exception){
-                log("Exception occured in onScanResult -> $e")
+                log("Exception occurred in onScanResult -> $e")
             }
         }
 
@@ -106,50 +107,89 @@ class BLE_Manager(
         }
     }
 
-    fun connectGatt(device: BluetoothDevice) { //https://developer.android.com/guide/topics/connectivity/bluetooth/connect-gatt-server
-        currentlyConnectedDevice = device.connectGatt(ctx, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE) //autoConnect = false because -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=Autoconnect%20only%20works%20for%20cached%20or%20bonded%20devices!
+    fun connectGatt(device: BluetoothDevice, onConnectSuccessful: (device: BluetoothDevice) -> Unit) { //https://developer.android.com/guide/topics/connectivity/bluetooth/connect-gatt-server
+        currentlyConnectedDeviceGatt = device.connectGatt(ctx, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE) //autoConnect = false because -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=Autoconnect%20only%20works%20for%20cached%20or%20bonded%20devices!
+        currentlyConnectedDevice = device
+        onConnectSuccessful(device)
+    }
 
+    fun disconnect(){
+        currentlyConnectedDeviceGatt?.disconnect()
     }
 
     private val bluetoothGattCallback: BluetoothGattCallback = object : BluetoothGattCallback(){
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            if(status == BluetoothGatt.GATT_SUCCESS) {
+            if(status == BluetoothGatt.GATT_SUCCESS) { //it means the connection state change was the result of a successful operation like connecting but it could also be because you wanted to disconnect. https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=it%20means%20the%20connection%20state
+                log("GATT_SUCCESS")
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
                         log("STATE_CONNECTED")
-                        //toast(ctx.getString(R.string.connected), ctx)
-                        val areThereServices = gatt?.discoverServices()
-                        if(areThereServices == true) log("Services = ${gatt?.services}")
-                        else log("No services")
-
+                        val bondState = currentlyConnectedDevice?.bondState //https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=int%20bondstate%20%3D-,device.getBondState()%3B,-The%20bond%20state
+                        if(bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.BOND_BONDED) {
+                            //handler.postDelayed({
+                                log("BOND_BONDED")
+                                val areThereServices = gatt?.discoverServices() //https://developer.android.com/reference/android/bluetooth/BluetoothGatt#discoverServices()
+                                if(areThereServices == true) log("Will call onServicesDiscovered()")
+                                else log("No services")
+                            //}, 1000)
+                        } else if (bondState == BluetoothDevice.BOND_BONDING) {
+                            log("waiting for bonding to complete")
+                        }
                     }
                     BluetoothProfile.STATE_CONNECTING -> {
                         toast(ctx.getString(R.string.connecting), ctx)
                         log("STATE_CONNECTING")
                     }
-                    else -> {
+                    else -> { //STATE_DISCONNECTED or STATE_DISCONNECTING
                         gatt?.close()
                         log("Disconnected")
-                        //toast(ctx.getString(R.string.disconnected), ctx)
                     }
                 }
             } else {
-                log("Unexpected error occurred in onConnectionStateChange. Status = $status")
+                log("Unexpected error occurred in onConnectionStateChange. Status = $status. Gatt = $gatt")
                 gatt?.close()
+                currentlyConnectedDeviceGatt = null
+                currentlyConnectedDevice = null
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-            if (status == BluetoothGatt.GATT_SUCCESS) log("onServicesDiscovered received -> GATT_SUCCESS")
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                log("onServicesDiscovered received -> GATT_SUCCESS")
+                log("Services = ${gatt?.services}")
+                val x = gatt?.services?.get(0)
+                log("Characteristics - ${x?.characteristics}")
+                gatt?.readCharacteristic(x?.characteristics?.get(0))
+            }
             else log("onServicesDiscovered received: $status")
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            log("characteristic.properties = ${characteristic.properties}")
-            log("characteristic.uuid = ${characteristic.uuid}")
-            log("onCharacteristicRead received -> GATT_SUCCESS")
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                log("characteristic.properties = ${characteristic.properties}")
+                log("characteristic.uuid = ${characteristic.uuid}")
+                log("onCharacteristicRead received -> GATT_SUCCESS")
+            } else {
+                log("onCharacteristicRead: no scuccess")
+            }
+        }
+
+        override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
+            log("onCharacteristicChanged()")
+            super.onCharacteristicChanged(gatt, characteristic)
         }
     }
 
+    //https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
+    fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enabled: Boolean) {
+        currentlyConnectedDeviceGatt?.let { gatt ->
+            gatt.setCharacteristicNotification(characteristic, enabled)
 
+            val descriptor = characteristic.getDescriptor(UUID.fromString("SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG"))
+            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            gatt.writeDescriptor(descriptor)
+        } ?: run {
+            log("BluetoothGatt not initialized")
+        }
+    }
 }

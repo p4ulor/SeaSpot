@@ -1,6 +1,5 @@
 package isel.seaspot.activities
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -11,35 +10,35 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import isel.seaspot.R
-import isel.seaspot.ui.element.Button
-import isel.seaspot.ui.element.Header
-import isel.seaspot.ui.element.ListOfDevices
-import isel.seaspot.ui.theme.SeaSpotTheme
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import isel.seaspot.screens.NavGraph
+import isel.seaspot.screens.Screens
 import isel.seaspot.utils.*
 
 
 class MainActivity : ComponentActivity() {
 
+    lateinit var navController: NavHostController
+
     private val viewModel: MainViewModel by viewModels {
         viewModelInit {
-            MainViewModel(application, handleResultOfAskingForBTEnabling)
+            MainViewModel(application, handleResultOfAskingForBTEnabling, navController)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val routeNames = mutableListOf<String>()
+        Screens.values().forEach { //This check doesn't workout properly in Screens in a init{}
+            if(routeNames.contains(it.name)) throw IllegalArgumentException("There are screens with repetitive names")
+            routeNames.add(it.name)
+        }
+
         setContent {
-            MainScreen(viewModel)
+            navController = rememberNavController()
+            NavGraph(viewModel, navController)
         }
     }
 
@@ -48,6 +47,11 @@ class MainActivity : ComponentActivity() {
         if(! haveThePermissionsBeenGranted(this)){
             askForPermissions(this)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy(); log("onDestroy")
+        viewModel.disconnect()
     }
 
     //https://stackoverflow.com/a/63654043/9375488 This must be declared here or it causes this https://stackoverflow.com/q/64476827/9375488
@@ -77,46 +81,4 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable @SuppressLint("MissingPermission")
-fun MainScreen(vm: MainViewModel) {
-    val ctx = LocalContext.current
-    SeaSpotTheme {
 
-        Header("SeaSpot")
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth().padding(paddingValues = PaddingValues(top = 150.dp)) ,
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(modifier = Modifier.padding(vertical = 1.dp)) {
-                Button({
-                    try {
-                        vm.scanForDevices()
-                    }
-                    catch (e: SecurityException) {
-                        log("Security exception, permissions weren't given")
-                        toast(R.string.provide_permissions, ctx)
-                    }
-               }, stringResource(R.string.turnOnBlue))
-            }
-
-            Row(modifier = Modifier.padding(vertical = 1.dp)) {
-                if (vm.devicesFound.isNotEmpty()) {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(items = vm.devicesFound.toList()) {
-                            ListOfDevices({
-                                try {
-                                    vm.connect(it.first)
-                                } catch (e: Exception){
-                                    toast("$e", ctx)
-                                }
-                            }, it.first, if(it.second.name == null) "<${ctx.getString(R.string.no_name)}>" else it.second.name)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

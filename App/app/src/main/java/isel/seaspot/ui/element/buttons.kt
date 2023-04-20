@@ -1,6 +1,7 @@
 package isel.seaspot.ui.element
 
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -13,7 +14,11 @@ import isel.seaspot.R
 
 @Composable
 fun Button(onClick: () -> Unit, text: String){
-    Button(onClick = { onClick() }){
+    Button(onClick, text, Modifier)
+}
+@Composable
+fun Button(onClick: () -> Unit, text: String, modifier: Modifier? = Modifier){
+    Button(onClick = { onClick() }, modifier = modifier!!){
         Text(text)
     }
 }
