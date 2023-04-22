@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels {
         viewModelInit {
-            MainViewModel(application, handleResultOfAskingForBTEnabling, navController)
+            MainViewModel(application, handleResultOfAskingForBTEnabling)
         }
     }
 
@@ -52,6 +52,16 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy(); log("onDestroy")
         viewModel.disconnect()
+    }
+
+    override fun onBackPressed() {
+        when(navController.currentDestination?.route){
+            Screens.ConnectedDevice.routeName -> {
+                viewModel.disconnect()
+            } else -> {
+                log("Screen not included in the 'when' of onBackPressed()")
+            }
+        }
     }
 
     //https://stackoverflow.com/a/63654043/9375488 This must be declared here or it causes this https://stackoverflow.com/q/64476827/9375488

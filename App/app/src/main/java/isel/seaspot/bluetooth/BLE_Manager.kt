@@ -21,7 +21,6 @@ class BLE_Manager(
     private val ctx: Context,
     private val handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>
 ){
-    var postScan: () -> Unit = {}
     private val bluetoothManager: BluetoothManager = ctx.getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
     private var currentlyConnectedDevice: BluetoothDevice? = null
@@ -29,15 +28,19 @@ class BLE_Manager(
 
     private var scanning = false
     private val handler = Handler()
-    private val SCAN_PERIOD: Long = 10000
+    private val SCAN_PERIOD: Long = 5000
 
     var bleDevices = hashMapOf<String, BluetoothDevice>()
 
     private fun bluetoothLeScanner() = bluetoothAdapter?.bluetoothLeScanner //if bluetooth is not turned on, this value will be null
     private fun isBluetoothOn() = bluetoothAdapter?.isEnabled == true
 
-    private fun start(){
-        log("---start---")
+    var postScan: () -> Unit = {}
+    var onConnectSuccessful: () -> Unit = {}
+    var onServicesDiscovered: () -> Unit = {}
+
+    private fun turnOnBluetooth(){
+        log("---turnOnBluetooth---")
         if (bluetoothAdapter == null) {
             toast(R.string.device_no_bluet, ctx)
             return
@@ -53,7 +56,7 @@ class BLE_Manager(
     @Throws(SecurityException::class)
     fun scanForDevices() { // Stops scanning after a pre-defined scan period.
         log("---scanLeDevice---")
-        if(! isBluetoothOn()) start()
+        if(! isBluetoothOn()) turnOnBluetooth()
         else if (!scanning) {
             handler.postDelayed({
                 scanning = false
@@ -77,6 +80,12 @@ class BLE_Manager(
 
             bluetoothLeScanner()?.startScan(null, settingsBuilder.build(), leScanCallback)
         } else {
+            log("Already scanning")
+        }
+    }
+
+    private fun stopScanning(){
+        if(scanning){
             scanning = false
             bluetoothLeScanner()?.stopScan(leScanCallback)
         }
@@ -100,22 +109,24 @@ class BLE_Manager(
         }
 
         override fun onBatchScanResults(results: List<ScanResult>) {
-            log("BLE// onBatchScanResults")
+            log("onBatchScanResults")
             for (sr in results) {
                 log("ScanResult - Results $sr")
             }
         }
     }
 
-    fun connectGatt(device: BluetoothDevice, onConnectSuccessful: (device: BluetoothDevice) -> Unit) { //https://developer.android.com/guide/topics/connectivity/bluetooth/connect-gatt-server
+    fun connectGatt(device: BluetoothDevice, onConnectSuccessful: () -> Unit, onServicesDiscovered: () -> Unit) { //https://developer.android.com/guide/topics/connectivity/bluetooth/connect-gatt-server
+        stopScanning()
+        this.onConnectSuccessful = onConnectSuccessful
+        this.onServicesDiscovered = onServicesDiscovered
         currentlyConnectedDeviceGatt = device.connectGatt(ctx, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE) //autoConnect = false because -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=Autoconnect%20only%20works%20for%20cached%20or%20bonded%20devices!
         currentlyConnectedDevice = device
-        onConnectSuccessful(device)
     }
 
-    fun disconnect(){
-        currentlyConnectedDeviceGatt?.disconnect()
-    }
+    fun disconnect() = currentlyConnectedDeviceGatt?.disconnect()
+    fun getConnectedDevice() = currentlyConnectedDevice
+    fun getConnectedDeviceGatt() = currentlyConnectedDeviceGatt
 
     private val bluetoothGattCallback: BluetoothGattCallback = object : BluetoothGattCallback(){
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
@@ -142,7 +153,7 @@ class BLE_Manager(
                     }
                     else -> { //STATE_DISCONNECTED or STATE_DISCONNECTING
                         gatt?.close()
-                        log("Disconnected")
+                        log("Disconnected, State = $newState")
                     }
                 }
             } else {
@@ -160,6 +171,7 @@ class BLE_Manager(
                 val x = gatt?.services?.get(0)
                 log("Characteristics - ${x?.characteristics}")
                 gatt?.readCharacteristic(x?.characteristics?.get(0))
+                onServicesDiscovered()
             }
             else log("onServicesDiscovered received: $status")
         }
@@ -170,18 +182,34 @@ class BLE_Manager(
                 log("characteristic.uuid = ${characteristic.uuid}")
                 log("onCharacteristicRead received -> GATT_SUCCESS")
             } else {
-                log("onCharacteristicRead: no scuccess")
+                log("onCharacteristicRead: no success")
             }
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             log("onCharacteristicChanged()")
-            super.onCharacteristicChanged(gatt, characteristic)
+        }
+
+        //problematic because its async call
+        override fun onDescriptorRead(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback#onDescriptorRead(android.bluetooth.BluetoothGatt,%20android.bluetooth.BluetoothGattDescriptor,%20int,%20byte[])
+            log("Value = ${value.decodeToString()}")
         }
     }
 
-    //https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
-    fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enabled: Boolean) {
+    private fun clearServicesCache() : Boolean { //https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=the%20services%0A...-,Caching%20of%20services,-The%20Android%20stack
+        var result = false
+        try {
+            val refreshMethod = currentlyConnectedDevice?.javaClass?.getMethod("refresh")
+            if (refreshMethod != null) {
+                result = refreshMethod.invoke(currentlyConnectedDevice) as Boolean
+            }
+        } catch (e: Exception) {
+            log("ERROR: Could not invoke refresh method")
+        }
+        return result
+    }
+
+    fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enabled: Boolean) { //https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
         currentlyConnectedDeviceGatt?.let { gatt ->
             gatt.setCharacteristicNotification(characteristic, enabled)
 

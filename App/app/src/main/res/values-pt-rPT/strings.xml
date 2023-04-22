@@ -13,4 +13,9 @@
     <string name="connected">conectado</string>
     <string name="disconnected">desconectado</string>
     <string name="connecting">Conectando...</string>
+    <string name="service">Serviço</string>
+    <string name="characteristic">Característica</string>
+    <string name="declaration">Declaração</string>
+    <string name="value">Valor</string>
+    <string name="descriptor">Descriptor</string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -19,22 +20,24 @@ import isel.seaspot.ui.element.ListOfDevices
 import isel.seaspot.ui.theme.SeaSpotTheme
 import isel.seaspot.utils.log
 import isel.seaspot.utils.toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable @SuppressLint("MissingPermission")
 fun MainScreen(vm: MainViewModel, navController: NavController) {
     val ctx = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     SeaSpotTheme {
 
         Header("SeaSpot")
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(paddingValues = PaddingValues(top = 150.dp)) ,
+            modifier = Modifier.fillMaxWidth().padding(paddingValues = PaddingValues(top = 150.dp)),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(modifier = Modifier.padding(vertical = 1.dp)) {
+            Row {
                 Button({
                     try {
                         vm.scanForDevices()
@@ -49,11 +52,14 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
             Row(modifier = Modifier.padding(vertical = 1.dp)) {
                 if (vm.devicesFound.isNotEmpty()) {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(items = vm.devicesFound.toList()) {
+                        items(vm.devicesFound.toList()) {
                             ListOfDevices({
                                 try {
-                                    vm.connect(it.first)
-                                    navController.navigate(Screens.ConnectedDevice.routeName)
+                                    vm.connect(it.first){
+                                        coroutineScope.launch { //In order to avoid "ava.lang.IllegalStateException: Method setCurrentState must be called on the main thread"
+                                            navController.navigate(Screens.ConnectedDevice.routeName)
+                                        }
+                                    }
                                 } catch (e: Exception){
                                     toast("$e", ctx)
                                 }

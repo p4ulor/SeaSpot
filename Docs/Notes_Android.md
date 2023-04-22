@@ -1,5 +1,8 @@
 ## Testing the application
-Since the Android emulator (simulator) can't connect to real physical devices or [support bluetooth](https://stackoverflow.com/a/22604347/9375488). A real device is needed to debug and test the application. Also there's greater speed when using an external device. Upon connecting the phone to the PC through USB, and if Android Studio isn't recognizing the device, on the phone, go to USB-Setting, and select `USB tethering`
+Since the Android emulator (simulator) can't connect to real physical devices or [support bluetooth](https://stackoverflow.com/a/22604347/9375488). A real device is needed to debug and test the application. Also there's greater speed when using an external device. Upon connecting the phone to the PC through USB, and if Android Studio isn't recognizing the device, on the phone, go to USB Settings, and select `USB tethering`
+
+## @Composable preview note
+In order for the @Composable @Preview to work, the USB connected device must be unblocked with the screen on
 
 ## Android and BLE
 - [Bluetooth setup needed before using BLE](https://developer.android.com/guide/topics/connectivity/bluetooth/setup)
@@ -15,8 +18,10 @@ Near the end of the project, we intend to use the [Android SDK](https://docs.map
 It's recommended to use another Android device which acts as a client or server to trade messages.
 
 ## Main app's to use:
-- [BLE Tool by CozyOZ](https://play.google.com/store/apps/details?id=com.cozyoz.bletool&hl=en_US). This one has a simple interface but only works for older devices.
-- [EFR Connect BLE Mobile App by Silicon Laboratories](https://play.google.com/store/apps/details?id=com.siliconlabs.bledemo). Works for more modern devices.
+About the following 2 apps: Works for more modern devices and are the recommended ones. When defining a Service, the appropriate UUIDs that match with the Bluetooth Specification of Number Assignment are shown in a dropdown, which is very useful
+- [nRF Connect for Mobile by Nordic Semiconductor ASA](https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp). Works for older devices too
+- [EFR Connect BLE Mobile App by Silicon Laboratories](https://play.google.com/store/apps/details?id=com.siliconlabs.bledemo). Only works for more modern devices, Android 10 and up
+- [BLE Tool by CozyOZ](https://play.google.com/store/apps/details?id=com.cozyoz.bletool&hl=en_US). This one has a older and a bit less powerful interface and it only works for older devices.
 
 ## Others
 - [BLE Scanner (Connect & Notify) by Bluepixel Technologies](https://play.google.com/store/apps/details?id=com.macdom.ble.blescanner&hl=en_US)
@@ -24,5 +29,5 @@ It's recommended to use another Android device which acts as a client or server 
 
 The alternative would be to use an Arduino and setup a GATT server.
 
-## List of phones tested on
+## List of phones our app was tested on
 - Samsung Galaxy A12. Android version: 13

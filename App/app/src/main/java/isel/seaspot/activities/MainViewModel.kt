@@ -15,12 +15,10 @@ import isel.seaspot.bluetooth.BLE_Manager
 class MainViewModel(
     app: Application,
     handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>,
-    navController: NavHostController
 ) : AndroidViewModel(app) {
 
     private val bleManager = BLE_Manager(app, handleResultOfAskingForBTEnabling)
     var devicesFound by mutableStateOf(hashMapOf<String, BluetoothDevice>())
-    var connectedDevice by mutableStateOf<BluetoothDevice?>(null)
 
     init {
         bleManager.postScan = {
@@ -35,15 +33,14 @@ class MainViewModel(
     fun scanForDevices() = bleManager.scanForDevices()
 
     @SuppressLint("MissingPermission")
-    fun connect(address: String) {
+    fun connect(address: String, onSuccess: () -> Unit) {
         val device = devicesFound.get(address) ?: throw Exception("Device not found for connection")
-        bleManager.connectGatt(device) {
-            connectedDevice = it
-        }
+        bleManager.connectGatt(device, {}, {
+            onSuccess()
+        })
     }
 
-    fun disconnect(){
-        bleManager.disconnect()
-        connectedDevice = null
-    }
+    fun disconnect() = bleManager.disconnect()
+    fun getConnectedDevice() = bleManager.getConnectedDevice()
+    fun getConnectedDeviceGatt() = bleManager.getConnectedDeviceGatt()
 }
