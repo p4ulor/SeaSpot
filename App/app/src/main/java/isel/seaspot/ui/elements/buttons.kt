@@ -1,7 +1,6 @@
-package isel.seaspot.ui.element
+package isel.seaspot.ui.elements
 
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable

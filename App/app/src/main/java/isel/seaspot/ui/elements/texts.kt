@@ -1,4 +1,4 @@
-package isel.seaspot.ui.element
+package isel.seaspot.ui.elements
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight

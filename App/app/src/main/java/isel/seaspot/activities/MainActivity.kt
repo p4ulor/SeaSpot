@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels {
         viewModelInit {
-            MainViewModel(application, handleResultOfAskingForBTEnabling)
+            MainViewModel(application, handleResultOfAskingForBTEnabling, navController)
         }
     }
 
@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
         when(navController.currentDestination?.route){
             Screens.ConnectedDevice.routeName -> {
                 viewModel.disconnect()
+                onBackPressedDispatcher.onBackPressed() //because super.onBackpressed() is deprecated https://stackoverflow.com/a/73934895
             } else -> {
                 log("Screen not included in the 'when' of onBackPressed()")
             }

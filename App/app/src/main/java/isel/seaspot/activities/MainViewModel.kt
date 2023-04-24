@@ -3,6 +3,7 @@ package isel.seaspot.activities
 import android.annotation.SuppressLint
 import android.app.Application
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.getValue
@@ -15,6 +16,7 @@ import isel.seaspot.bluetooth.BLE_Manager
 class MainViewModel(
     app: Application,
     handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>,
+    navController: NavHostController,
 ) : AndroidViewModel(app) {
 
     private val bleManager = BLE_Manager(app, handleResultOfAskingForBTEnabling)
@@ -27,6 +29,10 @@ class MainViewModel(
                 devices.set(it.key, it.value)
             }
             devicesFound = devices
+        }
+
+        bleManager.onDisconnect = {
+
         }
     }
 
@@ -43,4 +49,5 @@ class MainViewModel(
     fun disconnect() = bleManager.disconnect()
     fun getConnectedDevice() = bleManager.getConnectedDevice()
     fun getConnectedDeviceGatt() = bleManager.getConnectedDeviceGatt()
+    fun readCharacteristics(characteristics: List<BluetoothGattCharacteristic>) = bleManager.readCharacteristics(characteristics)
 }

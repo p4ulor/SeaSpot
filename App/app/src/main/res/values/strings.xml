@@ -17,4 +17,5 @@
     <string name="declaration">Declaration</string>
     <string name="value">Value</string>
     <string name="descriptor">Descriptor</string>
+    <string name="disconnect">Disconnect</string>
 </resources>

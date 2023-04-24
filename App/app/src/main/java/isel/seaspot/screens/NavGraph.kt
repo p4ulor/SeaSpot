@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import isel.seaspot.activities.MainViewModel
+import isel.seaspot.ui.theme.SeaSpotTheme
 
 //Defines the different navigable screens
 
@@ -12,10 +13,10 @@ import isel.seaspot.activities.MainViewModel
 fun NavGraph(viewModel: MainViewModel, navController: NavHostController){
     NavHost(navController = navController, startDestination = Screens.Home.routeName){
         composable(route = Screens.Home.routeName){
-            MainScreen(viewModel, navController)
+            SeaSpotTheme { MainScreen(viewModel, navController) }
         }
         composable(route = Screens.ConnectedDevice.routeName){
-            ConnectedDeviceScreen(viewModel, navController)
+            SeaSpotTheme { ConnectedDeviceScreen(viewModel, navController) }
         }
     }
 }

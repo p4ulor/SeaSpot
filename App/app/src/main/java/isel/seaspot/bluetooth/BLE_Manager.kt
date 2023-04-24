@@ -13,9 +13,13 @@ import androidx.activity.result.ActivityResultLauncher
 import isel.seaspot.R
 import isel.seaspot.utils.*
 import java.util.*
+import java.util.concurrent.locks.Condition
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 //https://developer.android.com/guide/topics/connectivity/bluetooth/setup
 //https://developer.android.com/guide/topics/connectivity/bluetooth/find-ble-devices
+//https://punchthrough.com/android-ble-guide/#:~:text=device%20from%20there.-,Implementing%20a%20basic%20queuing%20mechanism,-In%20this%20section
 @SuppressLint("MissingPermission") //because we already call askForPermissions
 class BLE_Manager(
     private val ctx: Context,
@@ -38,6 +42,7 @@ class BLE_Manager(
     var postScan: () -> Unit = {}
     var onConnectSuccessful: () -> Unit = {}
     var onServicesDiscovered: () -> Unit = {}
+    var onDisconnect: (msg: String) -> Unit = {}
 
     private fun turnOnBluetooth(){
         log("---turnOnBluetooth---")
@@ -148,7 +153,6 @@ class BLE_Manager(
                         }
                     }
                     BluetoothProfile.STATE_CONNECTING -> {
-                        toast(ctx.getString(R.string.connecting), ctx)
                         log("STATE_CONNECTING")
                     }
                     else -> { //STATE_DISCONNECTED or STATE_DISCONNECTING
@@ -176,13 +180,23 @@ class BLE_Manager(
             else log("onServicesDiscovered received: $status")
         }
 
-        override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                log("characteristic.properties = ${characteristic.properties}")
-                log("characteristic.uuid = ${characteristic.uuid}")
-                log("onCharacteristicRead received -> GATT_SUCCESS")
-            } else {
-                log("onCharacteristicRead: no success")
+        override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
+            when (status) {
+                BluetoothGatt.GATT_SUCCESS -> {
+                    log("characteristic.value = ${value.decodeToString()}. uuid = ${characteristic.uuid}")
+                    characteristicsRead.add(value)
+                }
+                BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
+                    log("onCharacteristicRead received GATT_READ_NOT_PERMITTED")
+                }
+                else -> {
+                    log("onCharacteristicRead failed? received: $status")
+                }
+            }
+
+            lock.withLock {
+                isOperationRunning = false
+                threadsWaiting.signal()
             }
         }
 
@@ -190,9 +204,39 @@ class BLE_Manager(
             log("onCharacteristicChanged()")
         }
 
-        //problematic because its async call
         override fun onDescriptorRead(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback#onDescriptorRead(android.bluetooth.BluetoothGatt,%20android.bluetooth.BluetoothGattDescriptor,%20int,%20byte[])
             log("Value = ${value.decodeToString()}")
+        }
+    }
+
+    //Command queueing variables & methods:
+    private val lock = ReentrantLock()
+    private var isOperationRunning = false
+    private var threadsWaiting: Condition = lock.newCondition()
+    private var characteristicsRead = mutableListOf<ByteArray>()
+
+    fun readCharacteristics(characteristic: List<BluetoothGattCharacteristic>) : List<ByteArray>{
+        try {
+            log("readCharacteristics ${Thread.currentThread()}")
+            lock.withLock{
+                characteristic.forEach{
+                    while(true){
+                        if(!isOperationRunning) {
+                            log("Will readCharacteristic")
+                            isOperationRunning = true
+                            currentlyConnectedDeviceGatt?.readCharacteristic(it)
+                            break
+                        }
+                        log("Will wait")
+                        threadsWaiting.await()
+                    }
+                }
+                if(isOperationRunning) threadsWaiting.await() //💡
+                return characteristicsRead
+            }
+        } catch (e: Exception) {
+            log("executeCharacteristicRead exception: $e")
+            return mutableListOf()
         }
     }
 
@@ -209,6 +253,7 @@ class BLE_Manager(
         return result
     }
 
+    //Later
     fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enabled: Boolean) { //https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
         currentlyConnectedDeviceGatt?.let { gatt ->
             gatt.setCharacteristicNotification(characteristic, enabled)
