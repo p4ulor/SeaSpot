@@ -12,7 +12,9 @@ import android.os.Handler
 import androidx.activity.result.ActivityResultLauncher
 import isel.seaspot.R
 import isel.seaspot.utils.*
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -196,8 +198,13 @@ class BLE_Manager(
 
             lock.withLock {
                 isOperationRunning = false
+                log("Finished, will signal")
                 threadsWaiting.signal()
             }
+        }
+
+        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
@@ -207,6 +214,8 @@ class BLE_Manager(
         override fun onDescriptorRead(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback#onDescriptorRead(android.bluetooth.BluetoothGatt,%20android.bluetooth.BluetoothGattDescriptor,%20int,%20byte[])
             log("Value = ${value.decodeToString()}")
         }
+
+
     }
 
     //Command queueing variables & methods:
@@ -217,10 +226,11 @@ class BLE_Manager(
 
     fun readCharacteristics(characteristic: List<BluetoothGattCharacteristic>) : List<ByteArray>{
         try {
+            characteristicsRead.clear()
             log("readCharacteristics ${Thread.currentThread()}")
             lock.withLock{
                 characteristic.forEach{
-                    while(true){
+                    while(true){ //todo dont make infinite while
                         if(!isOperationRunning) {
                             log("Will readCharacteristic")
                             isOperationRunning = true
@@ -228,7 +238,8 @@ class BLE_Manager(
                             break
                         }
                         log("Will wait")
-                        threadsWaiting.await()
+                        threadsWaiting.await(1, TimeUnit.SECONDS)
+                        log("wokeup")
                     }
                 }
                 if(isOperationRunning) threadsWaiting.await() //💡
@@ -265,4 +276,11 @@ class BLE_Manager(
             log("BluetoothGatt not initialized")
         }
     }
+}
+
+fun getCharacteristic(services: List<BluetoothGattService>, service: Service, characUUID: UUID) : BluetoothGattCharacteristic? {
+    val thisService = services.find {
+        AssignedNumbersService.uuidToEnum(it.uuid)==service.uuid
+    }
+    return thisService?.getCharacteristic(characUUID)
 }

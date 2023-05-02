@@ -54,7 +54,7 @@ private fun cutUUIDIntoBLE_UUID_withZeros(uuid: UUID) : String { //UUID to Bluet
     return uuid.toString().substring(0, 8)
 }
 
-enum class AssignedNumbersDescriptors(val value: Int){
+enum class AssignedNumbersDescriptors(val value: Int){ //Not being used
     CharacteristicExtendedProperties(0x2900),
     NumberOfDigitals(0x2909)
 }
