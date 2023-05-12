@@ -28,10 +28,12 @@ def send_data_thread():
 
 def receive_data_thread():
     # Receive any incoming data
-    print("Wait to receive message")
+    print('inicia espera')
+    time.sleep(5)
+    print('fim de espera')
+    joiner.send_data_bytes(bytes([0]))
     joiner.receive_data_blocking()
-    print("Received message")
-    # joiner.receive_data_nonblocking
+    time.sleep(10)
 
 
 def ble_thread():
