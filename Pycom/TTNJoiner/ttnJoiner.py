@@ -17,8 +17,6 @@ class TTNJoiner:
         
     def join(self):
         self.lora.join(activation=LoRa.ABP, auth=(self.dev_addr, self.nwk_swkey, self.app_swkey))
-        time.sleep(10) 
-        # Why it doesnt wait to join?
         while not self.lora.has_joined():
             time.sleep(2.5)
             print('Not yet joined...')
@@ -45,7 +43,7 @@ class TTNJoiner:
         lpp.send(reset_payload=True)
 
     def receive_data_blocking(self):
-        receive_data_blocking(self.socket)
+        return receive_data_blocking(self.socket)
 
 def receive_data_blocking(sock):
     byte_size = 64
@@ -53,5 +51,7 @@ def receive_data_blocking(sock):
     # Receive data from the socket
     data = sock.recv(byte_size)
     # Parse the received data
-    print("Received data:", binascii.hexlify(data).decode())
-        # Do something with the received data here
+    decode_data = binascii.hexlify(data).decode()
+    print("Received data:", decode_data)
+    # Do something with the received data here
+    return decode_data

@@ -20,7 +20,8 @@ print('TTN joined')
 def send_data_thread():
     # while True:
     # Send some data
-    joiner.send_data_bytes(1)
+    joiner.send_data_bytes(bytes([11]))
+    joiner.send_data_bytes(bytes([1,2,3]))
     # joiner.send_data_bytes(2)
     # joiner.send_data_bytes(3)
     # joiner.send_data_string("Hello, World!")
@@ -31,9 +32,11 @@ def receive_data_thread():
     print('inicia espera')
     time.sleep(5)
     print('fim de espera')
-    joiner.send_data_bytes(bytes([0]))
-    joiner.receive_data_blocking()
-    time.sleep(10)
+    data = ""
+    while data=="":
+        joiner.send_data_bytes(bytes([0]))
+        data = joiner.receive_data_blocking()
+        print('data: ', data=="")
 
 
 def ble_thread():
