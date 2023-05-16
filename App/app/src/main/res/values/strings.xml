@@ -21,4 +21,6 @@
     <string name="edit">Edit</string>
     <string name="success">Success</string>
     <string name="failed">Failed</string>
+    <string name="characNotFound">Characteristic not found</string>
+    <string name="valueTooBig">Value too big. Max =</string>
 </resources>

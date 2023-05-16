@@ -12,12 +12,12 @@ import androidx.compose.ui.unit.sp
 import isel.seaspot.R
 
 @Composable
-fun Button(onClick: () -> Unit, text: String){
-    Button(onClick, text, Modifier)
+fun Button(onClick: () -> Unit, text: String, isEnabled: Boolean = true){
+    Button(onClick, text, Modifier, isEnabled)
 }
 @Composable
-fun Button(onClick: () -> Unit, text: String, modifier: Modifier? = Modifier){
-    Button(onClick = { onClick() }, modifier = modifier!!){
+fun Button(onClick: () -> Unit, text: String, modifier: Modifier? = Modifier, isEnabled: Boolean){
+    Button(onClick = { onClick() }, modifier = modifier!!, enabled = isEnabled){
         Text(text)
     }
 }

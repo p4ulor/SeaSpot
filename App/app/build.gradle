@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId "isel.seaspot"
-        minSdk 24
-        targetSdk 33
+        minSdk 24 //minSdkVersion <= targetSdkVersion <= compileSdkVersion
+        targetSdk 33 //targetSdkVersion matters and it should be less than or equal to compileSdkVersion. But it makes sense that targetSDK should be equal to compileSDK
         versionCode 1
         versionName "1.0"
 

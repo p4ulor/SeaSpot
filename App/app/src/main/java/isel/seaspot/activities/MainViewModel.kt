@@ -14,7 +14,7 @@ import androidx.navigation.NavHostController
 import isel.seaspot.bluetooth.BLE_Manager
 
 class MainViewModel(
-    app: Application,
+    app: Application, //I provide the app context not activity context (which is more susceptible to memory leaks) https://stackoverflow.com/a/4128799
     handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>,
     navController: NavHostController,
 ) : AndroidViewModel(app) {

@@ -14,7 +14,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import isel.seaspot.screens.NavGraph
 import isel.seaspot.screens.Screens
+import isel.seaspot.screens.checkIfScreenNamesAreGood
 import isel.seaspot.utils.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
@@ -30,10 +33,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val routeNames = mutableListOf<String>()
-        Screens.values().forEach { //This check doesn't workout properly in Screens in a init{}
-            if(routeNames.contains(it.name)) throw IllegalArgumentException("There are screens with repetitive names")
-            routeNames.add(it.name)
+        checkIfScreenNamesAreGood()
+
+        GlobalScope.launch {
+
         }
 
         setContent {
@@ -47,6 +50,10 @@ class MainActivity : ComponentActivity() {
         if(! haveThePermissionsBeenGranted(this)){
             askForPermissions(this)
         }
+    }
+
+    override fun onStop() {
+        super.onStop(); log("onStop")
     }
 
     override fun onDestroy() {

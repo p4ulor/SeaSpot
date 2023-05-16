@@ -25,3 +25,11 @@ enum class Screens(val routeName: String){
     Home("home_screen"),
     ConnectedDevice("connected_device_screen");
 }
+
+fun checkIfScreenNamesAreGood(){
+    val routeNames = mutableListOf<String>()
+    Screens.values().forEach { //This check doesn't workout properly in Screens in a init{}
+        if(routeNames.contains(it.name)) throw IllegalArgumentException("There are screens with repetitive names")
+        routeNames.add(it.name)
+    }
+}

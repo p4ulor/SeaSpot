@@ -12,7 +12,6 @@ import android.os.Handler
 import androidx.activity.result.ActivityResultLauncher
 import isel.seaspot.R
 import isel.seaspot.utils.*
-import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
@@ -167,6 +166,7 @@ class BLE_Manager(
                 gatt?.close()
                 currentlyConnectedDeviceGatt = null
                 currentlyConnectedDevice = null
+                clearServicesCache()
             }
         }
 
@@ -183,27 +183,26 @@ class BLE_Manager(
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
-            when (status) {
-                BluetoothGatt.GATT_SUCCESS -> {
-                    log("characteristic.value = ${value.decodeToString()}. uuid = ${characteristic.uuid}")
-                    characteristicsRead.add(value)
+            runBlockingCallback {
+                when (status) {
+                    BluetoothGatt.GATT_SUCCESS -> {
+                        log("characteristic.value -> String = ${value.decodeToString()}. Raw = ${value}. uuid = ${characteristic.uuid}")
+                        characteristicsRead.add(value)
+                    }
+                    BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
+                        log("onCharacteristicRead received GATT_READ_NOT_PERMITTED")
+                    }
+                    else -> {
+                        log("onCharacteristicRead failed? received: $status")
+                    }
                 }
-                BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
-                    log("onCharacteristicRead received GATT_READ_NOT_PERMITTED")
-                }
-                else -> {
-                    log("onCharacteristicRead failed? received: $status")
-                }
-            }
-
-            lock.withLock {
-                isOperationRunning = false
-                log("Finished, will signal")
-                threadsWaiting.signal()
             }
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            log("onCharacteristicWrite")
+            log("Characteristic value: ${characteristic?.value?.decodeToString()}")
+            log("status = $status")
             super.onCharacteristicWrite(gatt, characteristic, status)
         }
 
@@ -214,8 +213,6 @@ class BLE_Manager(
         override fun onDescriptorRead(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback#onDescriptorRead(android.bluetooth.BluetoothGatt,%20android.bluetooth.BluetoothGattDescriptor,%20int,%20byte[])
             log("Value = ${value.decodeToString()}")
         }
-
-
     }
 
     //Command queueing variables & methods:
@@ -251,8 +248,18 @@ class BLE_Manager(
         }
     }
 
+    private fun runBlockingCallback(operation: () -> Unit){ //Utility func. Meant be used when we want to make many BLE operations at the same time or to sync the function that call a BLE callback with it's completion state
+        operation()
+        lock.withLock {
+            isOperationRunning = false
+            log("Finished, will signal")
+            threadsWaiting.signal()
+        }
+    }
+
     private fun clearServicesCache() : Boolean { //https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=the%20services%0A...-,Caching%20of%20services,-The%20Android%20stack
         var result = false
+        log("Will try to clear cache")
         try {
             val refreshMethod = currentlyConnectedDevice?.javaClass?.getMethod("refresh")
             if (refreshMethod != null) {
@@ -280,7 +287,7 @@ class BLE_Manager(
 
 fun getCharacteristic(services: List<BluetoothGattService>, service: Service, characUUID: UUID) : BluetoothGattCharacteristic? {
     val thisService = services.find {
-        AssignedNumbersService.uuidToEnum(it.uuid)==service.uuid
+        it.uuid.toString()==service.fullUUID //more accurate search, in case it's an Unknown service
     }
     return thisService?.getCharacteristic(characUUID)
 }
