@@ -22,9 +22,6 @@ def send_data_thread():
     # Send some data
     joiner.send_data_bytes(bytes([11]))
     joiner.send_data_bytes(bytes([1, 2, 3]))
-    # joiner.send_data_bytes(2)
-    # joiner.send_data_bytes(3)
-    # joiner.send_data_string("Hello, World!")
 
 
 def receive_data_thread():
@@ -40,61 +37,72 @@ def receive_data_thread():
 
 # See the following for generating UUIDs:
 # https://www.uuidgenerator.net/
-SERVICE_UUID = "7c6d1501-d8d1-4d92-b632-4180df0c1ffa"
-CHARACTERISTIC_UUID = "c364d403-1eb5-40d6-bdde-4f2be0845402"
+SERVICE_UUID_BATTERY = 0x180F # batteries service
+SERVICE_UUID_LOCATION = 0x1819 # location
+
+CHARACTERISTIC_UUID_BATTERY = 0x2a19 # battery level
+CHARACTERISTIC_UUID_LATITUDE = 0x2aae # latitude
+CHARACTERISTIC_UUID_LONGITUDE = 0x2aaf # longitude
 
 
 def ble_thread():
-    battery = 100
-    update = False
-
-    def conn_cb(chr):
-        nonlocal update
-        events = chr.events()
-        if events & Bluetooth.CLIENT_CONNECTED:
-            print('client connected')
+    def conn_cb (bt_o):
+        events = bt_o.events()
+        if  events & Bluetooth.CLIENT_CONNECTED:
+            print("Client connected")
         elif events & Bluetooth.CLIENT_DISCONNECTED:
-            print('client disconnected')
-            update = False
+            print("Client disconnected")
 
-    def chr1_handler(chr, data):
-        nonlocal battery, update
-        events = chr.events()
-        print("events: ", events)
-        if events & (Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_SUBSCRIBE_EVENT | Bluetooth.CHAR_WRITE_EVENT):
-            chr.value(battery)
-            print("transmitted :", battery)
-            if (events & (Bluetooth.CHAR_SUBSCRIBE_EVENT | Bluetooth.CHAR_WRITE_EVENT)):
-                update = True
+    def char1_cb_handler(chr, data):
+        events, value = data
+        if  events & Bluetooth.CHAR_WRITE_EVENT:
+            print("On char 1 Write request with value = {}".format(value))
+        else:
+            print('Read request on char 1 ',data)
+
+    def char2_cb_handler(chr, data):
+        events, value = data
+        if  events & Bluetooth.CHAR_WRITE_EVENT:
+            print("On char 2 Write request with value = {}".format(value))
+        else:
+            print('Read request on char 2 ',data)
+
+    def char3_cb_handler(chr, data):
+        events, value = data
+        if  events & Bluetooth.CHAR_WRITE_EVENT:
+            print("On char 3 Write request with value = {}".format(value))
+        else:
+            print('Read request on char 3 ',data)
+
+    def char4_cb_handler(chr, data):
+        events, value = data
+        if  events & Bluetooth.CHAR_WRITE_EVENT:
+            print("On char 4 Write request with value = {}".format(value))
+        else:
+            print('Read request on char 4 ',data)
+
     bluetooth = Bluetooth()
-    bluetooth.set_advertisement(
-        name='SeaSpot', manufacturer_data="Pycom", service_uuid=SERVICE_UUID)
-
-    bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED |
-                       Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
+    bluetooth.set_advertisement(name='SEASPOT', service_uuid=b'1234567890123456')
+    bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
     bluetooth.advertise(True)
 
-    srv1 = bluetooth.service(uuid=SERVICE_UUID, isprimary=True, nbr_chars=1)
+    srv1 = bluetooth.service(uuid=b'1234567890123456', isprimary=True)
+    chr1 = srv1.characteristic(uuid=b'ab34567890123456', value=5)
+    char1_cb = chr1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char1_cb_handler)
 
-    # client reads from here
-    chr1 = srv1.characteristic(
-        uuid=CHARACTERISTIC_UUID, value='read_from_here')
+    srv2 = bluetooth.service(uuid=SERVICE_UUID_BATTERY, isprimary=True)
+    chr2 = srv2.characteristic(uuid=CHARACTERISTIC_UUID_BATTERY, value='50%')
+    char2_cb = chr2.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
-    chr1.callback(trigger=(Bluetooth.CHAR_READ_EVENT |
-                  Bluetooth.CHAR_WRITE_EVENT), handler=chr1_handler)
-    print('Start BLE service')
+    srv3 = bluetooth.service(uuid=SERVICE_UUID_LOCATION, isprimary=True, nbr_chars=2)
+    chr3 = srv3.characteristic(uuid=CHARACTERISTIC_UUID_LATITUDE, value='100')
+    char3_cb = chr3.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char3_cb_handler)
+    
+    chr4 = srv3.characteristic(uuid=CHARACTERISTIC_UUID_LONGITUDE, value='200')
+    char4_cb = chr4.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char4_cb_handler)
 
-    def update_handler(update_alarm):
-        nonlocal battery, update
-        battery -= 1
-        if battery == 1:
-            battery = 100
-        if update:
-            chr1.value(str(battery))
+    print('Start BLE Service')
 
-    update_alarm = Timer.Alarm(update_handler, 1, periodic=True)
-
-
-# _thread.start_new_thread(send_data_thread, ())
-# _thread.start_new_thread(receive_data_thread, ())
+_thread.start_new_thread(send_data_thread, ())
+_thread.start_new_thread(receive_data_thread, ())
 _thread.start_new_thread(ble_thread, ())
