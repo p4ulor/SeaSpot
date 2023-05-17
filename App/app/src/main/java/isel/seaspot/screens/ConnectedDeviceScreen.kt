@@ -90,77 +90,47 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
                                 servicesOpen.set(service.uuid.toString(), !isItOpen)
                                 if (!isItOpen) { //If it wasn't open, (and now it has been set to open), get the characteristic values
                                     coroutineScope.launch {
-                                        log("Will executeCharacteristicRead ${service.uuid}")
+                                        log("Will executeCharacteristicRead ${service.uuid} with ${Thread.currentThread().name}")
                                         val gattCharacteristics = service.characteristics.toMutableList() //to create a copy
 
                                         val characteristicsOfThisService = mutableListOf<Characteristic>()
+                                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                                            log("33")
+                                        } else log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
 
-                                        val charsValues = vm?.readCharacteristics(
-                                            gattCharacteristics
-                                        ) ?: mutableListOf() //blocking
 
-                                        log("Values of the characteristics obtained: ${charsValues.map { it.decodeToString() }}")
+                                        //this is just a test
+                                        gattCharacteristics.forEach {
+                                            log("read: ${it.value}. ${it.getStringValue(0)}")
+                                        }
+
+                                        val charsValues = vm?.readCharacteristics(gattCharacteristics) ?: mutableListOf() //blocking
+
+                                        gattCharacteristics.forEach {
+                                            log("read: ${it.value}. ${it.getStringValue(0)}")
+                                        }
+
+                                        log("Values of the characteristics obtained: ${charsValues.map { it.decodeToString() }}. Raw = ${charsValues.map { it }}")
                                         gattCharacteristics.forEachIndexed { index, charac ->
-                                            log(
-                                                "------Reading characteristic: ${
-                                                    AssignedNumbersCharacteristics.uuidToEnum(
-                                                        charac.uuid
-                                                    ).name
-                                                }"
-                                            )
+                                            log("------Reading characteristic: ${AssignedNumbersCharacteristics.uuidToEnum(charac.uuid).name}")
                                             log("properties = ${charac.properties}")
                                             log("permissions = ${charac.permissions}") //There's some problem with the reading of permissions https://github.com/pauldemarco/flutter_blue/issues/6 https://stackoverflow.com/questions/23674668/android-bluetooth-low-energy-characteristic-getpermissions-returns-0
-                                            log(
-                                                "Does it contain property read? ${
-                                                    doesItContainField(
-                                                        charac.properties,
-                                                        Properties.READ
-                                                    )
-                                                }"
-                                            )
-                                            log(
-                                                "Does it contain property write? ${
-                                                    doesItContainField(
-                                                        charac.properties,
-                                                        Properties.WRITE
-                                                    )
-                                                }"
-                                            )
-                                            log(
-                                                "Does it contain permission read? ${
-                                                    doesItContainField(
-                                                        charac.permissions,
-                                                        Permissions.READ
-                                                    )
-                                                }"
-                                            )
-                                            log(
-                                                "Does it contain permission write? ${
-                                                    doesItContainField(
-                                                        charac.permissions,
-                                                        Permissions.WRITE
-                                                    )
-                                                }"
-                                            )
+                                            log("Does it contain property read? ${doesItContainField(charac.properties, Properties.READ)}")
+                                            log("Does it contain property write? ${doesItContainField(charac.properties, Properties.WRITE)}")
+                                            log("Does it contain permission read? ${doesItContainField(charac.permissions, Permissions.READ)}")
+                                            log("Does it contain permission write? ${doesItContainField(charac.permissions, Permissions.WRITE)}")
 
-                                            val isWritable = doesItContainField(
-                                                charac.properties,
-                                                Properties.WRITE
-                                            )
+                                            val isWritable = doesItContainField(charac.properties, Properties.WRITE)
+                                            val values = try {
+                                                charsValues.get(index)
+                                            } catch(e: IndexOutOfBoundsException){
+                                                byteArrayOf(1)
+                                            }
                                             characteristicsOfThisService.add(
-                                                Characteristic(
-                                                    charac.uuid,
-                                                    charac.uuid,
-                                                    charsValues.get(index),
-                                                    isWritable
-                                                )
+                                                Characteristic(charac.uuid, charac.uuid, values, isWritable)
                                             )
                                         }
-                                        val currentServiceData = Service(
-                                            service.uuid,
-                                            service.uuid,
-                                            characteristicsOfThisService
-                                        )
+                                        val currentServiceData = Service(service.uuid, service.uuid, characteristicsOfThisService)
 
                                         servicesData.removeIf {
                                             it.uuid == currentServiceData.uuid
@@ -209,7 +179,7 @@ fun CharacteristicDisplay(
 
                     Text("${stringResource(R.string.characteristic)}: ${characteristic.uuid}")
                     if(characteristic.isWritable) {
-                        log("Text raw = ${characteristic.value.toList()}")
+                        log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
                         var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }
                         var isEditButtonEnabled by rememberSaveable { mutableStateOf(text.length<=maximumBytes) }
                         val valueTooBigMaximumIs = "${stringResource(R.string.valueTooBig)}"

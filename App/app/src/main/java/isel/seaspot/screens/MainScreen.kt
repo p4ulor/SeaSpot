@@ -48,7 +48,7 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
         Row(modifier = Modifier.padding(vertical = 1.dp)) {
             if (vm.devicesFound.isNotEmpty()) {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(vm.devicesFound.toList()) {
+                    items(vm.devicesFound.toList().sortedByDescending { it.second.name!=null }) {
                         ListOfDevices({
                             try {
                                 vm.connect(it.first){

@@ -1,5 +1,6 @@
 package isel.seaspot.bluetooth
 
+import isel.seaspot.utils.log
 import java.util.*
 
 // For now android only includes Company ID values in BluetoothAssignedNumbers. https://developer.android.com/reference/android/bluetooth/BluetoothAssignedNumbers#APPLE:~:text=For%20now%20we%20only%20include%20Company%20ID%20values.
@@ -20,7 +21,9 @@ enum class AssignedNumbersService(val value: Int){
             var assignedNumber = Unknown
             AssignedNumbersService.values().forEach {
                 val value = Integer.toHexString(it.value)
-                if(cutUUIDIntoBLE_UUID(uuid).equals(value)) assignedNumber = it
+                val bleUUID = cutUUIDIntoBLE_UUID(uuid)
+                log("bleUUID = $bleUUID")
+                if(bleUUID.equals(value)) assignedNumber = it
             }
             return assignedNumber
         }
@@ -55,7 +58,9 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
             var assignedNumber = Unknown
             AssignedNumbersCharacteristics.values().forEach {
                 val value = Integer.toHexString(it.value)
-                if(cutUUIDIntoBLE_UUID(uuid).equals(value)) assignedNumber = it
+                val bleUUID = cutUUIDIntoBLE_UUID(uuid)
+                log("bleUUID = $bleUUID")
+                if(bleUUID.equals(value)) assignedNumber = it
             }
             return assignedNumber
         }
@@ -73,14 +78,5 @@ enum class ValueType {
 }
 
 private fun cutUUIDIntoBLE_UUID(uuid: UUID) : String { //UUID to Bluetooth SIG UUID
-    val sb = StringBuilder()
-    uuid.toString().forEach {
-        if(it=='-') return sb.toString()
-        if(it!='0') sb.append(it)
-    }
-    return sb.toString()
-}
-
-private fun cutUUIDIntoBLE_UUID_withZeros(uuid: UUID) : String { //UUID to Bluetooth SIG UUID
-    return uuid.toString().substring(0, 8)
+    return uuid.toString().substring(4, 8)
 }

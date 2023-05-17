@@ -173,17 +173,22 @@ class BLE_Manager(
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 log("onServicesDiscovered received -> GATT_SUCCESS")
-                log("Services = ${gatt?.services}")
-                val x = gatt?.services?.get(0)
-                log("Characteristics - ${x?.characteristics}")
-                gatt?.readCharacteristic(x?.characteristics?.get(0))
-                onServicesDiscovered()
+                log("Services = ${gatt?.services?.map { "${it.uuid} (${AssignedNumbersService.uuidToEnum(it.uuid).name})" } }")
+                try {
+                    val x = gatt?.services?.get(0)
+                    log("Characteristics - ${x?.characteristics}")
+                    gatt?.readCharacteristic(x?.characteristics?.get(0))
+                    onServicesDiscovered()
+                } catch (e :Exception){
+                    log("Exception on onServicesDiscovered: $e")
+                }
             }
             else log("onServicesDiscovered received: $status")
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
             runBlockingCallback {
+                log("onCharacteristicRead ${Thread.currentThread()}")
                 when (status) {
                     BluetoothGatt.GATT_SUCCESS -> {
                         log("characteristic.value -> String = ${value.decodeToString()}. Raw = ${value}. uuid = ${characteristic.uuid}")
@@ -195,6 +200,21 @@ class BLE_Manager(
                     else -> {
                         log("onCharacteristicRead failed? received: $status")
                     }
+                }
+            }
+        }
+
+        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
+            log("onCharacteristicRead2 ${Thread.currentThread()}")
+            when (status) {
+                BluetoothGatt.GATT_SUCCESS -> {
+                    log("characteristic.value -> String = ${characteristic?.value}. uuid = ${characteristic?.uuid}")
+                }
+                BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
+                    log("onCharacteristicRead received GATT_READ_NOT_PERMITTED")
+                }
+                else -> {
+                    log("onCharacteristicRead failed? received: $status")
                 }
             }
         }
@@ -225,9 +245,10 @@ class BLE_Manager(
         try {
             characteristicsRead.clear()
             log("readCharacteristics ${Thread.currentThread()}")
+            var maxWaitSeconds = 10
             lock.withLock{
                 characteristic.forEach{
-                    while(true){ //todo dont make infinite while
+                    while(true){
                         if(!isOperationRunning) {
                             log("Will readCharacteristic")
                             isOperationRunning = true
@@ -235,11 +256,16 @@ class BLE_Manager(
                             break
                         }
                         log("Will wait")
+                        maxWaitSeconds--
                         threadsWaiting.await(1, TimeUnit.SECONDS)
                         log("wokeup")
+                        if(maxWaitSeconds==0) {
+                            log("Quit waiting")
+                            break
+                        }
                     }
                 }
-                if(isOperationRunning) threadsWaiting.await() //💡
+                if(isOperationRunning) threadsWaiting.await(maxWaitSeconds.toLong(), TimeUnit.SECONDS) //💡
                 return characteristicsRead
             }
         } catch (e: Exception) {

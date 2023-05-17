@@ -27,14 +27,14 @@ print('TTN joined')
 def send_data_thread():
     # while True:
     # Send some data
-    joiner.send_data_bytes(bytes([11]))
+    # joiner.send_data_bytes(bytes([11]))
     joiner.send_data_bytes(bytes([1, 2, 3]))
 
 
 def receive_data_thread():
     # Receive any incoming data
     print('inicia espera')
-    time.sleep(5)
+    time.sleep(15)
     print('fim de espera')
     data = ""
     while data == "":
@@ -42,16 +42,20 @@ def receive_data_thread():
         data = joiner.receive_data_blocking()
         print('data: ', data == "")
 
+
+################## BLE SERVER ##################
+
 # See the following for generating UUIDs:
 # https://www.uuidgenerator.net/
 SERVICE_UUID = '8c222682-d005-4c04-8556-0fc5a6568c3a'
-SERVICE_UUID_BATTERY = 0x180F # batteries service
-SERVICE_UUID_LOCATION = 0x1819 # location
+SERVICE_USER_DATA = 0x181C
+SERVICE_UUID_BATTERY = 0x180F
+SERVICE_UUID_LOCATION = 0x1819 # LocationAndNavigation
 
-CHARACTERISTIC_UUID_BATTERY = 0x2a19 # battery level
-CHARACTERISTIC_UUID_LATITUDE = 0x2aae # latitude
-CHARACTERISTIC_UUID_LONGITUDE = 0x2aaf # longitude
-
+CHARACTERISTIC_UUID_NAME = 0x2ABE # ObjectName
+CHARACTERISTIC_UUID_BATTERY = 0x2a19 # BatteryLevel
+CHARACTERISTIC_UUID_LATITUDE = 0x2aae
+CHARACTERISTIC_UUID_LONGITUDE = 0x2aaf
 
 def ble_thread():
     def conn_cb (bt_o):
@@ -70,10 +74,9 @@ def ble_thread():
 
     def char2_cb_handler(chr, data):
         events, value = data
-        if  events & Bluetooth.CHAR_WRITE_EVENT:
-            print("On char 2 Write request with value = {}".format(value))
-        else:
+        if  Bluetooth.CHAR_READ_EVENT:
             print('Read request on char 2 ',data)
+            
 
     def char3_cb_handler(chr, data):
         events, value = data
@@ -94,13 +97,13 @@ def ble_thread():
     bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
     bluetooth.advertise(True)
 
-    srv1 = bluetooth.service(uuid=uuid2bytes(SERVICE_UUID), isprimary=True)
-    chr1 = srv1.characteristic(uuid=b'ab34567890123456', value=5)
+    srv1 = bluetooth.service(uuid=SERVICE_USER_DATA, isprimary=True)
+    chr1 = srv1.characteristic(uuid=CHARACTERISTIC_UUID_NAME, value='LilyGo')
     char1_cb = chr1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char1_cb_handler)
 
     srv2 = bluetooth.service(uuid=SERVICE_UUID_BATTERY, isprimary=True)
     chr2 = srv2.characteristic(uuid=CHARACTERISTIC_UUID_BATTERY, value='50%')
-    char2_cb = chr2.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
+    char2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
     srv3 = bluetooth.service(uuid=SERVICE_UUID_LOCATION, isprimary=True, nbr_chars=2)
     chr3 = srv3.characteristic(uuid=CHARACTERISTIC_UUID_LATITUDE, value='100')
@@ -111,6 +114,6 @@ def ble_thread():
 
     print('Start BLE Service')
 
-_thread.start_new_thread(send_data_thread, ())
-_thread.start_new_thread(receive_data_thread, ())
-_thread.start_new_thread(ble_thread, ())
+# _thread.start_new_thread(send_data_thread, ()) # enviar para o TTN
+# _thread.start_new_thread(receive_data_thread, ()) # receber to TTN
+_thread.start_new_thread(ble_thread, ()) # ble server
