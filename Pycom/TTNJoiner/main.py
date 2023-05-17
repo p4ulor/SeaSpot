@@ -4,8 +4,15 @@ import ttnJoiner
 import _thread
 from network import Bluetooth
 from machine import Timer
+import binascii
 
 from network import LoRa
+
+def uuid2bytes(uuid):
+    uuid = uuid.encode().replace(b'-',b'')
+    tmp = binascii.unhexlify(uuid)
+    return bytes(reversed(tmp))
+
 # Initialise LoRa in LORAWAN mode.
 # Please pick the region that matches where you are using the device:
 # Europe = LoRa.EU868
@@ -31,12 +38,13 @@ def receive_data_thread():
     print('fim de espera')
     data = ""
     while data == "":
-        joiner.send_data_bytes(bytes([0]))
+        joiner.send_data_bytes(bytes([1]))
         data = joiner.receive_data_blocking()
         print('data: ', data == "")
 
 # See the following for generating UUIDs:
 # https://www.uuidgenerator.net/
+SERVICE_UUID = '8c222682-d005-4c04-8556-0fc5a6568c3a'
 SERVICE_UUID_BATTERY = 0x180F # batteries service
 SERVICE_UUID_LOCATION = 0x1819 # location
 
@@ -82,11 +90,11 @@ def ble_thread():
             print('Read request on char 4 ',data)
 
     bluetooth = Bluetooth()
-    bluetooth.set_advertisement(name='SEASPOT', service_uuid=b'1234567890123456')
+    bluetooth.set_advertisement(name='SEASPOT', service_uuid=uuid2bytes(SERVICE_UUID))
     bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
     bluetooth.advertise(True)
 
-    srv1 = bluetooth.service(uuid=b'1234567890123456', isprimary=True)
+    srv1 = bluetooth.service(uuid=uuid2bytes(SERVICE_UUID), isprimary=True)
     chr1 = srv1.characteristic(uuid=b'ab34567890123456', value=5)
     char1_cb = chr1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char1_cb_handler)
 
