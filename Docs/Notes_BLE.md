@@ -11,7 +11,7 @@ The Android App will use BLE in order to communicate with another device which w
 - ATT - Attribute Protocol
 
 ## Server characteristics in a Bluetooth Low Energy
-This code is an example of how to manage server characteristics in a Bluetooth Low Energy (BLE) device.
+The example bellow demonstrates how to set up Bluetooth services, characteristics, and callbacks to handle read and write events on those characteristics. 
 ```python
 from network import Bluetooth
 
@@ -51,7 +51,7 @@ srv2 = bluetooth.service(uuid=1234, isprimary=True)
 chr2 = srv2.characteristic(uuid=4567, value=0x1234)
 char2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 ```
-A Bluetooth object is created, and the device is set to advertise its presence with the name ``'SEASPOT'`` and the service ``UUID '1234567890123456'``. The callback method is used to register a callback function conn_cb that will be executed when a client connects or disconnects from the device. A service is created using the service method of the Bluetooth object. Then, a characteristic ``chrx`` is created within the service with the ``UUID 'xxxxxxxxxxxxxxxx'`` and an initial value. A callback function ``charx_cb_handler`` is registered for this characteristic to handle write and read or read events. Summarily the example demonstrates how to set up Bluetooth services, characteristics, and callbacks to handle read and write events on those characteristics. 
+A Bluetooth object is created, and the device is set to advertise its presence with the name ``'SEASPOT'`` and the service ``UUID '1234567890123456'``. The callback method is used to register a callback function ``conn_cb`` that will be executed when a client connects or disconnects from the device. A service is created using the service method of the Bluetooth object. Then, a characteristic ``chrx`` is created within the service with the ``UUID 'xxxxxxxxxxxxxxxx'`` and an initial value. A callback function ``charx_cb_handler`` is registered for this characteristic to handle write and read or read events.
 
 ### Sources
 - [Bluetooth BLE](https://www.bluetooth.com/bluetooth-resources/intro-to-bluetooth-low-energy/)
