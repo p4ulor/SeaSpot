@@ -29,34 +29,77 @@ Para utilizar a TTN, é necessário registrar uma conta na plataforma. O registo
 Um Network cluster na TTN é uma organização ou grupo de utilizadores responsável por configurar e manter uma rede de gateways LoRaWAN em uma área geográfica específica. O papel destes clusters são importantes para a expansão da cobertura da TTN, pois permitem que mais áreas sejam atendidas pela rede. Ao criar um network cluster, os utilizadores comprometem a instalar e manter gateways em locais estratégicos dentro da região, garantindo uma cobertura adequada para os dispositivos LoRaWAN. É utilizado o cluster Europe 1 e o device or gateway location em Portugal. Na opção de Go to applications é possível adicionar a aplicação com o objetivo de gerir dispositivos e visualizar dados na rede.
 ![createappTTN](images/createappTTN.JPG)
 
-O processo de registo do dispositivo final pode variar dependendo do tipo de dispositivo e das opções disponíveis, mas geralmente envolve as seguintes etapas:
+O processo de registo do dispositivo pode variar dependendo do tipo de dispositivo e das opções disponíveis, mas geralmente envolve as seguintes etapas:
 
-- Obter as informações de autenticação do dispositivo: O dispositivo final deve ter um conjunto de informações de ativação, como um AppEUI (Endereço Único da Aplicação) e um DevEUI (Endereço Único do Dispositivo). Essas informações podem ser fornecidas pelo fabricante do dispositivo ou geradas pela própria plataforma da TTN.TODO: ser mais específico.
+- Obter as informações de autenticação do dispositivo: O dispositivo deve ter um conjunto de informações de ativação, como um AppEUI (Endereço Único da Aplicação) e um DevEUI (Endereço Único do Dispositivo). Essas informações podem ser fornecidas pelo fabricante do dispositivo ou geradas pela própria plataforma da TTN.TODO: ser mais específico.
 
-- Adicionar o dispositivo na aplicação: Na aplicação da TTN, clique em Register end device (Registrar dispositivo final). Na secção End device type(tipo de dispositivo final) insira manualmente as características do dispositivo que vai ser utilizado, tal como Frequency plan, LoRaWAN version, modo de ativação ABP (Activation by Personalization) ou OTAA (Over-The-Air Activation), etc.
+- Adicionar o dispositivo na aplicação: Na aplicação da TTN, clique em Register end device (Registrar dispositivo). Na secção End device type(tipo de dispositivo) insira manualmente as características do dispositivo que vai ser utilizado, tal como Frequency plan, LoRaWAN version, modo de ativação ABP (Activation by Personalization) ou OTAA (Over-The-Air Activation), etc.
 ![enddevicetype](images/enddevicetype.JPG)
 ![advancedactivation](images/advancedactivation.png)
 
 TODO: ACTIVATION BY PERSONALIZATION VS OVER THE AIR ACTIVATION
-Qual foi o modo o escolhido e qual a vantagem e desvantagens?
+Qual foi o modo escolhido e qual a vantagem e desvantagens?
 
 Ao registar vai ser possível ter uma visão geral do dispositivo na aplicação na qual pode visualizar todas as informações sobre o dispositivo. Esta informação será útil para a comunicação do dispositivo com a plataforma TTN
 
 # 4.2 Protocolo de rede LoRaWAN
-##	4.2.1 Visão geral do protocolo de rede LoRaWAN
-##	4.2.2 Benefícios e aplicabilidade do LoRaWAN no projeto
+## 4.2.1 Visão geral do protocolo de rede LoRaWAN
+Uma rede baseada em LoRaWAN é composta por devices (dispositivos), gateways, um network server (servidor de rede) e application server (aplicação servidora). Os dispositivos enviam mensagens para gateways (uplink), os gateways repassam ao network server e por sua vez repassa ao application server conforme necessário.
+![uplinktransmission](images/Uplink_Transmission.png)
+
+Além disso, o network server pode enviar mensagens através de um gateway para um ou mais dispositivos (downlinks).
+
+![downlinktransmission](images/Downlink_Transmission.png)
+
+Dispositivos que suportam LoRaWAN network vem em três classes: Classe A, Classe B e Class C. Enquanto que os dispositivos podem sempre enviar uplinks. A classe de dispositivos determina quando é que pode receber downlinks. A classe também determina a eficiência de energia do dispositivo. Quanto mais eficiente, maior o tempo de vida da bateria.
+
+- Os dispositivos classe A passam a maior parte do tempo em sleep mode. Como o LoRaWAN não é um protocolo “slotted”, os dispositivos podem comunicar com o network server sempre que houver uma alteração na leitura de um sensor ou quando um temporizador for acionado. Basicamente, eles podem acordar e falar com o servidor a qualquer momento.
+
+- Os dispositivos de classe B tem janelas de recebimento agendadas, em adição à funcionalidade padrão da classe A. Esta classe acorda periodicamente para ouvir mensagens de downlink com base em uma programação definida pela rede.
+
+- Os dispositivos de classe C estão constantemente a ouvir mensagens de downlink, exceto ao transmitir mensagens. Exigem uma fonte de energia constante tornando menos eficientes em termos de energia.
+
+![energyconsumption](images/Energy_Consumption.png)
+
+## 4.2.2 Noções básicas sobre dispositivos de classe A
+O protocolo de rede LoRaWAN depende de uma rede do tipo "Aloha". Nesse tipo de rede, os dispositivos podem transmitir arbitrariamente.
+A principal característica da Classe A é que a comunicação é iniciada apenas pelo dispositivo.
+
+As mensagens de downlink do network server são feitas em queue até a próxima vez que uma mensagem de uplink for recebida do dispositivo e uma receive window for aberta. Este desenho é específico para aplicativos que exigem comunicação de downlink em resposta a um uplink ou que podem agendar downlinks com antecedência com requisitos de latência bastante flexíveis.
+
+Os dispositivos suportam comunicação bidirecional entre um dispositivo e um gateway. As mensagens de uplink (do dispositivo para o servidor) podem ser enviadas a qualquer momento (aleatoriamente). O dispositivo então abre duas receive window em horários especificados (1s e 2s) após uma transmissão de uplink (TX). Se o servidor não responder em nenhuma dessas receive windows(RX), a próxima oportunidade será após a próxima transmissão de uplink do dispositivo. O servidor pode responder na primeira receive window(RX1) ou na segunda receive window(RX2), mas não deve usar ambas as janelas.
+
+![receivewindow](images/LoRaWAN-Class-A-transaction-The-transaction-is-node-initiated-uplink-direction-the.png)
+
+A duração de cada receive window deve ser pelo menos tão longa quanto o tempo requerido pelo transcetor de rádio do dispositivo para detetar efetivamente um preâmbulo de downlink. Se o dispositivo detetar um preâmbulo de downlink durante esse tempo, o receptor de rádio permanecerá aberto até que os dados de downlink sejam extraídos.
+
+## 4.2.3 Vantagens e aplicabilidades da rede LoRaWAN no projeto
+
+A principal diferença entre a abordagem LoRaWAN e outras abordagens é que os dispositivos são emparelhados com a própria rede e não estão vinculados exclusivamente a um único gateway. Ao invés os dispositivos transmitem os sinais para todos os gateways dentro do alcance. Cada um dos gateways recetores passa os dados para o network server e, em seguida, o network server elimina a duplicação da mensagem e envia uma única versão para o application server.
+
+Existem várias vantagens na utilização da rede LoRaWAN no projeto
+
+- Gateways podem ser adicionados em qualquer lugar a qualquer momento.
+
+- A entrega precisa de mensagens é mais robusta, pois vários gateways recebem o mesmo pacote de dados durante cada uplink. Isso é chamado de diversidade espacial de uplink.
+
+- Não há necessidade de planear frequências diferentes para cada gateway ou realojar frequências quando o número de gateways mudar. Todos os gateways estão constantemente a ouvir todas as frequências da rede.
+
+- Dispositivos móveis podem operar com baixo consumo de energia, devido ao fato de que qualquer gateway pode receber mensagens de qualquer dispositivo. Isso significa que (ao contrário, por exemplo, das redes celulares) a rede LoRaWAN não percebe ou se importa com o movimento do dispositivo; ele simplesmente recebe uplinks dos gateways mais próximos da localização atual do dispositivo.
+![topology](images/Topology.png)
+
 
 # 4.3 Dispositivo TTGO T-Beam
-##	4.3.1 Visão geral do dispositivo TTGO T-Beam
-##	4.3.2 Características e funcionalidades do TTGO T-Beam
-##	4.3.3 Seleção do TTGO T-Beam para o projeto
+## 4.3.1 Visão geral do dispositivo TTGO T-Beam
+## 4.3.2 Características e funcionalidades do TTGO T-Beam
+## 4.3.3 Seleção do TTGO T-Beam para o projeto
 
 # 4.4 Desenvolvimento da aplicação Android
-##	4.4.1 Descrição da aplicação Android
-##	4.4.2 Conexão via BLE com o dispositivo TTGO T-Beam
-##	4.4.3 Integração da aplicação Android com a TTN
+## 4.4.1 Descrição da aplicação Android
+## 4.4.2 Conexão via BLE com o dispositivo TTGO T-Beam
+## 4.4.3 Integração da aplicação Android com a TTN
 
 # 4.5 Desenvolvimento da aplicação web
-##	4.5.1 Descrição da aplicação web
-##	4.5.2 Funções e interações com o TTGO T-Beam e a TTN
-##	4.5.3 Tecnologias utilizadas no desenvolvimento da aplicação web
+## 4.5.1 Descrição da aplicação web
+## 4.5.2 Funções e interações com o TTGO T-Beam e a TTN
+## 4.5.3 Tecnologias utilizadas no desenvolvimento da aplicação web
