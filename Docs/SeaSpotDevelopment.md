@@ -100,24 +100,52 @@ Existem várias vantagens na utilização da rede LoRaWAN no projeto
 # 4.3 Bluetooth Low Energy
 ## 4.3.1 Visão geral
 
-Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio. No BLE, é adotada uma arquitetura cliente-servidor para facilitar a comunicação entre dispositivos. Nessa arquitetura, os dispositivos periféricos são os servidores, enquanto os dispositivos centrais atuam como clientes. BLE é otimizado para eficiência energética e utilizado em dispositivos IoT.
+Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio. É importante perceber como funciona uma conexão BLE, quais as funções desempenhadas pelos dispositivos envolvidos e como é que os dados são transferidos de um dispositivo para o outro. Muitos termos são usados ​​e geralmente não são intercambiáveis: master, slave, central, peripheral, client, server, standby, advertise, scan e initiating. Distinguir estes termos é importante para facilmente descrever e construir uma aplicação BLE.
 
-## 4.3.2 Conexão BLE
+## Conexões e funcionalidades BLE
 
-## 4.3.3 Generic Attribute Profile (GATT)
+### 4.3.2.1 Connection Roles
+
+Um conceito importante na conectividade BLE é a diferença entre um dispositivo master e um dispositivo slave.
+
+- Master o dispositivo BLE que inicia uma solicitação de conexão a um dispositivo advertising.
+
+- Slave o dispositivo BLE que aceita uma solicitação de conexão após advertising.
+
+![MasterSlave](images/roles-unicast-connected.png)
+
+Uma distinção importante entre o dispositivo master e slave em uma rede BLE é que um slave só pode ser conectado a um único master, mas um master pode ser conectado a vários slaves. A especificação BLE não limita o número de slaves aos quais um master pode se conectar, mas sempre há uma limitação prática.
+
+### 4.3.2.2 Funcionalidades do Generic Attribute Profile (GATT)
 
 O Generic Attribute Profile (GATT) no BLE estabelece a estrutura e a troca de dados em uma conexão BLE. Ele utiliza o Attribute Protocol (ATT) como um mecanismo de transporte para organizar dados em atributos ou bits facilmente transmitidos.
 
-No GATT, existem duas funções: servidor e cliente.
+No GATT, existem duas funções: server e client.
 
 ![BLEPHONETTGO](images/BLEArchitecture.png)
 
-O papel de servidor está associada às funções de dispositivo Link Layer Slave e GAP Peripheral. Contém os recursos (dados) a serem monitorados, organizados como um Banco de Dados de Atributos. O servidor recebe solicitações do cliente e envia de volta as respostas.
+O GATT server está associada às funções de dispositivo Link Layer Slave e GAP Peripheral. Contém os recursos (dados) a serem monitorados, organizados como um Banco de Dados de Atributos. O server recebe solicitações do client e envia de volta as respostas.
 Atua como fornecedor de dados e serviços.
 
-A função do cliente está associada às funções do dispositivo Link Layer Master e GAP Central. Ele requer a presença e as características dos atributos em um servidor. Atua como Service Discovery. O cliente envia solicitações ao servidor e recebe respostas. Atua como consumidor de dados e serviços.
+O GATT client está associada às funções do dispositivo Link Layer Master e GAP Central. Ele requer a presença e as características dos atributos em um server. Atua como Service Discovery. O client envia solicitações ao server e recebe respostas. Atua como consumidor de dados e serviços.
+
+A funcionalidade GATT de um dispositivo é logicamente separada da função master/slave. As funções de master/slave controlam como a conexão de rádio BLE é gerida e as funções de cliente/servidor são ditadas pelo armazenamento e fluxo de dados.
 
 ![ServerClient](images/BLE-server-and-client.png)
+
+### 4.3.2.3 Operating States e Roles
+
+Numa aplicação BLE existem Operating States e Roles para que uma conexão tenha sucesso.
+
+Standby refere-se a um estado no Bluetooth Low Energy (BLE) em que um dispositivo não está a transmitir nem a receber pacotes ativamente. Nesse estado, o dispositivo permanece em modo economia de energia ao não participar em nenhuma comunicação de dados.
+
+Advertising é uma funcionalidade do BLE onde um dispositivo realiza broadcasts advertisement em canais de advertising. Estes advertisement contem informação sobre os dispositivos e os serviços disponíveis .
+
+Scanning é o processo executado por um dispositivo BLE para procurar advertisers realizando scan em canais de advertising.
+
+Initiating é o processo em que um dispositivo inicializa a conexão com um advertiser. Assim que o dispositivo que realiza o scan encontrar o dispositivo de advertising de interesse, pode inicializar o pedido de conexão.
+
+![blelinklayer](images/ble-link-layer-sm.png)
 
 # 4.4 Dispositivo TTGO T-Beam
 ## 4.4.1 Visão geral
