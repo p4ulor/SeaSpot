@@ -3,7 +3,9 @@
 A The Things Network (TTN) é uma plataforma de rede global, aberta e gratuita projetada para suportar a comunicação de dispositivos IoT por meio do protocolo de rede LoRaWAN. 
 
 A TTN baseia-se em servidores cloud que conecta dispositivos e gateways LoRaWAN no mundo todo. A missão da TTN é construir uma rede de IoT, onde os utilizadores podem construir, manter e gerir a plataforma. A ideia é que qualquer pessoa possa instalar um gateway e contribuir para a expansão da cobertura da rede. Ao conectar dispositivos à TTN, os utilizadores tem acesso a uma rede de comunicação segura, escalável e de baixo custo. A TTN oferece recursos como autenticação de dispositivos, gestão de dados e integração com aplicativos e serviços externos.
+
 ![TTNArchitecture2](images/ttncon.jpg)
+
 A utilização da TTN é especialmente relevante para projetos de IoT que exigem uma cobertura ampla e de alcance global. Com a TTN, os programadores podem aproveitar uma rede estabelecida e colaborativa, evitando a necessidade de construir e manter sua própria plataforma. Além disso, a TTN oferece suporte a diversas aplicações e casos de uso, desde gestão ambiental, agricultura inteligente e até cidades inteligentes.
 
 ## 4.1.3 Arquitetura da TTN
@@ -25,8 +27,11 @@ Consola da TTN - A Consola da TTN é a interface web fornecida pela plataforma. 
 
 ## 4.1.2 Registo na TTN
 Para utilizar a TTN, é necessário registrar uma conta na plataforma. O registo é gratuito e permite criar aplicativos e adicionar dispositivos à TTN. Navegue até o “Console” abaixo do nome da conta e escolha um network cluster. 
+
 ![networkclusterTTN](images/networkclusterTTN.JPG)
+
 Um Network cluster na TTN é uma organização ou grupo de utilizadores responsável por configurar e manter uma rede de gateways LoRaWAN em uma área geográfica específica. O papel destes clusters são importantes para a expansão da cobertura da TTN, pois permitem que mais áreas sejam atendidas pela rede. Ao criar um network cluster, os utilizadores comprometem a instalar e manter gateways em locais estratégicos dentro da região, garantindo uma cobertura adequada para os dispositivos LoRaWAN. É utilizado o cluster Europe 1 e o device or gateway location em Portugal. Na opção de Go to applications é possível adicionar a aplicação com o objetivo de gerir dispositivos e visualizar dados na rede.
+
 ![createappTTN](images/createappTTN.JPG)
 
 O processo de registo do dispositivo pode variar dependendo do tipo de dispositivo e das opções disponíveis, mas geralmente envolve as seguintes etapas:
@@ -34,7 +39,9 @@ O processo de registo do dispositivo pode variar dependendo do tipo de dispositi
 - Obter as informações de autenticação do dispositivo: O dispositivo deve ter um conjunto de informações de ativação, como um AppEUI (Endereço Único da Aplicação) e um DevEUI (Endereço Único do Dispositivo). Essas informações podem ser fornecidas pelo fabricante do dispositivo ou geradas pela própria plataforma da TTN.TODO: ser mais específico.
 
 - Adicionar o dispositivo na aplicação: Na aplicação da TTN, clique em Register end device (Registrar dispositivo). Na secção End device type(tipo de dispositivo) insira manualmente as características do dispositivo que vai ser utilizado, tal como Frequency plan, LoRaWAN version, modo de ativação ABP (Activation by Personalization) ou OTAA (Over-The-Air Activation), etc.
+
 ![enddevicetype](images/enddevicetype.JPG)
+
 ![advancedactivation](images/advancedactivation.png)
 
 TODO: ACTIVATION BY PERSONALIZATION VS OVER THE AIR ACTIVATION
@@ -45,6 +52,7 @@ Ao registar vai ser possível ter uma visão geral do dispositivo na aplicação
 # 4.2 Protocolo de rede LoRaWAN
 ## 4.2.1 Visão geral do protocolo de rede LoRaWAN
 Uma rede baseada em LoRaWAN é composta por devices (dispositivos), gateways, um network server (servidor de rede) e application server (aplicação servidora). Os dispositivos enviam mensagens para gateways (uplink), os gateways repassam ao network server e por sua vez repassa ao application server conforme necessário.
+
 ![uplinktransmission](images/Uplink_Transmission.png)
 
 Além disso, o network server pode enviar mensagens através de um gateway para um ou mais dispositivos (downlinks).
@@ -86,17 +94,38 @@ Existem várias vantagens na utilização da rede LoRaWAN no projeto
 - Não há necessidade de planear frequências diferentes para cada gateway ou realojar frequências quando o número de gateways mudar. Todos os gateways estão constantemente a ouvir todas as frequências da rede.
 
 - Dispositivos móveis podem operar com baixo consumo de energia, devido ao fato de que qualquer gateway pode receber mensagens de qualquer dispositivo. Isso significa que (ao contrário, por exemplo, das redes celulares) a rede LoRaWAN não percebe ou se importa com o movimento do dispositivo, ele simplesmente recebe uplinks dos gateways mais próximos da localização atual do dispositivo.
+
 ![topology](images/Topology.png)
 
 # 4.3 Bluetooth Low Energy
 ## 4.3.1 Visão geral
+
 Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio. No BLE, é adotada uma arquitetura cliente-servidor para facilitar a comunicação entre dispositivos. Nessa arquitetura, os dispositivos periféricos são os servidores, enquanto os dispositivos centrais atuam como clientes. BLE é otimizado para eficiência energética e utilizado em dispositivos IoT.
+
+## 4.3.2 Conexão BLE
+
+## 4.3.3 Generic Attribute Profile (GATT)
+
+O Generic Attribute Profile (GATT) no BLE estabelece a estrutura e a troca de dados em uma conexão BLE. Ele utiliza o Attribute Protocol (ATT) como um mecanismo de transporte para organizar dados em atributos ou bits facilmente transmitidos.
+
+No GATT, existem duas funções: servidor e cliente.
+
+![BLEPHONETTGO](images/BLEArchitecture.png)
+
+O papel de servidor está associada às funções de dispositivo Link Layer Slave e GAP Peripheral. Contém os recursos (dados) a serem monitorados, organizados como um Banco de Dados de Atributos. O servidor recebe solicitações do cliente e envia de volta as respostas.
+Atua como fornecedor de dados e serviços.
+
+A função do cliente está associada às funções do dispositivo Link Layer Master e GAP Central. Ele requer a presença e as características dos atributos em um servidor. Atua como Service Discovery. O cliente envia solicitações ao servidor e recebe respostas. Atua como consumidor de dados e serviços.
+
+![ServerClient](images/BLE-server-and-client.png)
 
 # 4.4 Dispositivo TTGO T-Beam
 ## 4.4.1 Visão geral
 O dispositivo responsável pela comunicação com a plataforma de rede LoRaWAN é o TTGO T-BEAM. É um dispositivo da LILYGO, construído em torno do microprocessador ESP32. O TTGO T-BEAM conta com todas as funcionalidades disponíveis do ESP32, WiFi, BLE (Bluetooth Low Energy), ADC, DAC e etc, mais as funcionalidades dos módulos integrados, GPS e LoRa.
 
 ![TTGO](images/LILYGO%20TTGO%20T-Beam%20v1.0%20(868%20MHz).jpg)
+
+
 
 ## 4.4.2 Configuração do ambiente de desenvolvimento
 - Fazer o Download do driver da [silicon labs](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) para conectar o TTGO T-Beam ao computador. Selecione o CP210x Universal Windows Driver, v11.2.0, 10/21/2022 e faça a extração do .zip para uma pasta permanente. Esta configuração permite que o computador reconheça o dispositivo na porta USB. 
