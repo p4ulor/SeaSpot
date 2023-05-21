@@ -100,9 +100,11 @@ Existem várias vantagens na utilização da rede LoRaWAN no projeto
 # 4.3 Bluetooth Low Energy
 ## 4.3.1 Visão geral
 
-Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio. É importante perceber como funciona uma conexão BLE, quais as funções desempenhadas pelos dispositivos envolvidos e como é que os dados são transferidos de um dispositivo para o outro. Muitos termos são usados ​​e geralmente não são intercambiáveis: master, slave, central, peripheral, client, server, standby, advertise, scan e initiating. Distinguir estes termos é importante para facilmente descrever e construir uma aplicação BLE.
+Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio.
 
-## Conexões e funcionalidades BLE
+## 4.3.2 Conexões e funcionalidades BLE
+
+É importante perceber como funciona uma conexão BLE, quais as funções desempenhadas pelos dispositivos envolvidos e como é que os dados são transferidos de um dispositivo para o outro. Muitos termos são usados ​​e geralmente não são intercambiáveis: master, slave, central, peripheral, client, server, standby, advertise, scan e initiating. Distinguir estes termos é importante para facilmente descrever e construir uma aplicação BLE.
 
 ### 4.3.2.1 Connection Roles
 
@@ -120,7 +122,7 @@ Uma distinção importante entre o dispositivo master e slave em uma rede BLE é
 
 O Generic Attribute Profile (GATT) no BLE estabelece a estrutura e a troca de dados em uma conexão BLE. Ele utiliza o Attribute Protocol (ATT) como um mecanismo de transporte para organizar dados em atributos ou bits facilmente transmitidos.
 
-No GATT, existem duas funções: server e client.
+No GATT, existem duas funções: GATT server e GATT client.
 
 ![BLEPHONETTGO](images/BLEArchitecture.png)
 
