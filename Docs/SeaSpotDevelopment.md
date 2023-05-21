@@ -20,7 +20,7 @@ Network Server (Servidor de rede) - O Network Server também conhecido com siste
 
 Application Server (Aplicação servidora) - O Application Server gere a camada de aplicação da LoRaWAN incluindo o processamento das mensagens recebidas dos dispositivos e pelo envio das mensagens de volta para os dispositivos.
 
-Consola da TTN: A Consola da TTN é a interface web fornecida pela plataforma. Com ela os utilizadores podem gerir as aplicações, visualizar informações sobre os dispositivos, configurar gateways, analisar o tráfego de dados e realizar outras tarefas administrativas relacionadas à rede TTN.
+Consola da TTN - A Consola da TTN é a interface web fornecida pela plataforma. Com ela os utilizadores podem gerir as aplicações, visualizar informações sobre os dispositivos, configurar gateways, analisar o tráfego de dados e realizar outras tarefas administrativas relacionadas à rede TTN.
 
 
 ## 4.1.2 Registo na TTN
@@ -85,17 +85,20 @@ Existem várias vantagens na utilização da rede LoRaWAN no projeto
 
 - Não há necessidade de planear frequências diferentes para cada gateway ou realojar frequências quando o número de gateways mudar. Todos os gateways estão constantemente a ouvir todas as frequências da rede.
 
-- Dispositivos móveis podem operar com baixo consumo de energia, devido ao fato de que qualquer gateway pode receber mensagens de qualquer dispositivo. Isso significa que (ao contrário, por exemplo, das redes celulares) a rede LoRaWAN não percebe ou se importa com o movimento do dispositivo; ele simplesmente recebe uplinks dos gateways mais próximos da localização atual do dispositivo.
+- Dispositivos móveis podem operar com baixo consumo de energia, devido ao fato de que qualquer gateway pode receber mensagens de qualquer dispositivo. Isso significa que (ao contrário, por exemplo, das redes celulares) a rede LoRaWAN não percebe ou se importa com o movimento do dispositivo, ele simplesmente recebe uplinks dos gateways mais próximos da localização atual do dispositivo.
 ![topology](images/Topology.png)
 
-
-# 4.3 Dispositivo TTGO T-Beam
+# 4.3 Bluetooth Low Energy
 ## 4.3.1 Visão geral
+Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio. No BLE, é adotada uma arquitetura cliente-servidor para facilitar a comunicação entre dispositivos. Nessa arquitetura, os dispositivos periféricos são os servidores, enquanto os dispositivos centrais atuam como clientes. BLE é otimizado para eficiência energética e utilizado em dispositivos IoT.
+
+# 4.4 Dispositivo TTGO T-Beam
+## 4.4.1 Visão geral
 O dispositivo responsável pela comunicação com a plataforma de rede LoRaWAN é o TTGO T-BEAM. É um dispositivo da LILYGO, construído em torno do microprocessador ESP32. O TTGO T-BEAM conta com todas as funcionalidades disponíveis do ESP32, WiFi, BLE (Bluetooth Low Energy), ADC, DAC e etc, mais as funcionalidades dos módulos integrados, GPS e LoRa.
 
 ![TTGO](images/LILYGO%20TTGO%20T-Beam%20v1.0%20(868%20MHz).jpg)
 
-## 4.3.2 Configuração do ambiente de desenvolvimento
+## 4.4.2 Configuração do ambiente de desenvolvimento
 - Fazer o Download do driver da [silicon labs](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) para conectar o TTGO T-Beam ao computador. Selecione o CP210x Universal Windows Driver, v11.2.0, 10/21/2022 e faça a extração do .zip para uma pasta permanente. Esta configuração permite que o computador reconheça o dispositivo na porta USB. 
 - Conectar o dispositivo ao computador 
 - Ir a "Gestor de dispositivos"
@@ -105,16 +108,16 @@ O dispositivo responsável pela comunicação com a plataforma de rede LoRaWAN �
 - No Pycom Upgrade Communication Flash from local file e selecione [TBEAMv1-1.20.2.r4.tar.gz](https://github.com/nunomcruz/pycom-micropython-sigfox/releases/tag/v1.20.2.r4-tbeamv1) pelo professor Nuno Cruz. Este é um projeto MicroPython, que visa colocar uma implementação do Python 3.x em microcontroladores e small embedded systems. Pode encontrar no site oficial em [micropython](https://micropython.org/).
 - No Visual Studio Code instale [PyMakr extension](https://marketplace.visualstudio.com/items?itemName=pycom.Pymakr). Esta é uma poderosa ferramenta de desenvolvimento para o ambiente de programação Visual Studio Code, projetada especificamente para programar dispositivos de IoT (Internet das Coisas) em placas como o TTGO T-Beam. A extensão PyMakr simplifica o processo de desenvolvimento, permitindo que os programadores escrevam, editem e enviem código diretamente para os dispositivos conectados.
 
-## 4.3.3 Programação do dispositivo
+## 4.4.3 Programação do dispositivo
 
 TODO:
 
-# 4.4 Desenvolvimento da aplicação Android
-## 4.4.1 Descrição da aplicação Android
-## 4.4.2 Conexão via BLE com o dispositivo TTGO T-Beam
-## 4.4.3 Integração da aplicação Android com a TTN
+# 4.5 Desenvolvimento da aplicação Android
+## 4.5.1 Descrição da aplicação Android
+## 4.5.2 Conexão via BLE com o dispositivo TTGO T-Beam
+## 4.5.4 Integração da aplicação Android com a TTN
 
-# 4.5 Desenvolvimento da aplicação web
-## 4.5.1 Descrição da aplicação web
-## 4.5.2 Funções e interações com o TTGO T-Beam e a TTN
-## 4.5.3 Tecnologias utilizadas no desenvolvimento da aplicação web
+# 4.6 Desenvolvimento da aplicação web
+## 4.6.1 Descrição da aplicação web
+## 4.6.2 Funções e interações com o TTGO T-Beam e a TTN
+## 4.6.3 Tecnologias utilizadas no desenvolvimento da aplicação web
