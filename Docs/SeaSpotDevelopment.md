@@ -104,9 +104,25 @@ Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no c
 
 ## 4.3.2 Conexões e funcionalidades BLE
 
-É importante perceber como funciona uma conexão BLE, quais as funções desempenhadas pelos dispositivos envolvidos e como é que os dados são transferidos de um dispositivo para o outro. Muitos termos são usados ​​e geralmente não são intercambiáveis: master, slave, central, peripheral, client, server, standby, advertise, scan e initiating. Distinguir estes termos é importante para facilmente descrever e construir uma aplicação BLE.
+É importante perceber como funciona uma conexão BLE, quais as funções desempenhadas pelos dispositivos envolvidos e como é que os dados são transferidos de um dispositivo para o outro.
 
-### 4.3.2.1 Connection Roles
+![BLEPtrocolStack](images/BLEProtocolStack.png)
+
+### 4.3.2.1 Operating States e Roles
+
+Numa aplicação BLE existem Operating States e Roles para que uma conexão tenha sucesso.
+
+Standby refere-se a um estado no Bluetooth Low Energy (BLE) em que um dispositivo não está a transmitir nem a receber pacotes ativamente. Nesse estado, o dispositivo permanece em modo economia de energia ao não participar em nenhuma comunicação de dados.
+
+Advertising é uma funcionalidade do BLE onde um dispositivo realiza broadcasts advertisement em canais de advertising. Estes advertisement contem informação sobre os dispositivos e os serviços disponíveis .
+
+Scanning é o processo executado por um dispositivo BLE para procurar advertisers realizando scan em canais de advertising.
+
+Initiating é o processo em que um dispositivo inicializa a conexão com um advertiser. Assim que o dispositivo que realiza o scan encontrar o dispositivo de advertising de interesse, pode inicializar o pedido de conexão.
+
+![blelinklayer](images/ble-link-layer-sm.png)
+
+### 4.3.2.2 Master vs Slave Connection Roles
 
 Um conceito importante na conectividade BLE é a diferença entre um dispositivo master e um dispositivo slave.
 
@@ -118,7 +134,15 @@ Um conceito importante na conectividade BLE é a diferença entre um dispositivo
 
 Uma distinção importante entre o dispositivo master e slave em uma rede BLE é que um slave só pode ser conectado a um único master, mas um master pode ser conectado a vários slaves. A especificação BLE não limita o número de slaves aos quais um master pode se conectar, mas sempre há uma limitação prática.
 
-### 4.3.2.2 Funcionalidades do Generic Attribute Profile (GATT)
+### 4.3.2.3 Funcionalidades do Generic Access Profile (GAP)
+
+Para que dispositivos BLE transmitam dados entre si, deve ser formado um canal de comunicação. A forma como esse canal é formado e mantido é da responsabilidade do GAP.
+
+O GAP informa que para dois dispositivos se conectarem e comunicarem, um deve assumir o role de Central e o outro deve assumir o papel de Peripheral.
+
+O Central normalmente é um dispositivo poderoso como um smartphone, enquanto que o Peripheral costuma ser um dispositivo que requer menos energia como o TTGO T-Beam.
+
+### 4.3.2.4 Funcionalidades do Generic Attribute Profile (GATT)
 
 O Generic Attribute Profile (GATT) no BLE estabelece a estrutura e a troca de dados em uma conexão BLE. Ele utiliza o Attribute Protocol (ATT) como um mecanismo de transporte para organizar dados em atributos ou bits facilmente transmitidos.
 
@@ -134,20 +158,6 @@ O GATT client está associada às funções do dispositivo Link Layer Master e G
 A funcionalidade GATT de um dispositivo é logicamente separada da função master/slave. As funções de master/slave controlam como a conexão de rádio BLE é gerida e as funções de cliente/servidor são ditadas pelo armazenamento e fluxo de dados.
 
 ![ServerClient](images/BLE-server-and-client.png)
-
-### 4.3.2.3 Operating States e Roles
-
-Numa aplicação BLE existem Operating States e Roles para que uma conexão tenha sucesso.
-
-Standby refere-se a um estado no Bluetooth Low Energy (BLE) em que um dispositivo não está a transmitir nem a receber pacotes ativamente. Nesse estado, o dispositivo permanece em modo economia de energia ao não participar em nenhuma comunicação de dados.
-
-Advertising é uma funcionalidade do BLE onde um dispositivo realiza broadcasts advertisement em canais de advertising. Estes advertisement contem informação sobre os dispositivos e os serviços disponíveis .
-
-Scanning é o processo executado por um dispositivo BLE para procurar advertisers realizando scan em canais de advertising.
-
-Initiating é o processo em que um dispositivo inicializa a conexão com um advertiser. Assim que o dispositivo que realiza o scan encontrar o dispositivo de advertising de interesse, pode inicializar o pedido de conexão.
-
-![blelinklayer](images/ble-link-layer-sm.png)
 
 # 4.4 Dispositivo TTGO T-Beam
 ## 4.4.1 Visão geral
