@@ -196,20 +196,18 @@ Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação
         - LoRa.ABP (dev_addr, nwk_swkey, app_swkey).
     - timeout: é o tempo máximo em milissegundos de espera que uma mensagem de Join Accept pode ser recebida. Se nenhum timeout for dado a chamada retorna imediatamente o status do pedido de join que pode ser verificado com o método lora.has_joined().
 
-- 
-
 ```
 Notes: To get any data received after sending the data it is important to keep in mind that the LoRaWAN Gateway might not be sending any data back, therefore it is crucial to make the socket non-blocking before attempting to receive, in order to prevent getting stuck waiting for a packet that will never arrive.
 ```
 
 - Biblioteca socket: A biblioteca socket ("import socket") fornece as funções e métodos necessários para criar LoRa raw sockets. Um socket representa a interface de comunicação com o módulo de rádio LoRa do dispositivo. Esta interface familiar e conveniente permite enviar e receber dados, sem a necessidade de lidar diretamente com a linguagem de baixo nível do rádio.
 
-Alguns dos métodos comuns disponíveis na classe de socket LoRa do Pycom MicroPython:
+    Alguns dos métodos comuns disponíveis na classe de socket LoRa do Pycom MicroPython:
 
-- socket.send(bytes): Envia dados por LoRa.
-- socket.recv(bufsize): Recebe dados por LoRa.
-- socket.setblocking(flag): Define se as operações de envio e receção de dados são bloqueantes ou não bloqueantes.
-- socket.setsockopt(level, optname, value): Define as opções de configuração do socket.
+    - socket.send(bytes): Envia dados por LoRa.
+    - socket.recv(bufsize): Recebe dados por LoRa.
+    - socket.setblocking(flag): Define se as operações de envio e receção de dados são bloqueantes ou não bloqueantes.
+    - socket.setsockopt(level, optname, value): Define as opções de configuração do socket.
 
 - Biblioteca BLE: A biblioteca BLE é responsável pela configuração e comunicação via Bluetooth Low Energy.
 
