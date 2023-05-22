@@ -170,7 +170,7 @@ O dispositivo responsável pela comunicação com a plataforma de rede LoRaWAN �
 ## 4.4.2 Configuração do ambiente de desenvolvimento
 - Fazer o Download do driver da [silicon labs](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) para conectar o TTGO T-Beam ao computador. Selecione o CP210x Universal Windows Driver, v11.2.0, 10/21/2022 e faça a extração do .zip para uma pasta permanente. Esta configuração permite que o computador reconheça o dispositivo na porta USB. 
 - Conectar o dispositivo ao computador 
-- Ir a "Gestor de dispositivos"
+- Ir a "Device Manager"
 - Selecionar o tipo de dispositivo Portas (COM e LPT), Silicon Labs CP210x USB to UART Bridge (COM4), da fabricante Silicon Labs.
 - Right click no dispositivo selecione "Properties" vá até "Driver", "Update driver", procure no computador e selecione a pasta com o conteúdo extraído anteriormente.
 - Download e instale o [Pycom firmware updater](https://docs.pycom.io/updatefirmware/device/).
@@ -179,7 +179,34 @@ O dispositivo responsável pela comunicação com a plataforma de rede LoRaWAN �
 
 ## 4.4.3 Programação do dispositivo
 
-TODO:
+Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação na The Things Network, é realizada a programação do dispositivo TTGO. O objetivo na programação do dispositivo TTGO é permitir a comunicação de dados usando a tecnologia LoRa (Long Range) e Bluetooth Low Energy (BLE). Com o recurso às bibliotecas fornecidas pela Pycom permite programar o dispositivo para estabelecer a conexão com a rede LoRaWAN e estabelecer uma ligação através do BLE com a aplicação móvel. Para habilitar as funcionalidades de LoRa e BLE no TTGO, precisamos adicionar as bibliotecas adequadas ao ambiente de desenvolvimento. As seguintes bibliotecas são necessárias:
+
+- Biblioteca LoRa: A biblioteca LoRa ("from network import LoRa") fornece as funções e métodos necessários para a comunicação de dados usando a tecnologia LoRa para dispositivos da class A. Na LoRa existe dois métodos de conexão que podem ser facilmente configuráveis a LoRaWAN ABP (Activation By Personalization) e a LoRaWAN OTAA (Over The Air Activation)
+    - ABP significa que as chaves criptográficas fornecidas ela TTN (dev_addr, nwk_swkey, app_swkey) são configuradas hardcoded (manualmente) no dispositivo e podem enviar dados para o Gateway sem a necessidade de um procedimento de "handshake" para a troca de chaves (como é feito no método de conexão OTAA).
+
+    - OTAA envia uma solicitação de Join para o LoRaWAN Gateway através das chaves (dev_eui, app_eui, app_key) fornecidas pela TTN. Se as chaves estiverem corretas, o Gateway responderá com uma mensagem de aceitação de join e, a partir desse ponto, o dispositivo poderá enviar e receber pacotes de/para o Gateway. Se as chaves estiverem incorretas, nenhuma resposta será recebida.
+
+    O método lora.join(activation, auth, [timeout=None, dr=None]) permite estabelecer uma ligação com a rede LoRaWAN
+
+    - activation:
+        - LoRa.OTAA: Over the Air Activation
+        - LoRa.ABP: Activation By Personalization
+    - auth: é o tuplo com a autenticação de dados
+        - LoRa.OTAA (dev_eui, app_eui, app_key) onde dev_eui é opcional
+        - LoRa.ABP (dev_addr, nwk_swkey, app_swkey).
+    - timeout: é o tempo máximo em milissegundos de espera que uma mensagem de Join Accept pode ser recebida. Se nenhum timeout for dado a chamada retorna imediatamente o status do pedido de join que pode ser verificado com o método lora.has_joined().
+
+- 
+
+```
+Notes: To get any data received after sending the data it is important to keep in mind that the LoRaWAN Gateway might not be sending any data back, therefore it is crucial to make the socket non-blocking before attempting to receive, in order to prevent getting stuck waiting for a packet that will never arrive.
+```
+
+- Biblioteca socket: 
+
+- Biblioteca BLE: A biblioteca BLE é responsável pela configuração e comunicação via Bluetooth Low Energy.
+
+
 
 # 4.5 Desenvolvimento da aplicação Android
 ## 4.5.1 Descrição da aplicação Android
