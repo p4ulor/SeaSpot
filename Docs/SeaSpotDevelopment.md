@@ -140,7 +140,7 @@ Para que dispositivos BLE transmitam dados entre si, deve ser formado um canal d
 
 O GAP informa que para dois dispositivos se conectarem e comunicarem, um deve assumir o role de Central e o outro deve assumir o papel de Peripheral.
 
-O Central normalmente é um dispositivo poderoso como um smartphone, enquanto que o Peripheral costuma ser um dispositivo que requer menos energia como o TTGO T-Beam.
+O Central normalmente é um dispositivo poderoso como um telemóvel, enquanto que o Peripheral costuma ser um dispositivo que requer menos energia como o TTGO T-Beam.
 
 ### 4.3.2.4 Funcionalidades do Generic Attribute Profile (GATT)
 
@@ -209,7 +209,31 @@ Notes: To get any data received after sending the data it is important to keep i
     - socket.setblocking(flag): Define se as operações de envio e receção de dados são bloqueantes ou não bloqueantes.
     - socket.setsockopt(level, optname, value): Define as opções de configuração do socket.
 
-- Biblioteca BLE: A biblioteca BLE é responsável pela configuração e comunicação via Bluetooth Low Energy.
+- Biblioteca BLE: A biblioteca BLE ("from network import Bluetooth") está desenhado para facilmente se conectar e comunicar entre dispositivos (em particular plataformas móveis). O BLE usa uma metodologias conhecida como GAP(Generic Access Profile) e GATT(Generic Attribute Profile).
+    - GAP trata do acesso, conexão e autenticação entre dispositivos, definindo papéis (Central e peripheral) e as operações de advertising, scanning e connection.
+
+    - GATT define a estrutura de dados e a comunicação entre eles após a conexão ser estabelecida. O GATT é baseado no conceito de server-client, onde um dispositivo atua como server e outro como client. O server contém serviços e características (atributos) que são fornecidos ao client para read (leitura), write (escrita).
+
+    Na comunicação por BLE o dispositivo TTGO T-Beam vai atuar como server para fornecer leituras e escritas de características que existe em cada serviço para o telemóvel. O telemóvel, por sua vez, atua como cliente e se conecta ao TTGO para receber esses serviços.
+
+    Alguns dos métodos comuns disponíveis na classe de Bluetooth do Pycom MicroPython:
+    - Bluetooth
+        - bluetooth.start_scan(timeout)
+        - bluetooth.connect(mac_addr, [timeout=None])
+        - bluetooth.callback([trigger=None, handler=None, arg=None])
+        - bluetooth.events()
+        - bluetooth.set_advertisement([name=None, manufacturer_data=None, service_data=None, service_uuid=None])
+        - bluetooth.advertise([Enable])
+        - bluetooth.service(uuid, [isprimary=True, nbr_chars=1, start=True])
+    - Service
+        - 
+        - 
+    - Characteristics
+        - 
+        - 
+
+
+
 
 
 
