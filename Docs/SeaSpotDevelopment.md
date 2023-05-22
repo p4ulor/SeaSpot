@@ -184,7 +184,7 @@ Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação
 - Biblioteca LoRa: A biblioteca LoRa ("from network import LoRa") fornece as funções e métodos necessários para a comunicação de dados usando a tecnologia LoRa para dispositivos da class A. Na LoRa existe dois métodos de conexão que podem ser facilmente configuráveis a LoRaWAN ABP (Activation By Personalization) e a LoRaWAN OTAA (Over The Air Activation)
     - ABP significa que as chaves criptográficas fornecidas ela TTN (dev_addr, nwk_swkey, app_swkey) são configuradas hardcoded (manualmente) no dispositivo e podem enviar dados para o Gateway sem a necessidade de um procedimento de "handshake" para a troca de chaves (como é feito no método de conexão OTAA).
 
-    - OTAA envia uma solicitação de Join para o LoRaWAN Gateway através das chaves (dev_eui, app_eui, app_key) fornecidas pela TTN. Se as chaves estiverem corretas, o Gateway responderá com uma mensagem de aceitação de join e, a partir desse ponto, o dispositivo poderá enviar e receber pacotes de/para o Gateway. Se as chaves estiverem incorretas, nenhuma resposta será recebida.
+    - OTAA envia uma solicitação de Join para o LoRaWAN Gateway através das chaves (dev_eui, app_eui, app_key) fornecidas pela TTN. Se as chaves estiverem corretas, o Gateway responderá com uma mensagem de aceitação de join e, a partir desse ponto, o dispositivo poderá enviar e receber dados de/para o Gateway. Se as chaves estiverem incorretas, nenhuma resposta será recebida.
 
     O método lora.join(activation, auth, [timeout=None, dr=None]) permite estabelecer uma ligação com a rede LoRaWAN
 
@@ -202,7 +202,14 @@ Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação
 Notes: To get any data received after sending the data it is important to keep in mind that the LoRaWAN Gateway might not be sending any data back, therefore it is crucial to make the socket non-blocking before attempting to receive, in order to prevent getting stuck waiting for a packet that will never arrive.
 ```
 
-- Biblioteca socket: 
+- Biblioteca socket: A biblioteca socket ("import socket") fornece as funções e métodos necessários para criar LoRa raw sockets. Um socket representa a interface de comunicação com o módulo de rádio LoRa do dispositivo. Esta interface familiar e conveniente permite enviar e receber dados, sem a necessidade de lidar diretamente com a linguagem de baixo nível do rádio.
+
+Alguns dos métodos comuns disponíveis na classe de socket LoRa do Pycom MicroPython:
+
+- socket.send(bytes): Envia dados por LoRa.
+- socket.recv(bufsize): Recebe dados por LoRa.
+- socket.setblocking(flag): Define se as operações de envio e receção de dados são bloqueantes ou não bloqueantes.
+- socket.setsockopt(level, optname, value): Define as opções de configuração do socket.
 
 - Biblioteca BLE: A biblioteca BLE é responsável pela configuração e comunicação via Bluetooth Low Energy.
 
