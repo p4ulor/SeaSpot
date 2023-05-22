@@ -61,7 +61,7 @@ Além disso, o network server pode enviar mensagens através de um gateway para 
 
 Dispositivos que suportam LoRaWAN network vem em três classes: Classe A, Classe B e Class C. Enquanto que os dispositivos podem sempre enviar uplinks. A classe de dispositivos determina quando é que pode receber downlinks. A classe também determina a eficiência de energia do dispositivo. Quanto mais eficiente, maior o tempo de vida da bateria.
 
-- Os dispositivos classe A passam a maior parte do tempo em sleep mode. Como o LoRaWAN não é um protocolo “slotted”, os dispositivos podem comunicar com o network server sempre que houver uma alteração na leitura de um sensor ou quando um temporizador for acionado. Basicamente, eles podem acordar e falar com o servidor a qualquer momento.
+- Os dispositivos classe A passam a maior parte do tempo em sleep mode. Como o LoRaWAN não é um protocolo “slotted”, os dispositivos podem comunicar com o network server sempre que houver uma alteração na leitura de um sensor ou quando um temporizador for acionado. Basicamente, eles podem acordar e falar com o server a qualquer momento.
 
 - Os dispositivos de classe B tem janelas de recebimento agendadas, em adição à funcionalidade padrão da classe A. Esta classe acorda periodicamente para ouvir mensagens de downlink com base em uma programação definida pela rede.
 
@@ -75,7 +75,7 @@ A principal característica da Classe A é que a comunicação é iniciada apena
 
 As mensagens de downlink do network server são feitas em queue até a próxima vez que uma mensagem de uplink for recebida do dispositivo e uma receive window for aberta. Este desenho é específico para aplicativos que exigem comunicação de downlink em resposta a um uplink ou que podem agendar downlinks com antecedência com requisitos de latência bastante flexíveis.
 
-Os dispositivos suportam comunicação bidirecional entre um dispositivo e um gateway. As mensagens de uplink (do dispositivo para o servidor) podem ser enviadas a qualquer momento (aleatoriamente). O dispositivo então abre duas receive window em horários especificados (1s e 2s) após uma transmissão de uplink (TX). Se o servidor não responder em nenhuma dessas receive windows(RX), a próxima oportunidade será após a próxima transmissão de uplink do dispositivo. O servidor pode responder na primeira receive window(RX1) ou na segunda receive window(RX2), mas não deve usar ambas as janelas.
+Os dispositivos suportam comunicação bidirecional entre um dispositivo e um gateway. As mensagens de uplink (do dispositivo para o servidor) podem ser enviadas a qualquer momento (aleatoriamente). O dispositivo então abre duas receive window em horários especificados (1s e 2s) após uma transmissão de uplink (TX). Se o server não responder em nenhuma dessas receive windows(RX), a próxima oportunidade será após a próxima transmissão de uplink do dispositivo. O server pode responder na primeira receive window(RX1) ou na segunda receive window(RX2), mas não deve usar ambas as janelas.
 
 ![receivewindow](images/LoRaWAN-Class-A-transaction-The-transaction-is-node-initiated-uplink-direction-the.png)
 
@@ -155,7 +155,7 @@ Atua como fornecedor de dados e serviços.
 
 O GATT client está associada às funções do dispositivo Link Layer Master e GAP Central. Ele requer a presença e as características dos atributos em um server. Atua como Service Discovery. O client envia solicitações ao server e recebe respostas. Atua como consumidor de dados e serviços.
 
-A funcionalidade GATT de um dispositivo é logicamente separada da função master/slave. As funções de master/slave controlam como a conexão de rádio BLE é gerida e as funções de cliente/servidor são ditadas pelo armazenamento e fluxo de dados.
+A funcionalidade GATT de um dispositivo é logicamente separada da função master/slave. As funções de master/slave controlam como a conexão de rádio BLE é gerida e as funções de client/server são ditadas pelo armazenamento e fluxo de dados.
 
 ![ServerClient](images/BLE-server-and-client.png)
 
@@ -210,11 +210,11 @@ Notes: To get any data received after sending the data it is important to keep i
     - socket.setsockopt(level, optname, value): Define as opções de configuração do socket.
 
 - Biblioteca BLE: A biblioteca BLE ("from network import Bluetooth") está desenhado para facilmente se conectar e comunicar entre dispositivos (em particular plataformas móveis). O BLE usa uma metodologias conhecida como GAP(Generic Access Profile) e GATT(Generic Attribute Profile).
-    - GAP trata do acesso, conexão e autenticação entre dispositivos, definindo papéis (Central e peripheral) e as operações de advertising, scanning e connection.
+    - GAP trata do acesso, conexão e autenticação entre dispositivos, definindo papéis (Central e Peripheral) e as operações de advertising, scanning e connection.
 
     - GATT define a estrutura de dados e a comunicação entre eles após a conexão ser estabelecida. O GATT é baseado no conceito de server-client, onde um dispositivo atua como server e outro como client. O server contém serviços e características (atributos) que são fornecidos ao client para read (leitura), write (escrita).
 
-    Na comunicação por BLE o dispositivo TTGO T-Beam vai atuar como server para fornecer leituras e escritas de características que existe em cada serviço para o telemóvel. O telemóvel, por sua vez, atua como cliente e se conecta ao TTGO para receber esses serviços.
+    Na comunicação por BLE o dispositivo TTGO T-Beam vai atuar como server para fornecer leituras e escritas de características que existe em cada serviço para o telemóvel. O telemóvel, por sua vez, atua como client e se conecta ao TTGO para receber esses serviços.
 
     Alguns dos métodos comuns disponíveis na classe de Bluetooth do Pycom MicroPython:
     - Bluetooth
@@ -225,13 +225,28 @@ Notes: To get any data received after sending the data it is important to keep i
         - bluetooth.set_advertisement([name=None, manufacturer_data=None, service_data=None, service_uuid=None])
         - bluetooth.advertise([Enable])
         - bluetooth.service(uuid, [isprimary=True, nbr_chars=1, start=True])
-    - Service
-        - 
-        - 
-    - Characteristics
-        - 
-        - 
+    - Service - Os serviços são usados ​​para categorizar os dados em blocos de dados designados de características. Um serviço pode ter várias características e cada serviço possui um ID numérico exclusivo (UUID).
+        - service.characteristic(uuid, * , permissions, properties, value)
+        
+        OU TODO: Perceber qual usar GATTC ou GATTS
+        
+        - service.characteristics()
+    - Characteristics - encapsula um único dado (pode conter uma matriz de dados relacionados, como valores X/Y longitude e latitude de um GPS, etc.).
+        - characteristic.callback(trigger=None, handler=None, arg=None)
+        
+        OU TODO: Perceber qual usar GATTC ou GATTS
+        
+        - characteristic.read()
+        - characteristic.value()
+        - characteristic.write(value)
+        - characteristic.read_descriptor(uuid)
 
+- Biblioteca _THREAD: A biblioteca _THREAD ("import _thread") oferece primitivas de baixo nível para trabalhar com múltiplas threads (também chamados de processes ou tasks) — várias threads de controle compartilham os mesmo espaço de dados global. Para sincronização, locks simples (também chamados de mutexes ou semáforos binários) são fornecidos.
+
+    Quando ocorre um erro específico de thread, lança uma exceção RuntimeError.
+
+    - _thread.start_new_thread(function, args[, kwargs])
+        - Inicia uma novo thread e devolve o identificador. A thread executa a função com a lista de argumentos args. Quando a função retorna, a thread sai silenciosamente. Quando a função termina com uma exceção não tratada, faz print do stack trace e, em seguida, a thread sai (outras threads continuam a ser executadas).
 
 
 
