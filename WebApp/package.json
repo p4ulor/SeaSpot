@@ -1,0 +1,27 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "setup-server.mjs",
+  "scripts": {
+    "start": "nodemon setup-server.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "hbs": "^4.2.0",
+    "node-fetch": "^3.3.1",
+    "serve-favicon": "^2.5.0",
+    "swagger-ui-express": "^4.6.3",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0",
+    "deep-equal-in-any-order": "^2.0.6",
+    "mocha": "^10.2.0"
+  }
+}
