@@ -9,7 +9,9 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser' //https://expressjs.com/en/resources/middleware/cookie-parser.html
 
 //My files imports
-import * as theApi from './web/api/web-api.mjs'
+import * as data from './data/data-mem.mjs'
+import webServices from './services/services.mjs'
+import webApi from './web/api/web-api.mjs'
 
 /** 
  * @param {ServerConfiguration} config 
@@ -29,10 +31,11 @@ export function Server(config) { //in order be to be used in tests and be more f
     app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded, in cases where a POST or GET is performed in the context of a HTML form
     app.use(cookieParser())
 
-    //API
-    const api = theApi.default(config)
+    const services = webServices(data)
+    const api = webApi(config, services)
 
-    app.post(api.mainWebHook.path, api.mainWebHook.func)
+    app.post('/api/', api.getWebHook)
+    app.get('/site/', api.getAllMessages)
 
     const promise = new Promise((resolve, reject) => {
         app.listen(PORT, () => {

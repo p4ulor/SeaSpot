@@ -2,19 +2,14 @@ import express from 'express'
 import * as codes from '../../utils/errors-and-codes.mjs'
 import { UplinkResponseModel } from './UplinkResponseModel.mjs'
 import { DownlinkQueuedResponseModel } from './DownlinkQueuedResponseModel.mjs'
-export const apiPath = "/api"
 
-export const apiPaths = {
-    mainWebHook: apiPath + '/'
-}
-
-function api(config) {
+function api(config, services) {
 
     /**
      * @param {express.Request} req 
      * @param {express.Response} rsp 
      */
-    async function mainWebHook(req, rsp) {
+    async function getWebHook(req, rsp) {
         tryCatch(async () => {
             const { body } = req;
 
@@ -22,19 +17,32 @@ function api(config) {
             if (body.uplink_message) {
                 const uplinkModel = UplinkResponseModel(body);
                 console.log('Received Uplink:');
-                console.log(uplinkModel);
-                console.log(`PAYLOAD = ${base64ToHex(JSON.stringify(uplinkModel.uplink.frmPayload))}`)
+                //console.log(uplinkModel);
+                //console.log(`PAYLOAD = ${base64ToHex(JSON.stringify(uplinkModel.uplink.frmPayload))}`)
+                services.createMessage(uplinkModel.uplink.frmPayload, uplinkModel.deviceId, uplinkModel.applicationId, uplinkModel.correlationIds)
             }
 
             // Check if the request contains a downlink message
             if (body.downlink_queued) {
                 const downlinkModel = DownlinkQueuedResponseModel(body);
                 console.log('Received Downlink:');
-                console.log(downlinkModel);
-                console.log(`PAYLOAD = ${base64ToHex(JSON.stringify(downlinkModel.downlinkQueued.frmPayload))}`)
+                //console.log(downlinkModel);
+                //console.log(`PAYLOAD = ${base64ToHex(JSON.stringify(downlinkModel.downlinkQueued.frmPayload))}`)
+                services.createMessage(downlinkModel.downlinkQueued.frmPayload, downlinkModel.deviceId, downlinkModel.applicationId, downlinkModel.correlationIds)
             }
 
             rsp.status(codes.statusCodes.OK).json({ ok: "okay" })
+        }, rsp)
+    }
+
+    /**
+     * @param {express.Request} req 
+     * @param {express.Response} rsp 
+     */
+    async function getAllMessages(req, rsp) {
+        tryCatch(async () => {
+            const messages = await services.getAllMessages(); // Await the promise to get the result
+            rsp.status(codes.statusCodes.OK).json(messages)
         }, rsp)
     }
 
@@ -48,10 +56,8 @@ function api(config) {
     }
 
     return {
-        mainWebHook: {
-            path: apiPaths.mainWebHook,
-            func: mainWebHook
-        }
+        getWebHook: getWebHook,
+        getAllMessages: getAllMessages
     }
 
 }
