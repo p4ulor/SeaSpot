@@ -12,12 +12,12 @@ import cookieParser from 'cookie-parser' //https://expressjs.com/en/resources/mi
 import * as theApi from './web/api/web-api.mjs'
 
 /** 
- * @param {ServerConfig} config 
+ * @param {ServerConfiguration} config 
  * @returns {Promise<Express>}
  */
-export function server(config) { //in order be to be used in tests and be more flexible
+export function Server(config) { //in order be to be used in tests and be more flexible
 
-    if (!config instanceof ServerConfig) throw new Error("A ServerConfig must be provided")
+    if (!config instanceof ServerConfiguration) throw new Error("A ServerConfig must be provided")
 
     const PORT = config.port
     const app = express() //(the package uses 'export')
@@ -46,7 +46,7 @@ export function server(config) { //in order be to be used in tests and be more f
     return promise
 }
 
-export class ServerConfig {
+export class ServerConfiguration {
     /**
      * @param {number} port 
      * @param {boolean} isDataSourceElastic 
