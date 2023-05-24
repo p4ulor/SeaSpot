@@ -50,6 +50,7 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(vm.devicesFound.toList().sortedByDescending { it.second.name!=null }) {
                         ListOfDevices({
+                            toast(R.string.connecting, ctx)
                             try {
                                 vm.connect(it.first){
                                     coroutineScope.launch { //In order to avoid "java.lang.IllegalStateException: Method setCurrentState must be called on the main thread"
@@ -57,7 +58,8 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
                                     }
                                 }
                             } catch (e: Exception){
-                                toast("$e", ctx)
+                                toast(R.string.failed, ctx)
+                                log("Connecting failed: $e")
                             }
                         }, it.first, if(it.second.name == null) "<${ctx.getString(R.string.no_name)}>" else it.second.name)
                     }

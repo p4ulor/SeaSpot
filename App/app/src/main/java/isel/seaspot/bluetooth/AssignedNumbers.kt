@@ -22,7 +22,7 @@ enum class AssignedNumbersService(val value: Int){
             AssignedNumbersService.values().forEach {
                 val value = Integer.toHexString(it.value)
                 val bleUUID = cutUUIDIntoBLE_UUID(uuid)
-                log("bleUUID = $bleUUID")
+                //log("bleUUID = $bleUUID")
                 if(bleUUID.equals(value)) assignedNumber = it
             }
             return assignedNumber
@@ -59,7 +59,7 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
             AssignedNumbersCharacteristics.values().forEach {
                 val value = Integer.toHexString(it.value)
                 val bleUUID = cutUUIDIntoBLE_UUID(uuid)
-                log("bleUUID = $bleUUID")
+                //log("bleUUID = $bleUUID")
                 if(bleUUID.equals(value)) assignedNumber = it
             }
             return assignedNumber

@@ -2,10 +2,7 @@ package isel.seaspot.bluetooth
 
 import android.annotation.SuppressLint
 import android.bluetooth.*
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
-import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
+import android.bluetooth.le.*
 import android.content.Context
 import android.content.Intent
 import android.os.Handler
@@ -18,9 +15,23 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-//https://developer.android.com/guide/topics/connectivity/bluetooth/setup
-//https://developer.android.com/guide/topics/connectivity/bluetooth/find-ble-devices
-//https://punchthrough.com/android-ble-guide/#:~:text=device%20from%20there.-,Implementing%20a%20basic%20queuing%20mechanism,-In%20this%20section
+/** References
+ * General:
+ * - https://developer.android.com/guide/topics/connectivity/bluetooth/setup
+ * - https://developer.android.com/guide/topics/connectivity/bluetooth/find-ble-devices
+ * - https://punchthrough.com/android-ble-guide/#:~:text=device%20from%20there.-,Implementing%20a%20basic%20queuing%20mechanism,-In%20this%20section
+ * @see bluetoothLeScanner - [4] https://stackoverflow.com/a/35476512/9375488
+ * @see connectGatt - [5] https://developer.android.com/guide/topics/connectivity/bluetooth/connect-gatt-server
+ * @see connectGatt - [6] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=Autoconnect%20only%20works%20for%20cached%20or%20bonded%20devices!
+ * @see disconnect - [6.1] https://stackoverflow.com/a/23657148
+ * @see bluetoothGattCallback - [7] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=it%20means%20the%20connection%20state
+ * @see bluetoothGattCallback - [8] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=int%20bondstate%20%3D-,device.getBondState()%3B,-The%20bond%20state
+ * @see bluetoothGattCallback - [9] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=have%20to%20add%20a%201000%E2%80%931500%20ms%20delay.
+ * @see bluetoothGattCallback - [10] https://developer.android.com/reference/android/bluetooth/BluetoothGatt#discoverServices()
+ * @see bluetoothGattCallback - [11] https://issuetracker.google.com/issues/228984309 https://stackoverflow.com/q/32363931
+ * @see clearServicesCache - [12] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=the%20services%0A...-,Caching%20of%20services,-The%20Android%20stack
+ * @see setCharacteristicNotification - [13] https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
+ */
 @SuppressLint("MissingPermission") //because we already call askForPermissions
 class BLE_Manager(
     private val ctx: Context,
@@ -41,7 +52,7 @@ class BLE_Manager(
     private fun isBluetoothOn() = bluetoothAdapter?.isEnabled == true
 
     var postScan: () -> Unit = {}
-    var onConnectSuccessful: () -> Unit = {}
+    var onConnectionSuccessful: () -> Unit = {}
     var onServicesDiscovered: () -> Unit = {}
     var onDisconnect: (msg: String) -> Unit = {}
 
@@ -68,7 +79,7 @@ class BLE_Manager(
                 scanning = false
                 postScan()
                 toast(R.string.scanningDone, ctx)
-                bluetoothLeScanner()?.stopScan(leScanCallback)
+                bluetoothLeScanner()?.stopScan(bleScanCallback)
             }, SCAN_PERIOD)
             scanning = true
             log("---started scanning---")
@@ -84,7 +95,7 @@ class BLE_Manager(
             settingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             settingsBuilder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
 
-            bluetoothLeScanner()?.startScan(null, settingsBuilder.build(), leScanCallback)
+            bluetoothLeScanner()?.startScan(null, settingsBuilder.build(), bleScanCallback)
         } else {
             log("Already scanning")
         }
@@ -93,12 +104,12 @@ class BLE_Manager(
     private fun stopScanning(){
         if(scanning){
             scanning = false
-            bluetoothLeScanner()?.stopScan(leScanCallback)
+            bluetoothLeScanner()?.stopScan(bleScanCallback)
         }
     }
 
-    //Note: Location need to be turned in order for the ScanCallback to work ... https://stackoverflow.com/a/35476512/9375488
-    private val leScanCallback: ScanCallback = object : ScanCallback() {
+    //Note: Location need to be turned in order for the ScanCallback to work ... [4]
+    private val bleScanCallback: ScanCallback = object : ScanCallback() {
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
             toast(R.string.scanError, ctx)
@@ -108,7 +119,7 @@ class BLE_Manager(
             try {
                 super.onScanResult(callbackType, result)
                 bleDevices.set(result.device.address, result.device)
-                log(result.toString())
+                //log(result.toString())
             } catch (e: Exception){
                 log("Exception occurred in onScanResult -> $e")
             }
@@ -122,33 +133,35 @@ class BLE_Manager(
         }
     }
 
-    fun connectGatt(device: BluetoothDevice, onConnectSuccessful: () -> Unit, onServicesDiscovered: () -> Unit) { //https://developer.android.com/guide/topics/connectivity/bluetooth/connect-gatt-server
+    fun connectGatt(device: BluetoothDevice, onConnectSuccessful: () -> Unit, onServicesDiscovered: () -> Unit) { //[5]
         stopScanning()
-        this.onConnectSuccessful = onConnectSuccessful
+        this.onConnectionSuccessful = onConnectSuccessful
         this.onServicesDiscovered = onServicesDiscovered
-        currentlyConnectedDeviceGatt = device.connectGatt(ctx, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE) //autoConnect = false because -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=Autoconnect%20only%20works%20for%20cached%20or%20bonded%20devices!
+        currentlyConnectedDeviceGatt = device.connectGatt(ctx, false, bluetoothGattCallback, BluetoothDevice.TRANSPORT_LE) //autoConnect = false because -> [6]
         currentlyConnectedDevice = device
     }
 
-    fun disconnect() = currentlyConnectedDeviceGatt?.disconnect()
+    fun disconnect(){ // [6.1]
+        if(currentlyConnectedDeviceGatt==null) onDisconnect("Already disconnected")
+        else currentlyConnectedDeviceGatt?.disconnect()
+    }
     fun getConnectedDevice() = currentlyConnectedDevice
     fun getConnectedDeviceGatt() = currentlyConnectedDeviceGatt
 
-    private val bluetoothGattCallback: BluetoothGattCallback = object : BluetoothGattCallback(){
+    private val bluetoothGattCallback: BluetoothGattCallback = object : BluetoothGattCallback(){ //For this callback there's only 1 thread named like: "binder:19774_1" which is used for all overwritten methods
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            if(status == BluetoothGatt.GATT_SUCCESS) { //it means the connection state change was the result of a successful operation like connecting but it could also be because you wanted to disconnect. https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=it%20means%20the%20connection%20state
-                log("GATT_SUCCESS")
+            if(status == BluetoothGatt.GATT_SUCCESS) { //it means the connection state change was the result of a successful operation like connecting but it could also be because you wanted to disconnect. [7]
+                log("onConnectionStateChange -> GATT_SUCCESS")
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
                         log("STATE_CONNECTED")
-                        val bondState = currentlyConnectedDevice?.bondState //https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=int%20bondstate%20%3D-,device.getBondState()%3B,-The%20bond%20state
-                        if(bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.BOND_BONDED) {
-                            //handler.postDelayed({
-                                log("BOND_BONDED")
-                                val areThereServices = gatt?.discoverServices() //https://developer.android.com/reference/android/bluetooth/BluetoothGatt#discoverServices()
-                                if(areThereServices == true) log("Will call onServicesDiscovered()")
-                                else log("No services")
-                            //}, 1000)
+                        val bondState = currentlyConnectedDevice?.bondState //[8]
+                        if(bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.BOND_BONDED) { //consider [9]
+                            onConnectionSuccessful()
+                            log("BOND_BONDED")
+                            val areThereServices = gatt?.discoverServices() //[10]
+                            if(areThereServices == true) log("Started onServicesDiscovered()")
+                            else log("Couldn't call onServicesDiscovered()")
                         } else if (bondState == BluetoothDevice.BOND_BONDING) {
                             log("waiting for bonding to complete")
                         }
@@ -156,36 +169,45 @@ class BLE_Manager(
                     BluetoothProfile.STATE_CONNECTING -> {
                         log("STATE_CONNECTING")
                     }
-                    else -> { //STATE_DISCONNECTED or STATE_DISCONNECTING
-                        gatt?.close()
-                        log("Disconnected, State = $newState")
+                    BluetoothProfile.STATE_DISCONNECTING -> {
+                        log("STATE_DISCONNECTING")
+                    }
+                    BluetoothProfile.STATE_DISCONNECTED -> {
+                        log("STATE_DISCONNECTED")
+                        currentlyConnectedDeviceGatt = null
+                        currentlyConnectedDevice = null
+                        onDisconnect("STATE_DISCONNECTED")
+                    }
+                    else -> {
+                        log("State = $newState")
                     }
                 }
             } else {
                 log("Unexpected error occurred in onConnectionStateChange. Status = $status. Gatt = $gatt")
+                clearServicesCache()
                 gatt?.close()
                 currentlyConnectedDeviceGatt = null
                 currentlyConnectedDevice = null
-                clearServicesCache()
+                onDisconnect("")
             }
         }
 
+        //This method sometimes will have gatt?.services empty [11]
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                log("onServicesDiscovered received -> GATT_SUCCESS")
+                log("onServicesDiscovered received -> GATT_SUCCESS, ${currThread()}")
                 log("Services = ${gatt?.services?.map { "${it.uuid} (${AssignedNumbersService.uuidToEnum(it.uuid).name})" } }")
-                try {
-                    val x = gatt?.services?.get(0)
-                    log("Characteristics - ${x?.characteristics}")
-                    gatt?.readCharacteristic(x?.characteristics?.get(0))
+                if(gatt?.services?.isNotEmpty()==true){
+                    log("SERVICES FOUND")
                     onServicesDiscovered()
-                } catch (e :Exception){
-                    log("Exception on onServicesDiscovered: $e")
+                } else {
+                    log("SERVICES NOT FOUND")
                 }
             }
             else log("onServicesDiscovered received: $status")
         }
 
+        //This callback is run if Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
             runBlockingCallback {
                 log("onCharacteristicRead ${Thread.currentThread()}")
@@ -204,17 +226,21 @@ class BLE_Manager(
             }
         }
 
+        //This callback is run if Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-            log("onCharacteristicRead2 ${Thread.currentThread()}")
-            when (status) {
-                BluetoothGatt.GATT_SUCCESS -> {
-                    log("characteristic.value -> String = ${characteristic?.value}. uuid = ${characteristic?.uuid}")
-                }
-                BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
-                    log("onCharacteristicRead received GATT_READ_NOT_PERMITTED")
-                }
-                else -> {
-                    log("onCharacteristicRead failed? received: $status")
+            runBlockingCallback {
+                log("onCharacteristicRead2 ${Thread.currentThread()}")
+                when (status) {
+                    BluetoothGatt.GATT_SUCCESS -> {
+                        log("characteristic.value -> String = ${characteristic?.value}. uuid = ${characteristic?.uuid}")
+                        characteristicsRead.add(characteristic?.value ?: byteArrayOf(1))
+                    }
+                    BluetoothGatt.GATT_READ_NOT_PERMITTED -> {
+                        log("onCharacteristicRead received GATT_READ_NOT_PERMITTED")
+                    }
+                    else -> {
+                        log("onCharacteristicRead failed? received: $status")
+                    }
                 }
             }
         }
@@ -230,7 +256,15 @@ class BLE_Manager(
             log("onCharacteristicChanged()")
         }
 
-        override fun onDescriptorRead(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback#onDescriptorRead(android.bluetooth.BluetoothGatt,%20android.bluetooth.BluetoothGattDescriptor,%20int,%20byte[])
+        override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
+            log("onCharacteristicChanged222()")
+        }
+
+        override fun onReliableWriteCompleted(gatt: BluetoothGatt?, status: Int) {
+            log("onReliableWriteCompleted()")
+        }
+
+        override fun onDescriptorRead(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) {
             log("Value = ${value.decodeToString()}")
         }
     }
@@ -245,7 +279,7 @@ class BLE_Manager(
         try {
             characteristicsRead.clear()
             log("readCharacteristics ${Thread.currentThread()}")
-            var maxWaitSeconds = 10
+            var maxWaitSeconds = 5
             lock.withLock{
                 characteristic.forEach{
                     while(true){
@@ -283,7 +317,7 @@ class BLE_Manager(
         }
     }
 
-    private fun clearServicesCache() : Boolean { //https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=the%20services%0A...-,Caching%20of%20services,-The%20Android%20stack
+    private fun clearServicesCache() : Boolean { //[12]
         var result = false
         log("Will try to clear cache")
         try {
@@ -298,7 +332,7 @@ class BLE_Manager(
     }
 
     //Later
-    fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enabled: Boolean) { //https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
+    fun setCharacteristicNotification(characteristic: BluetoothGattCharacteristic, enabled: Boolean) { //[13]
         currentlyConnectedDeviceGatt?.let { gatt ->
             gatt.setCharacteristicNotification(characteristic, enabled)
 

@@ -9,7 +9,10 @@ import java.util.concurrent.Executors
 
 private const val TAG = "MYLOG_"
 
-fun log(s: String) = Log.i(TAG, s)
+fun log(s: String) : String {
+    Log.i(TAG, s)
+    return s
+}
 
 fun toast(s: String, ctx: Context) = Toast.makeText(ctx, s, Toast.LENGTH_LONG).show() //Note: setGravity no longer works in recent versions https://developer.android.com/reference/android/widget/Toast#getGravity()
 
@@ -29,3 +32,5 @@ fun <T> viewModelInit(block: () -> T) =
 private val dataAccessExecutor = Executors.newSingleThreadExecutor() // allocates a task to execute on a new thread
 
 fun doAsync(action: () -> Unit) = dataAccessExecutor.submit(action)!!
+
+fun currThread() = "Thread - ${Thread.currentThread().name}"

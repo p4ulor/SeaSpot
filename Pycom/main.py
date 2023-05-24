@@ -24,11 +24,12 @@ joiner.join()
 print('TTN joined')
 
 
-def send_data_thread():
+def send_data_thread(data):
     # while True:
     # Send some data
     # joiner.send_data_bytes(bytes([11]))
-    joiner.send_data_bytes(bytes([1, 2, 3]))
+    # joiner.send_data_bytes(bytes([1, 2, 3]))
+    joiner.send_data_bytes(bytearray(data))
 
 
 def receive_data_thread():
@@ -58,7 +59,7 @@ CHARACTERISTIC_UUID_LATITUDE = 0x2aae
 CHARACTERISTIC_UUID_LONGITUDE = 0x2aaf
 
 def ble_thread():
-    def conn_cb (bt_o):
+    def connectionCallback (bt_o):
         events = bt_o.events()
         if  events & Bluetooth.CLIENT_CONNECTED:
             print("Client connected")
@@ -70,39 +71,42 @@ def ble_thread():
         if  events & Bluetooth.CHAR_WRITE_EVENT:
             print("On char 1 Write request with value = {}".format(value))
         else:
-            print('Read request on char 1 ',data)
+            print('Read request on char 1 ', data)
 
     def char2_cb_handler(chr, data):
         events, value = data
         if  Bluetooth.CHAR_READ_EVENT:
-            print('Read request on char 2 ',data)
+            print('Read request on char 2 ', value)
+        else:
+            print('Unregisted operation occured in char2_cb_handler')
             
-
     def char3_cb_handler(chr, data):
-        events, value = data
+        events, value = data # data is like = (16, b'1011')
+        print('char3_cb_handler')
         if  events & Bluetooth.CHAR_WRITE_EVENT:
             print("On char 3 Write request with value = {}".format(value))
+            _thread.start_new_thread(send_data_thread, (value,)) # must have ','... https://stackoverflow.com/a/37116824
         else:
-            print('Read request on char 3 ',data)
-
+            print('Read request on char 3 ', value)
+            
     def char4_cb_handler(chr, data):
         events, value = data
         if  events & Bluetooth.CHAR_WRITE_EVENT:
             print("On char 4 Write request with value = {}".format(value))
         else:
-            print('Read request on char 4 ',data)
+            print('Read request on char 4 ', value)
 
     bluetooth = Bluetooth()
     bluetooth.set_advertisement(name='SEASPOT', service_uuid=uuid2bytes(SERVICE_UUID))
-    bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
+    bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=connectionCallback)
     bluetooth.advertise(True)
 
     srv1 = bluetooth.service(uuid=SERVICE_USER_DATA, isprimary=True)
-    chr1 = srv1.characteristic(uuid=CHARACTERISTIC_UUID_NAME, value='LilyGo')
+    chr1 = srv1.characteristic(uuid=CHARACTERISTIC_UUID_NAME, value='LilyGo') # By default, the charac has:  properties=Bluetooth.PROP_WRITE | Bluetooth.PROP_WRITE_NR
     char1_cb = chr1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char1_cb_handler)
 
     srv2 = bluetooth.service(uuid=SERVICE_UUID_BATTERY, isprimary=True)
-    chr2 = srv2.characteristic(uuid=CHARACTERISTIC_UUID_BATTERY, value='50%')
+    chr2 = srv2.characteristic(uuid=CHARACTERISTIC_UUID_BATTERY, properties=Bluetooth.PROP_READ, value='51%')
     char2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
     srv3 = bluetooth.service(uuid=SERVICE_UUID_LOCATION, isprimary=True, nbr_chars=2)

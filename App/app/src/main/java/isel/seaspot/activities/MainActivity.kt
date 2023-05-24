@@ -35,10 +35,6 @@ class MainActivity : ComponentActivity() {
 
         checkIfScreenNamesAreGood()
 
-        GlobalScope.launch {
-
-        }
-
         setContent {
             navController = rememberNavController()
             NavGraph(viewModel, navController)
@@ -66,8 +62,13 @@ class MainActivity : ComponentActivity() {
             Screens.ConnectedDevice.routeName -> {
                 viewModel.disconnect()
                 onBackPressedDispatcher.onBackPressed() //because super.onBackpressed() is deprecated https://stackoverflow.com/a/73934895
-            } else -> {
-                log("Screen not included in the 'when' of onBackPressed()")
+            }
+            Screens.Home.routeName -> {
+                moveTaskToBack(true) //In order to not destroy the activity
+            }
+            else -> { //sometimes the destination is null for unknown reasons
+                log("Screen ${navController.currentDestination?.route} not included in the 'when' of onBackPressed(). Going to home")
+                navController.navigate(Screens.Home.routeName)
             }
         }
     }

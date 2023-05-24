@@ -49,11 +49,7 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
         mutableStateOf(mutableListOf<Service>()) //This type of MutableState will need to be set w/ a new obj to update the UI
     }
 
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .padding(vertical = 40.dp),
+    Column(Modifier.fillMaxWidth().fillMaxHeight().padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -61,13 +57,10 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
         HeaderText("${vm?.getConnectedDevice()?.name}")
         Button({
             vm?.disconnect()
-            navController?.popBackStack()
         }, stringResource(R.string.disconnect))
 
         LazyColumn(
-            Modifier
-                .fillMaxWidth()
-                .padding(paddingValues = PaddingValues(start = 5.dp, end = 5.dp)),
+            Modifier.fillMaxWidth().padding(paddingValues = PaddingValues(start = 5.dp, end = 5.dp)),
             verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
             val gatt = vm?.getConnectedDeviceGatt()
@@ -79,11 +72,18 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
                 if(x==null) servicesOpen.set(uuid, false)
             }
 
+            if(services.isEmpty()){ //Since this is a lazy column, I need to provide a list
+                items(listOf(1)){
+                    Button({
+                        gatt?.discoverServices()
+                    }, "${stringResource(R.string.refresh)}")
+                }
+                return@LazyColumn
+            }
+
             items(services) { service ->
                 Card(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(5.dp)
+                    Modifier.fillMaxWidth().padding(5.dp)
                         .clickable {
                             val isItOpen = servicesOpen.get(service.uuid.toString())
                             if (isItOpen != null) {
@@ -94,21 +94,9 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
                                         val gattCharacteristics = service.characteristics.toMutableList() //to create a copy
 
                                         val characteristicsOfThisService = mutableListOf<Characteristic>()
-                                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-                                            log("33")
-                                        } else log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
 
-
-                                        //this is just a test
-                                        gattCharacteristics.forEach {
-                                            log("read: ${it.value}. ${it.getStringValue(0)}")
-                                        }
-
+                                        //Trying to access gattCharacteristics[0].value will return null before this method
                                         val charsValues = vm?.readCharacteristics(gattCharacteristics) ?: mutableListOf() //blocking
-
-                                        gattCharacteristics.forEach {
-                                            log("read: ${it.value}. ${it.getStringValue(0)}")
-                                        }
 
                                         log("Values of the characteristics obtained: ${charsValues.map { it.decodeToString() }}. Raw = ${charsValues.map { it }}")
                                         gattCharacteristics.forEachIndexed { index, charac ->
@@ -166,10 +154,7 @@ fun CharacteristicDisplay(
     services: MutableList<BluetoothGattService>,
     ctx: Context
 ) {
-    Card(
-        Modifier
-            .fillMaxSize()
-            .padding(5.dp), elevation = 10.dp) {
+    Card(Modifier.fillMaxSize().padding(5.dp), elevation = 10.dp) {
         Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)){
             val service = servicesData.find { it.fullUUID==service.uuid.toString() }
             service?.characteristics?.forEach {
@@ -201,7 +186,6 @@ fun CharacteristicDisplay(
                         val failed = "${stringResource(R.string.failed)}"
                         val characteristicNotFound = "${stringResource(R.string.characNotFound)}"
                         Button({
-
                             val charac = getCharacteristic(services, service, characteristic.getFullUUID())
                             if(charac==null) toast(characteristicNotFound, ctx) //if this is true, something went wrong
                             else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { //https://developer.android.com/reference/android/bluetooth/BluetoothGatt#writeCharacteristic(android.bluetooth.BluetoothGattCharacteristic,%20byte[],%20int)
@@ -212,7 +196,7 @@ fun CharacteristicDisplay(
                                 if(code == BluetoothStatusCodes.SUCCESS) toast(success, ctx) else toast(failed, ctx)
                             } else { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic#setValue(byte[])
                                 log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
-                                val worked = charac?.setValue(text.encodeToByteArray())
+                                val worked = charac?.setValue(text)
                                 if(worked==true) toast(success, ctx) else toast(failed, ctx)
                             }
                         }, stringResource(R.string.edit), isEditButtonEnabled)

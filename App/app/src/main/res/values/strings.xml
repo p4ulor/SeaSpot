@@ -23,4 +23,5 @@
     <string name="failed">Failed</string>
     <string name="characNotFound">Characteristic not found</string>
     <string name="valueTooBig">Value too big. Max =</string>
+    <string name="refresh">Refresh</string>
 </resources>

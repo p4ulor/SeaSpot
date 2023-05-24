@@ -10,8 +10,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import isel.seaspot.R
 import isel.seaspot.bluetooth.BLE_Manager
+import isel.seaspot.screens.Screens
+import isel.seaspot.utils.log
+import isel.seaspot.utils.toast
+import kotlinx.coroutines.launch
+import kotlin.concurrent.thread
 
 class MainViewModel(
     app: Application, //I provide the app context not activity context (which is more susceptible to memory leaks) https://stackoverflow.com/a/4128799
@@ -32,7 +39,18 @@ class MainViewModel(
         }
 
         bleManager.onDisconnect = {
-
+            //coroutine to avoid java.lang.RuntimeException: Can't toast on a thread that has not called Looper.prepare()
+            log("bleManager.onDisconnect -> $it")
+            viewModelScope.launch {
+                toast(R.string.disconnected, app)
+                navController.popBackStack().also {
+                    log("poppedBack -> $it. Curr destination = ${navController.currentDestination?.navigatorName}")
+                    if(navController.currentDestination?.navigatorName==null || !it){
+                        log("Some android state error occurred, going to home by default")
+                        navController.navigate(Screens.Home.routeName)
+                    }
+                }
+            }
         }
     }
 
@@ -41,7 +59,11 @@ class MainViewModel(
     @SuppressLint("MissingPermission")
     fun connect(address: String, onSuccess: () -> Unit) {
         val device = devicesFound.get(address) ?: throw Exception("Device not found for connection")
-        bleManager.connectGatt(device, {}, {
+        bleManager.connectGatt(device,
+        {
+           log("connected")
+        },
+        {
             onSuccess()
         })
     }
