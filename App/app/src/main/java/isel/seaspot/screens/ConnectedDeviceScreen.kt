@@ -31,13 +31,16 @@ import isel.seaspot.bluetooth.*
 import isel.seaspot.bluetooth.Properties
 import isel.seaspot.ui.elements.Button
 import isel.seaspot.ui.elements.HeaderText
+import isel.seaspot.utils.doAsync
 import isel.seaspot.utils.log
 import isel.seaspot.utils.toast
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.*
+import kotlin.concurrent.thread
 
 @Composable @SuppressLint("MissingPermission")
-fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?) {
+fun ConnectedDeviceScreen(vm: MainViewModel) {
     val ctx = LocalContext.current
     val coroutineScope = rememberCoroutineScope() //This coroutine scope is tied to the composable from where it is called and will automatically be cancelled when this composable leaves composition
 
@@ -54,31 +57,22 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         HeaderText("Connected to")
-        HeaderText("${vm?.getConnectedDevice()?.name}")
+        HeaderText("${vm.getConnectedDevice()?.name}")
         Button({
-            vm?.disconnect()
+            vm.disconnect()
         }, stringResource(R.string.disconnect))
 
         LazyColumn(
             Modifier.fillMaxWidth().padding(paddingValues = PaddingValues(start = 5.dp, end = 5.dp)),
             verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
-            val gatt = vm?.getConnectedDeviceGatt()
-            val services = gatt?.services ?: mutableListOf()
+            val gatt = vm.getConnectedDeviceGatt()
+            val services = vm.getConnectedDeviceServices()
 
             services.forEach {
                 val uuid = it.uuid.toString()
                 val x = servicesOpen.get(uuid)
                 if(x==null) servicesOpen.set(uuid, false)
-            }
-
-            if(services.isEmpty()){ //Since this is a lazy column, I need to provide a list
-                items(listOf(1)){
-                    Button({
-                        gatt?.discoverServices()
-                    }, "${stringResource(R.string.refresh)}")
-                }
-                return@LazyColumn
             }
 
             items(services) { service ->
@@ -89,14 +83,14 @@ fun ConnectedDeviceScreen(vm: MainViewModel?, navController: NavHostController?)
                             if (isItOpen != null) {
                                 servicesOpen.set(service.uuid.toString(), !isItOpen)
                                 if (!isItOpen) { //If it wasn't open, (and now it has been set to open), get the characteristic values
-                                    coroutineScope.launch {
+                                    doAsync { //in order to not block the main thread
                                         log("Will executeCharacteristicRead ${service.uuid} with ${Thread.currentThread().name}")
                                         val gattCharacteristics = service.characteristics.toMutableList() //to create a copy
 
                                         val characteristicsOfThisService = mutableListOf<Characteristic>()
 
                                         //Trying to access gattCharacteristics[0].value will return null before this method
-                                        val charsValues = vm?.readCharacteristics(gattCharacteristics) ?: mutableListOf() //blocking
+                                        val charsValues = vm.readCharacteristics(gattCharacteristics) //blocking
 
                                         log("Values of the characteristics obtained: ${charsValues.map { it.decodeToString() }}. Raw = ${charsValues.map { it }}")
                                         gattCharacteristics.forEachIndexed { index, charac ->
@@ -157,8 +151,7 @@ fun CharacteristicDisplay(
     Card(Modifier.fillMaxSize().padding(5.dp), elevation = 10.dp) {
         Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)){
             val service = servicesData.find { it.fullUUID==service.uuid.toString() }
-            service?.characteristics?.forEach {
-                val characteristic = it
+            service?.characteristics?.forEach { characteristic ->
 
                 Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
@@ -212,9 +205,4 @@ fun isThisServiceOpen(servicesOpen: MutableMap<String, Boolean>, service: Blueto
     return servicesOpen.any {
         it.value && it.key == service?.uuid.toString()
     }
-}
-
-@Composable @Preview
-fun ConnectedDeviceScreenPreview() {
-    ConnectedDeviceScreen(null, null) //Best way to be able to solve the necessity of the arguments...
 }

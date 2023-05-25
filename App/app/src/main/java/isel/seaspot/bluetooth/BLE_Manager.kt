@@ -145,8 +145,22 @@ class BLE_Manager(
         if(currentlyConnectedDeviceGatt==null) onDisconnect("Already disconnected")
         else currentlyConnectedDeviceGatt?.disconnect()
     }
+
     fun getConnectedDevice() = currentlyConnectedDevice
     fun getConnectedDeviceGatt() = currentlyConnectedDeviceGatt
+
+    fun getConnectedDeviceServices() : MutableList<BluetoothGattService> {
+        val services = currentlyConnectedDeviceGatt?.services ?: mutableListOf()
+        val servIterator = services.iterator()
+
+        servIterator.forEach {
+            if(ignoredServices.contains(AssignedNumbersService.uuidToEnum(it.uuid))){
+                servIterator.remove()
+            }
+        }
+
+        return services
+    }
 
     private val bluetoothGattCallback: BluetoothGattCallback = object : BluetoothGattCallback(){ //For this callback there's only 1 thread named like: "binder:19774_1" which is used for all overwritten methods
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
@@ -273,7 +287,7 @@ class BLE_Manager(
     private val lock = ReentrantLock()
     private var isOperationRunning = false
     private var threadsWaiting: Condition = lock.newCondition()
-    private var characteristicsRead = mutableListOf<ByteArray>()
+    private val characteristicsRead = mutableListOf<ByteArray>()
 
     fun readCharacteristics(characteristic: List<BluetoothGattCharacteristic>) : List<ByteArray>{
         try {
@@ -292,12 +306,13 @@ class BLE_Manager(
                         log("Will wait")
                         maxWaitSeconds--
                         threadsWaiting.await(1, TimeUnit.SECONDS)
-                        log("wokeup")
+                        log("wokeup, maxWaitSeconds = $maxWaitSeconds")
                         if(maxWaitSeconds==0) {
                             log("Quit waiting")
                             break
                         }
                     }
+                    maxWaitSeconds = 5
                 }
                 if(isOperationRunning) threadsWaiting.await(maxWaitSeconds.toLong(), TimeUnit.SECONDS) //💡
                 return characteristicsRead

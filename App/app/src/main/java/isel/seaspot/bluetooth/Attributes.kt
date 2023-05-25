@@ -2,7 +2,7 @@ package isel.seaspot.bluetooth
 
 import java.util.*
 
-val maximumBytes = 512 //https://stackoverflow.com/a/38742859
+const val maximumBytes = 512 //https://stackoverflow.com/a/38742859
 
 data class Characteristic(
     val uuid: AssignedNumbersCharacteristics,

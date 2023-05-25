@@ -16,7 +16,7 @@ fun NavGraph(viewModel: MainViewModel, navController: NavHostController){
             SeaSpotTheme { MainScreen(viewModel, navController) }
         }
         composable(route = Screens.ConnectedDevice.routeName){
-            SeaSpotTheme { ConnectedDeviceScreen(viewModel, navController) }
+            SeaSpotTheme { ConnectedDeviceScreen(viewModel) }
         }
     }
 }

@@ -18,10 +18,9 @@ import isel.seaspot.screens.Screens
 import isel.seaspot.utils.log
 import isel.seaspot.utils.toast
 import kotlinx.coroutines.launch
-import kotlin.concurrent.thread
 
 class MainViewModel(
-    app: Application, //I provide the app context not activity context (which is more susceptible to memory leaks) https://stackoverflow.com/a/4128799
+    app: Application, //I provide the app context not activity context (this last one is more susceptible to memory leaks) https://stackoverflow.com/a/4128799
     handleResultOfAskingForBTEnabling: ActivityResultLauncher<Intent>,
     navController: NavHostController,
 ) : AndroidViewModel(app) {
@@ -39,9 +38,8 @@ class MainViewModel(
         }
 
         bleManager.onDisconnect = {
-            //coroutine to avoid java.lang.RuntimeException: Can't toast on a thread that has not called Looper.prepare()
-            log("bleManager.onDisconnect -> $it")
-            viewModelScope.launch {
+            viewModelScope.launch {//coroutine to avoid java.lang.RuntimeException: Can't toast on a thread that has not called Looper.prepare()
+                log("bleManager.onDisconnect -> $it")
                 toast(R.string.disconnected, app)
                 navController.popBackStack().also {
                     log("poppedBack -> $it. Curr destination = ${navController.currentDestination?.navigatorName}")
@@ -54,22 +52,24 @@ class MainViewModel(
         }
     }
 
-    fun scanForDevices() = bleManager.scanForDevices()
-
     @SuppressLint("MissingPermission")
-    fun connect(address: String, onSuccess: () -> Unit) {
+    fun connect(address: String, onServicesDiscovered: () -> Unit) {
         val device = devicesFound.get(address) ?: throw Exception("Device not found for connection")
         bleManager.connectGatt(device,
         {
            log("connected")
         },
         {
-            onSuccess()
+            viewModelScope.launch { //In order to avoid "java.lang.IllegalStateException: Method setCurrentState must be called on the main thread". Because it's called in the bleCallback thread
+                onServicesDiscovered()
+            }
         })
     }
 
+    fun scanForDevices() = bleManager.scanForDevices()
     fun disconnect() = bleManager.disconnect()
     fun getConnectedDevice() = bleManager.getConnectedDevice()
     fun getConnectedDeviceGatt() = bleManager.getConnectedDeviceGatt()
+    fun getConnectedDeviceServices() = bleManager.getConnectedDeviceServices()
     fun readCharacteristics(characteristics: List<BluetoothGattCharacteristic>) = bleManager.readCharacteristics(characteristics)
 }

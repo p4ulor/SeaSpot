@@ -1,6 +1,5 @@
 package isel.seaspot.bluetooth
 
-import isel.seaspot.utils.log
 import java.util.*
 
 // For now android only includes Company ID values in BluetoothAssignedNumbers. https://developer.android.com/reference/android/bluetooth/BluetoothAssignedNumbers#APPLE:~:text=For%20now%20we%20only%20include%20Company%20ID%20values.
@@ -8,9 +7,11 @@ enum class AssignedNumbersService(val value: Int){
     Battery(0x180F),
     CurrentTime(0x1805),
     DeviceInformation(0x180A),
-    GenericAccess(0x1800),
-    GenericAttribute(0x1801),
+    GenericAccess(0x1800), //exists (by default) for every ble device
+    GenericAttribute(0x1801), //exists (by default) for every ble device
     LocationAndNavigation(0x1819),
+    Phone(0x180E), //(PhoneAlertStatus)
+    PublicBroadcast(0x1856), // (Public Broadcast Announcement)
     UserData(0x181C),
     VolumeControl(0x1844),
     WeightScale(0x181D),
@@ -30,6 +31,12 @@ enum class AssignedNumbersService(val value: Int){
     }
 }
 
+//These 2 services show up on all BLE devices as said in the specification https://devzone.nordicsemi.com/f/nordic-q-a/15118/how-to-remove-generic-access-and-generic-attribute-profiles
+// They are read only and aren't relevant to the App user
+val ignoredServices = mutableListOf(
+    AssignedNumbersService.GenericAccess, AssignedNumbersService.GenericAttribute
+)
+
 enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     AlertLevel(0x2A06, ValueType.Number),
     Altitude(0x2AB3, ValueType.Number),
@@ -37,6 +44,7 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     AverageVoltage(0x2AE1, ValueType.Number),
     BatteryLevel(0x2A19, ValueType.Number),
     CurrentTime(0x2A2B, ValueType.Number),
+    String(0x2BDE, ValueType.Text), //(Fixed String 64)
     Height(0x2A8E, ValueType.Number),
     Humidity(0x2A6F, ValueType.Number),
     Latitude(0x2AAE, ValueType.Number),
@@ -44,6 +52,7 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     LocationName(0x2AB5, ValueType.Text),
     ObjectName(0x2ABE, ValueType.Text),
     ObjectProperties(0x2AC4, ValueType.Text),
+    ObjectID(0x2AC3, ValueType.Number),
     SensorLocation(0x2A5D, ValueType.Number),
     SerialNumberString(0x2A25, ValueType.Text),
     Temperature(0x2A6E, ValueType.Number),

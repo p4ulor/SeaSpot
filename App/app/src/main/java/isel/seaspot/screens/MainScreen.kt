@@ -53,9 +53,7 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
                             toast(R.string.connecting, ctx)
                             try {
                                 vm.connect(it.first){
-                                    coroutineScope.launch { //In order to avoid "java.lang.IllegalStateException: Method setCurrentState must be called on the main thread"
-                                        navController.navigate(Screens.ConnectedDevice.routeName)
-                                    }
+                                    navController.navigate(Screens.ConnectedDevice.routeName)
                                 }
                             } catch (e: Exception){
                                 toast(R.string.failed, ctx)
