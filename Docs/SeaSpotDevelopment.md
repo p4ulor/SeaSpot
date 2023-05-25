@@ -246,3 +246,22 @@ Notes: To get any data received after sending the data it is important to keep i
 ## 4.6.1 Descrição da aplicação web
 ## 4.6.2 Funções e interações com o TTGO T-Beam e a TTN
 ## 4.6.3 Tecnologias utilizadas no desenvolvimento da aplicação web
+
+
+# Referências 
+
+## LoRaWAN
+- [1](https://benolayinka.github.io/docs/lorawan/classes/)
+- [2](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/lorawan-class-a-devices/)
+- [3](https://www.thethingsnetwork.org/docs/network/architecture/)
+- [4](https://www.thethingsnetwork.org/docs/lorawan/architecture/)
+- [5](https://www.thethingsnetwork.org/article/the-things-network-architecture-1)
+- [6](https://www.thethingsnetwork.org/docs/lorawan/what-is-lorawan/)
+- [7](https://docs.thinger.io/plugins/the-things-network)
+## BLE
+- [8](https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/)
+- [9](https://skills.microchip.com/android-development-process-for-bm70-rn4870/695181#:~:text=A%20BLE%20device%20that%20can,is%20called%20a%20Peripheral%20device.)
+- [10](https://community.silabs.com/s/article/x-deprecated-kba-bt-0102-ble-basics-master-slave-gatt-client-server-data-rx-x?language=en_US)
+- [11](https://iot521.wordpress.com/2016/03/15/what-is-bluetooth-low-energy-gatt-background-scanning-in-ios-apps/)
+- [12](https://novelbits.io/bluetooth-low-energy-advertisements-part-1/)
+- [13](https://pcng.medium.com/ble-protocol-stack-controller-2d2d5371deec)
