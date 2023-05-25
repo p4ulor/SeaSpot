@@ -1,22 +1,22 @@
 # 3.1 Protocolo de rede LoRaWAN
 ## 3.1.1 Visão geral do protocolo de rede LoRaWAN
-Uma rede baseada em LoRaWAN é composta por devices (dispositivos), gateways, um network server (servidor de rede) e application server (aplicação servidora). Os dispositivos enviam mensagens para gateways (uplink), os gateways repassam ao network server e por sua vez repassa ao application server conforme necessário.
+Uma rede baseada em LoRaWAN é composta por dispositivos (devices), gateways, um servidor de rede (network server) e aplicação servidora (application server). Os dispositivos enviam mensagens para gateways (uplink), os gateways repassam ao servidor de rede e por sua vez repassa à aplicação servidora conforme necessário.
 
 ![uplinktransmission](images/Uplink_Transmission.png)
 
 Figura 2 - Dispositivo a enviar uplink para uma plataforma de rede LoRaWAN [2](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/lorawan-class-a-devices/)
 
-Além disso, o network server pode enviar mensagens através de um gateway para um ou mais dispositivos (downlinks).
+Além disso, o servidor de rede pode enviar mensagens através de um gateway para um ou mais dispositivos (downlinks).
 
 ![downlinktransmission](images/Downlink_Transmission.png)
 
 Figura 3 - Plataforma de rede LoraWAN a enviar downlink para um dispositivo [3](https://lora-developers.semtech.com/documentation/tech-papers-and-guides/lorawan-class-a-devices/)
 
-Dispositivos que suportam LoRaWAN network vem em três classes: Classe A, Classe B e Class C. Enquanto que os dispositivos podem sempre enviar uplinks. A classe de dispositivos determina quando é que pode receber downlinks. A classe também determina a eficiência de energia do dispositivo. Quanto mais eficiente, maior o tempo de vida da bateria.
+Dispositivos que suportam a rede LoRaWAN vem em três classes: Classe A, Classe B e Classe C. Enquanto que os dispositivos podem sempre enviar uplinks. A classe de dispositivos determina quando é que pode receber downlinks. A classe também determina a eficiência de energia do dispositivo. Quanto mais eficiente, maior o tempo de vida da bateria.
 
-- Os dispositivos classe A passam a maior parte do tempo em sleep mode. Como o LoRaWAN não é um protocolo “slotted”, os dispositivos podem comunicar com o network server sempre que houver uma alteração na leitura de um sensor ou quando um temporizador for acionado. Basicamente, eles podem acordar e falar com o server a qualquer momento.
+- Os dispositivos classe A passam a maior parte do tempo em sleep mode. Como o LoRaWAN não é um protocolo “slotted”, os dispositivos podem comunicar com o servidor de rede sempre que houver uma alteração na leitura de um sensor ou quando um temporizador for acionado. Basicamente, eles podem acordar e falar com o server a qualquer momento.
 
-- Os dispositivos de classe B tem janelas de recebimento agendadas, em adição à funcionalidade padrão da classe A. Esta classe acorda periodicamente para ouvir mensagens de downlink com base em uma programação definida pela rede.
+- Os dispositivos de classe B tem janelas de receção agendadas, em adição à funcionalidade padrão da classe A. Esta classe acorda periodicamente para ouvir mensagens de downlink com base em uma programação definida pela rede.
 
 - Os dispositivos de classe C estão constantemente a ouvir mensagens de downlink, exceto ao transmitir mensagens. Exigem uma fonte de energia constante tornando menos eficientes em termos de energia.
 
@@ -28,19 +28,19 @@ Figura 4 - Diagrama do consumo de energia entre classes do dispositivos [4](http
 O protocolo de rede LoRaWAN depende de uma rede do tipo "Aloha". Nesse tipo de rede, os dispositivos podem transmitir arbitrariamente.
 A principal característica da Classe A é que a comunicação é iniciada apenas pelo dispositivo.
 
-As mensagens de downlink do network server são feitas em queue até a próxima vez que uma mensagem de uplink for recebida do dispositivo e uma janela de receção for aberta. Este desenho é específico para aplicativos que exigem comunicação de downlink em resposta a um uplink ou que podem agendar downlinks com antecedência com requisitos de latência bastante flexíveis.
+As mensagens de downlink do servidor de rede são feitas em queue até a próxima vez que uma mensagem de uplink for recebida do dispositivo e uma janela de receção for aberta. Este desenho é específico para aplicativos que exigem comunicação de downlink em resposta a um uplink ou que podem agendar downlinks com antecedência com requisitos de latência bastante flexíveis.
 
 Os dispositivos suportam comunicação bidirecional entre um dispositivo e um gateway. As mensagens de uplink (do dispositivo para o servidor) podem ser enviadas a qualquer momento (aleatoriamente). O dispositivo então abre duas janela de receção em horários especificados (1s e 2s) após uma transmissão de uplink (TX). Se o server não responder em nenhuma dessas janelas de receção(RX), a próxima oportunidade será após a próxima transmissão de uplink do dispositivo. O server pode responder na primeira janela de receção(RX1) ou na segunda janela de receção(RX2), mas não deve usar ambas as janelas.
 
 ![receivewindow](images/LoRaWAN-Class-A-transaction-The-transaction-is-node-initiated-uplink-direction-the.png)
 
-Figura 5 - Transação da receção de downlink de dispositivos de class A [5](https://www.researchgate.net/figure/LoRaWAN-Class-A-transaction-The-transaction-is-node-initiated-uplink-direction-the_fig2_334429577)
+Figura 5 - Transação da receção de downlink de dispositivos de classe A [5](https://www.researchgate.net/figure/LoRaWAN-Class-A-transaction-The-transaction-is-node-initiated-uplink-direction-the_fig2_334429577)
 
 A duração de cada janela de receção deve ser pelo menos tão longa quanto o tempo requerido pelo transcetor de rádio do dispositivo para detetar efetivamente um preâmbulo de downlink. Se o dispositivo detetar um preâmbulo de downlink durante esse tempo, o receptor de rádio permanecerá aberto até que os dados de downlink sejam extraídos.
 
 ## 3.1.3 Vantagens e aplicabilidades da rede LoRaWAN no projeto
 
-A principal diferença entre a abordagem LoRaWAN e outras abordagens é que os dispositivos são emparelhados com a própria rede e não estão vinculados exclusivamente a um único gateway. Ao invés os dispositivos transmitem os sinais para todos os gateways dentro do alcance. Cada um dos gateways recetores passa os dados para o network server e, em seguida, o network server elimina a duplicação da mensagem e envia uma única versão para o application server.
+A principal diferença entre a abordagem LoRaWAN e outras abordagens é que os dispositivos são emparelhados com a própria rede e não estão vinculados exclusivamente a um único gateway. Ao invés os dispositivos transmitem os sinais para todos os gateways dentro do alcance. Cada um dos gateways recetores passa os dados para o servidor de rede e, em seguida, o servidor de rede elimina a duplicação da mensagem e envia uma única versão para a aplicação servidora.
 
 Existem várias vantagens na utilização da rede LoRaWAN no projeto
 
@@ -74,11 +74,11 @@ Figura 1 - Comunicação entre dispositivo e plataforma de rede LoRaWAN [1](http
 
 Device (Dispositivo) - Um dispositivo que include um LoRa Modem, envie dados para gateways habilitados com o protocolo de rede LoRaWAN, tem um identificador globalmente exclusivo DevEUI e um identificador exclusivo de rede DevAddr. No dispositivo é possível escolher entre os seguintes modos de ativação por Over The Air Activation (OTAA) e/ou Activation By Personalization (ABP).
 
-Gateway - Os gateways são os pontos de acesso ao protocolo de rede LoRaWAN. São responsáveis por receber as mensagens dos dispositivos e encaminhar para o Network Server da TTN. Os gateways comunicam-se com os dispositivos utilizando o protocolo LoRaWAN.
+Gateway - Os gateways são os pontos de acesso ao protocolo de rede LoRaWAN. São responsáveis por receber as mensagens dos dispositivos e encaminhar para o servidor de rede da TTN. Os gateways comunicam-se com os dispositivos utilizando o protocolo LoRaWAN.
 
-Network Server (Servidor de rede) - O Network Server também conhecido com sistema de back-end é o componente central da arquitetura da TTN. Ele é responsável pela gestão, registo e autenticação dos dispositivos, controla o acesso à rede, encaminha as mensagens entre os dispositivos e as aplicações e aplica as políticas de segurança. O Network Server também coordena os gateways para garantir a receção correta das mensagens dos dispositivos.
+Network Server (Servidor de rede) - O servidor de rede também conhecido com sistema de back-end é o componente central da arquitetura da TTN. Ele é responsável pela gestão, registo e autenticação dos dispositivos, controla o acesso à rede, encaminha as mensagens entre os dispositivos e as aplicações e aplica as políticas de segurança. O servidor de rede também coordena os gateways para garantir a receção correta das mensagens dos dispositivos.
 
-Application Server (Aplicação servidora) - O Application Server gere a camada de aplicação da LoRaWAN incluindo o processamento das mensagens recebidas dos dispositivos e pelo envio das mensagens de volta para os dispositivos.
+Application Server (Aplicação servidora) - A aplicação servidora gere a camada de aplicação da LoRaWAN incluindo o processamento das mensagens recebidas dos dispositivos e pelo envio das mensagens de volta para os dispositivos.
 
 Consola da TTN - A Consola da TTN é a interface web fornecida pela plataforma. Com ela os utilizadores podem gerir as aplicações, visualizar informações sobre os dispositivos, configurar gateways, analisar o tráfego de dados e realizar outras tarefas administrativas relacionadas à rede TTN.
 
@@ -166,7 +166,7 @@ Figura 12 - Dispositivo LILYGO® TTGO T-Beam V1.1 ESP32 [12](http://www.lilygo.c
 
 Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação na The Things Network, é realizada a programação do dispositivo TTGO. O objetivo na programação do dispositivo TTGO é permitir a comunicação de dados usando a tecnologia LoRa (Long Range) e Bluetooth Low Energy (BLE). Com o recurso às bibliotecas fornecidas pela Pycom permite programar o dispositivo para estabelecer a conexão com a rede LoRaWAN e estabelecer uma ligação através do BLE com a aplicação móvel. Para habilitar as funcionalidades de LoRa e BLE no TTGO, precisamos adicionar as bibliotecas adequadas ao ambiente de desenvolvimento. As seguintes bibliotecas são necessárias:
 
-- Biblioteca LoRa: A biblioteca LoRa ("from network import LoRa") fornece as funções e métodos necessários para a comunicação de dados usando a tecnologia LoRa para dispositivos da class A. Na LoRa existe dois métodos de conexão que podem ser facilmente configuráveis a LoRaWAN ABP (Activation By Personalization) e a LoRaWAN OTAA (Over The Air Activation)
+- Biblioteca LoRa: A biblioteca LoRa ("from network import LoRa") fornece as funções e métodos necessários para a comunicação de dados usando a tecnologia LoRa para dispositivos da classe A. Na LoRa existe dois métodos de conexão que podem ser facilmente configuráveis a LoRaWAN ABP (Activation By Personalization) e a LoRaWAN OTAA (Over The Air Activation)
     - ABP significa que as chaves criptográficas fornecidas ela TTN (dev_addr, nwk_swkey, app_swkey) são configuradas hardcoded (manualmente) no dispositivo e podem enviar dados para o Gateway sem a necessidade de um procedimento de "handshake" para a troca de chaves (como é feito no método de conexão OTAA).
 
     - OTAA envia uma solicitação de Join para o LoRaWAN Gateway através das chaves (dev_eui, app_eui, app_key) fornecidas pela TTN. Se as chaves estiverem corretas, o Gateway responderá com uma mensagem de aceitação de join e, a partir desse ponto, o dispositivo poderá enviar e receber dados de/para o Gateway. Se as chaves estiverem incorretas, nenhuma resposta será recebida.
