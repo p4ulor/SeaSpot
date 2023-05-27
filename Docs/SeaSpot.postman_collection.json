@@ -1,0 +1,94 @@
+{
+	"info": {
+		"_postman_id": "02289864-92a6-400e-9012-b6ac46e84eaa",
+		"name": "SeaSpot",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24004812"
+	},
+	"item": [
+		{
+			"name": "downlink request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "NNSXS.X5XMG64FN6MRORA3IO5S7BMB4KAEBQE5RMDHENI.QOLJRUL2L2NS7E3EQEVWFM5RZRUDNAO7CSTKCOGN73SEOJHTD6TQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"downlinks\": [\r\n        {\r\n            \"frm_payload\": \"YWI=\",\r\n            \"f_port\": 15,\r\n            \"priority\": \"NORMAL\"\r\n        }\r\n    ]\r\n}"
+				},
+				"url": {
+					"raw": "https://eu1.cloud.thethings.network/api/v3/as/applications/ttgo-test-g10/webhooks/seaspot-webhook/devices/eui-70b3d57ed005bfb0/down/push",
+					"protocol": "https",
+					"host": [
+						"eu1",
+						"cloud",
+						"thethings",
+						"network"
+					],
+					"path": [
+						"api",
+						"v3",
+						"as",
+						"applications",
+						"ttgo-test-g10",
+						"webhooks",
+						"seaspot-webhook",
+						"devices",
+						"eui-70b3d57ed005bfb0",
+						"down",
+						"push"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://localhost:1904",
+			"type": "string"
+		}
+	]
+}

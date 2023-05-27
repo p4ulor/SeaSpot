@@ -10,6 +10,7 @@ enum class AssignedNumbersService(val value: Int){
     GenericAccess(0x1800), //exists (by default) for every ble device
     GenericAttribute(0x1801), //exists (by default) for every ble device
     LocationAndNavigation(0x1819),
+    ObjectTransfer(0x1825), //Will be used as what represents "updating the characteristics" from the TTN
     Phone(0x180E), //(PhoneAlertStatus)
     PublicBroadcast(0x1856), // (Public Broadcast Announcement)
     UserData(0x181C),
@@ -55,6 +56,7 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     ObjectID(0x2AC3, ValueType.Number),
     SensorLocation(0x2A5D, ValueType.Number),
     SerialNumberString(0x2A25, ValueType.Text),
+    Refresh(0x2A31, ValueType.ActionButton), //(ScanRefresh)
     Temperature(0x2A6E, ValueType.Number),
     TimeZone(0x2A0E, ValueType.Text),
     URI(0x2AB6, ValueType.Text),
@@ -83,7 +85,8 @@ enum class AssignedNumbersDescriptors(val value: Int){ //Not being used
 
 enum class ValueType {
     Text,
-    Number
+    Number,
+    ActionButton //meaning the value of the characteristic is not meant to be changed, it's just that a write operation can be done, in order to trigger an operation in the TTGO
 }
 
 private fun cutUUIDIntoBLE_UUID(uuid: UUID) : String { //UUID to Bluetooth SIG UUID

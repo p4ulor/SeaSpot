@@ -157,42 +157,62 @@ fun CharacteristicDisplay(
 
                     Text("${stringResource(R.string.characteristic)}: ${characteristic.uuid}")
                     if(characteristic.isWritable) {
-                        log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
-                        var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }
-                        var isEditButtonEnabled by rememberSaveable { mutableStateOf(text.length<=maximumBytes) }
-                        val valueTooBigMaximumIs = "${stringResource(R.string.valueTooBig)}"
-                        TextField(text,
-                            onValueChange = { txt ->
-                                if(txt.length>=maximumBytes){
-                                    toast("$valueTooBigMaximumIs $maximumBytes", ctx)
-                                } else {
-                                    log("length = ${txt.length}. onValueChange = $text -> $txt")
-                                    text = txt
-                                    isEditButtonEnabled = true
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = if(characteristic.isNumber()) KeyboardType.Number else KeyboardType.Text
-                            )
-                        )
+
                         val success = "${stringResource(R.string.success)}" //because "@Composable invocations can only happen from the context of a @Composable function"
                         val failed = "${stringResource(R.string.failed)}"
                         val characteristicNotFound = "${stringResource(R.string.characNotFound)}"
-                        Button({
-                            val charac = getCharacteristic(services, service, characteristic.getFullUUID())
-                            if(charac==null) toast(characteristicNotFound, ctx) //if this is true, something went wrong
-                            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { //https://developer.android.com/reference/android/bluetooth/BluetoothGatt#writeCharacteristic(android.bluetooth.BluetoothGattCharacteristic,%20byte[],%20int)
-                                log("Running w/ ${Build.VERSION_CODES.TIRAMISU}")
-                                log("text = $text")
-                                val textEncoded = text.encodeToByteArray()
-                                val code = gatt?.writeCharacteristic(charac, textEncoded, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
-                                if(code == BluetoothStatusCodes.SUCCESS) toast(success, ctx) else toast(failed, ctx)
-                            } else { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic#setValue(byte[])
-                                log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
-                                val worked = charac?.setValue(text)
-                                if(worked==true) toast(success, ctx) else toast(failed, ctx)
-                            }
-                        }, stringResource(R.string.edit), isEditButtonEnabled)
+
+                        if(characteristic.isAction()){
+                            val value = byteArrayOf(1)
+                            Button({
+                                val charac = getCharacteristic(services, service, characteristic.getFullUUID())
+                                if(charac==null) toast(characteristicNotFound, ctx) //if this is true, something went wrong
+                                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { //https://developer.android.com/reference/android/bluetooth/BluetoothGatt#writeCharacteristic(android.bluetooth.BluetoothGattCharacteristic,%20byte[],%20int)
+                                    log("Running w/ ${Build.VERSION_CODES.TIRAMISU}")
+                                    val code = gatt?.writeCharacteristic(charac, value, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                                    if(code == BluetoothStatusCodes.SUCCESS) toast(success, ctx) else toast(failed, ctx)
+                                } else { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic#setValue(byte[])
+                                    log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
+                                    val worked = charac?.setValue(value)
+                                    if(worked==true) toast(success, ctx) else toast(failed, ctx)
+                                }
+                            }, stringResource(R.string.refresh))
+                        } else {
+                            log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
+                            var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }
+                            var isEditButtonEnabled by rememberSaveable { mutableStateOf(text.length<=maximumBytes) }
+                            val valueTooBigMaximumIs = "${stringResource(R.string.valueTooBig)}"
+                            TextField(text,
+                                onValueChange = { txt ->
+                                    if(txt.length>=maximumBytes){
+                                        toast("$valueTooBigMaximumIs $maximumBytes", ctx)
+                                    } else {
+                                        log("length = ${txt.length}. onValueChange = $text -> $txt")
+                                        text = txt
+                                        isEditButtonEnabled = true
+                                    }
+                                },
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = if(characteristic.isNumber()) KeyboardType.Number else KeyboardType.Text
+                                )
+                            )
+
+                            Button({
+                                val charac = getCharacteristic(services, service, characteristic.getFullUUID())
+                                if(charac==null) toast(characteristicNotFound, ctx) //if this is true, something went wrong
+                                else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { //https://developer.android.com/reference/android/bluetooth/BluetoothGatt#writeCharacteristic(android.bluetooth.BluetoothGattCharacteristic,%20byte[],%20int)
+                                    log("Running w/ ${Build.VERSION_CODES.TIRAMISU}")
+                                    log("text = $text")
+                                    val textEncoded = text.encodeToByteArray()
+                                    val code = gatt?.writeCharacteristic(charac, textEncoded, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                                    if(code == BluetoothStatusCodes.SUCCESS) toast(success, ctx) else toast(failed, ctx)
+                                } else { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic#setValue(byte[])
+                                    log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
+                                    val worked = charac?.setValue(text)
+                                    if(worked==true) toast(success, ctx) else toast(failed, ctx)
+                                }
+                            }, stringResource(R.string.edit), isEditButtonEnabled)
+                        }
                     }
                     else Text("${stringResource(R.string.value)}: ${characteristic.value.decodeToString()}")
                 }

@@ -18,6 +18,7 @@ data class Characteristic(
     fun getFullUUID() = UUID.fromString(fullUUID)
 
     fun isNumber() = uuid.type==ValueType.Number
+    fun isAction() = uuid.type==ValueType.ActionButton
 }
 
 data class Service(
