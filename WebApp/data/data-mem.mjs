@@ -3,7 +3,7 @@
 
 const NUM_MESSAGES = 20
 
-let messages = new Array(NUM_MESSAGES)
+let messages = []
 
 let nextId = 0
 

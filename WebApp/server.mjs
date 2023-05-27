@@ -34,8 +34,9 @@ export function Server(config) { //in order be to be used in tests and be more f
     const services = webServices(data)
     const api = webApi(config, services)
 
-    app.post('/api/', api.getWebHook)
-    app.get('/site/', api.getAllMessages)
+    app.post('/api', api.getWebHook)
+    app.get('/api/messages', api.getAllMessages)
+    app.delete('/api/messages/:id', api.deleteMessage)
 
     const promise = new Promise((resolve, reject) => {
         app.listen(PORT, () => {
