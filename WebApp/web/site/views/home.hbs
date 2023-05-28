@@ -1,0 +1,10 @@
+<div class="text-center">
+    <h2>Welcome</h2>
+    <p>TTN latest messages</p>
+    
+    {{#each messages}}
+        {{> messageItem}} {{!-- The '> messageItem' says that this variable is to be interpreted as a .hbs view --}}
+        <hr>
+    {{/each}}
+
+</div>

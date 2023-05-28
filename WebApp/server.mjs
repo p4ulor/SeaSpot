@@ -6,12 +6,21 @@ console.log("Start setting up server")
 // Dependencies imports
 import express from 'express'
 import cors from 'cors'
-import cookieParser from 'cookie-parser' //https://expressjs.com/en/resources/middleware/cookie-parser.html
+import cookieParser from 'cookie-parser'
+import hbs from 'hbs'
+import favicon from 'serve-favicon'
 
 //My files imports
 import * as data from './data/data-mem.mjs'
 import webServices from './services/services.mjs'
-import webApi from './web/api/web-api.mjs'
+
+//Web
+import webApi, { apiPaths } from './web/api/web-api.mjs'
+import webSite from './web/site/web-site.mjs'
+
+//Docs
+import swaggerUi from 'swagger-ui-express'
+import yaml from 'yamljs'
 
 /** 
  * @param {ServerConfiguration} config 
@@ -22,21 +31,35 @@ export function Server(config) { //in order be to be used in tests and be more f
     if (!config instanceof ServerConfiguration) throw new Error("A ServerConfig must be provided")
 
     const PORT = config.port
-    const app = express() //(the package uses 'export')
-
+    const app = express()
 
     //Middleware setup
-    app.use(cors()) //Allows requests to skip the Same-origin policy and access resources from remote hosts https://blog.knoldus.com/a-guide-to-cors-in-node-js-with-express/#:~:text=start%20to%20learn%3A-,What%20is%20CORS%3F,-CORS%20stands%20for
+    app.use(cors()) //Allows requests to skip the Same-origin policy and access resources from remote hosts
     app.use(express.json()) //Parses the HTTP request body and puts it in req.body
     app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded, in cases where a POST or GET is performed in the context of a HTML form
     app.use(cookieParser())
 
-    const services = webServices(data)
-    const api = webApi(config, services)
+    //View's setup
+    app.set('view engine', 'hbs')
+    hbs.registerPartials('./web/site/views/partials')
+    app.set('views', './web/site/views/') 
+    app.use(favicon('./web/site/public/favicon.ico'))
+    app.use(express.static('./web/site/public'))
 
-    app.post('/api', api.getWebHook)
-    app.get('/api/messages', api.getAllMessages)
-    app.delete('/api/messages/:id', api.deleteMessage)
+    const api = webApi(config)
+
+    //API
+    app.post(api.upLinkWebHook.path, api.upLinkWebHook.handler)
+    app.get(api.getAllMessages.path, api.getAllMessages.handler)
+    app.delete(api.deleteAllMessages.path, api.deleteAllMessages.handler)
+    app.delete(api.deleteMessage.path, api.deleteMessage.handler)
+
+    // WEB
+    app.use('/', webSite(config))
+
+    //DOCS
+    const swaggerDocument = yaml.load('./Docs/api-spec.yaml')
+    //app.use(api.docsPath, swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
     const promise = new Promise((resolve, reject) => {
         app.listen(PORT, () => {

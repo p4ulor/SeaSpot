@@ -1,0 +1,219 @@
+openapi: 3.0.1
+info:
+  title: SeaSpot API
+  description: "An API that acquires stored TTN messages from our DB. Allows getting the message feeds using paging and search filters, and allows obtaining the current values of a specific device. Also allows deleting messages in the feed"
+  termsOfService: http://swagger.io/terms/
+  version: 1.0.0
+tags:
+  - name: Message
+    description: Describes sign up operation
+  - name: Device
+    description:  Describes login operation
+
+paths:
+  /messages{limit}:
+    get:
+      tags:
+        - Messages
+      summary: Obtains message feed
+      parameters:
+        - name: limit
+          in: query
+          description: the list limit (max. 250)
+          required: false
+          schema:
+            type: integer
+          example: 5
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUserNF'
+                    
+  /device/{id}:
+    get:
+      tags:
+        - Devices
+      summary: Obtains information about a specific device
+      parameters:
+        - name: id
+          in: path
+          description: the list limit (max. 250)
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        200:
+          description: Returns token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserTokenResponse'
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppError'                
+  
+    post:
+      tags:
+        - Groups
+      summary: Updates a Group
+      parameters:
+        - name: groupID
+          in: path
+          description: the Group's ID to update
+          required: true
+          schema:
+            type: integer
+            example: 5
+      requestBody:
+        description: Required information for updating a group
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        200:
+          description: Returns details of updated group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateGroupResponse'  
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorGroupNameEmpty'
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUserNF' 
+                
+    delete:
+      tags:
+        - Groups
+      summary: Deletes a Group
+      parameters:
+        - name: groupID
+          in: path
+          description: the Group's ID to delete
+          required: true
+          schema:
+            type: integer
+            example: 5
+      responses:
+        200:
+          description: Response with the information of group's deletion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteGroupResponse'
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMissingGroupID'
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUserNF'               
+                
+components:
+  securitySchemes:
+    userAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+          
+    MessagesResponse:
+      type: object
+      description: Application error
+      properties:
+        messages:
+          type: array
+          items:
+            type: object
+            description: A Message
+            required:
+              - message_id
+              - device_id
+              - payload
+              - date_time
+            properties:
+              message_id:
+                type: string
+                description: The movie's name
+                example: "09ud8qwd09qa"
+              device_id:
+                type: string
+                description: The movie's name
+                example: "device-90127891"
+              payload:
+                type: string
+                description: The movie's name
+                example: "BmE="
+              date_time:
+                type: string
+                description: The movie's name
+                example: "Sun May 28 2023 13:51:06"
+                
+    GroupDetailResponse:
+      type: object
+      description: Group detail
+      required:
+        - id
+        - name
+        - description
+        - isPrivate
+        - movies
+        - totalDuration
+      properties:
+        id:
+          type: number
+          format: integer
+          description: Group's ID
+          example: 1
+        name:
+          type: string
+          description: Group's name
+          example: watch later
+        description:
+          type: string
+          description: Group's description
+          example: No time
+        isPrivate:
+          type: boolean
+          description: Group's privacy
+          example: true
+        totalDuration:
+          type: number
+          format: integer
+          description: Total duration (min) of movies in group
+          example: 159 
+              
+    DeviceNotFoundResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Device not found not"
+        
