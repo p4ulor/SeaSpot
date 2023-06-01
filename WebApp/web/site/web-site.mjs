@@ -1,5 +1,5 @@
 import express from 'express'
-import { apiPath, docsPath } from '../api/web-api.mjs'
+import { apiPath, apiPaths, docsPath } from '../api/web-api.mjs'
 import * as service from '../../services/services.mjs'
 
 export const webPages = {
@@ -77,31 +77,37 @@ function webSite(config){
             messages.forEach(message => {
                 view.options.messages.push(
                     {
-                        //  message_id : message.message_id, This still doesn't exist, but must be added
-                        application_id : message.application_id,
-                        endDevice_id : message.endDeviceID,
-                        deviceAddress : message.deviceAdress,
-                        location : message.location,
-                        service_characteristc: message.service_characteristic,
-                        payload : message.payload,
-                        received_at : message.received_at,
-                        messagePage : webPages.messagePage.setUrl() //Here, we must pass que message Id that still needs to be created
+                        messageId : message.id, 
+                        applicationId : message.messageObj.applicationId,
+                        endDeviceId : message.messageObj.endDeviceID,
+                        payload : message.messageObj.payload,
+                        receivedAt : message.messageObj.receivedAt,
+                        messagePage : webPages.messagePage.setUrl(message.id) //Here, we must pass que message Id that still needs to be created
                     }
                 )
             })
-        })
+            rsp.render(view.file, view.options)
+        }, rsp)
     })
 
     router.get(webPages.messagePage.url, (req, rsp) => {
         tryCatch(async () => {
-            const view = new HandleBarsView(webPages.messagePage.view, 'Message')
+            const view = new HandleBarsView(webPages.messagePage.view)
 
             const message = await services.getMessage(req.params.dev_id, req.params.app_id)
             view.options.messagePage = webPages.messagePage.setUrl(message.id)
             view.options.allMessagesPage = webPages.allMessages.url
             view.options.messageId = message.id
-            view.options.applicationId
-        })
+            view.options.applicationId = message.messageObj.applicationId
+            view.options.deviceAdddres = message.messageObj.deviceAdddres
+            view.options.location = message.messageObj.location
+            view.options.serviceCharacteristic = message.messageObj.serviceCharacteristic
+            view.options.payload = message.messageObj.payload
+            view.options.receivedAt = message.messageObj.receivedAt
+
+            view.options.deleteMessageURI = apiPaths.deleteMessage.setPath(message.id)
+            rsp.render(view.file, view.options)
+        }, rsp)
     })
 
     //AUXILIARY FUNCTIONS

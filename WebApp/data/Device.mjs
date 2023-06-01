@@ -1,7 +1,7 @@
 
 class Device{
     /**
-     * @param {String} application_id
+     * @param {String} applicationId
      * @param {String} endDeviceID Ours is eui-70b3d57ed005bfb0
      * @param {String} deviceAdress 260B893E
      * @param {Location} location 

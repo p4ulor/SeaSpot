@@ -1,0 +1,7 @@
+<div class="text-center">
+    <h1>Messages of Application {{applicationId}}</h1>
+    {{#each messages}}
+        {{> messageItem}} {{!-- The '> messageItem' says that this variable is to be interpreted as a .hbs view --}}
+        <hr>
+    {{/each}}
+</div>
