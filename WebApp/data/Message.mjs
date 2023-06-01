@@ -25,10 +25,10 @@ export class MessageObj {
      * 
      * @param {Date} receivedAt
      */
-    constructor(applicationId, endDeviceID, deviceAdress, location, serviceCharacteristic, payload, receivedAt) {
+    constructor(applicationId, endDeviceId, deviceAddress, location, serviceCharacteristic, payload, receivedAt) {
         this.applicationId = applicationId
-        this.endDeviceID = endDeviceID
-        this.deviceAdress = deviceAdress
+        this.endDeviceId = endDeviceId
+        this.deviceAddress = deviceAddress
         this.location = location
         this.serviceCharacteristic = serviceCharacteristic
         this.payload = payload

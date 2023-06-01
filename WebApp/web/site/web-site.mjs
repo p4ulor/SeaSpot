@@ -79,7 +79,7 @@ function webSite(config){
                     {
                         messageId : message.id, 
                         applicationId : message.messageObj.applicationId,
-                        endDeviceId : message.messageObj.endDeviceID,
+                        endDeviceId : message.messageObj.endDeviceId,
                         payload : message.messageObj.payload,
                         receivedAt : message.messageObj.receivedAt,
                         messagePage : webPages.messagePage.setUrl(message.id) //Here, we must pass que message Id that still needs to be created
@@ -99,7 +99,8 @@ function webSite(config){
             view.options.allMessagesPage = webPages.allMessages.url
             view.options.messageId = message.id
             view.options.applicationId = message.messageObj.applicationId
-            view.options.deviceAdddres = message.messageObj.deviceAdddres
+            view.options.endDeviceId = message.messageObj.endDeviceId
+            view.options.deviceAddress = message.messageObj.deviceAddress
             view.options.location = message.messageObj.location
             view.options.serviceCharacteristic = message.messageObj.serviceCharacteristic
             view.options.payload = message.messageObj.payload
