@@ -1,10 +1,20 @@
 import express from 'express'
 import { apiPath, docsPath } from '../api/web-api.mjs'
+import * as service from '../../services/services.mjs'
 
 export const webPages = {
     home: {
         url: "/",
         view: "home.hbs"
+    },
+    allMessages: {
+        url: "/messages",
+        view: "messages.hbs",
+    },
+    messagePage: {
+        url: "/messages/:id",
+        view: "message.hbs",
+        setUrl: (id) => { return `/messages/${id}` }
     },
     pageError: {
         url: "/error",
@@ -20,7 +30,7 @@ export const webPages = {
 function webSite(config){
     const host = config.hostAndPort
 
-    //const services = service.default(config)
+    const services = service.default(config)
 
     const router = express.Router() //Let's us define a fragment of our express app that can be joined with other parts of our app https://expressjs.com/en/5x/api.html#router
 
@@ -38,6 +48,7 @@ function webSite(config){
                 apiPath: apiPath,
                 homePath: webPages.home.url,
                 docsPath: docsPath,
+                messagesPath: webPages.allMessages.url
                 /* api: server.apiPath */
             }
         }
@@ -55,6 +66,42 @@ function webSite(config){
 
             rsp.render(view.file, view.options)
         }, rsp)
+    })
+
+    router.get(webPages.allMessages.url, (req, rsp) => {
+        tryCatch(async () => {
+            const view = new HandleBarsView(webPages.allMessages.view, 'Messages')
+            view.options.messages = []
+            
+            const messages = await services.getAllMessages()
+            messages.forEach(message => {
+                view.options.messages.push(
+                    {
+                        //  message_id : message.message_id, This still doesn't exist, but must be added
+                        application_id : message.application_id,
+                        endDevice_id : message.endDeviceID,
+                        deviceAddress : message.deviceAdress,
+                        location : message.location,
+                        service_characteristc: message.service_characteristic,
+                        payload : message.payload,
+                        received_at : message.received_at,
+                        messagePage : webPages.messagePage.setUrl() //Here, we must pass que message Id that still needs to be created
+                    }
+                )
+            })
+        })
+    })
+
+    router.get(webPages.messagePage.url, (req, rsp) => {
+        tryCatch(async () => {
+            const view = new HandleBarsView(webPages.messagePage.view, 'Message')
+
+            const message = await services.getMessage(req.params.dev_id, req.params.app_id)
+            view.options.messagePage = webPages.messagePage.setUrl(message.id)
+            view.options.allMessagesPage = webPages.allMessages.url
+            view.options.messageId = message.id
+            view.options.applicationId
+        })
     })
 
     //AUXILIARY FUNCTIONS
