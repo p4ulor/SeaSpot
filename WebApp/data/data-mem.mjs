@@ -34,11 +34,19 @@ export async function getMessage(dev_id, app_id) {
 }
 
 export async function deleteAllMessages(dev_id, app_id) {
-    messages = messages.filter(message => message.deviceId !==dev_id && message.applicationId !== app_id)
+    messages = messages.filter(message => message.endDeviceId !==dev_id && message.applicationId !== app_id)
     return messages
 }
 
-export async function deleteMessage(dev_id, app_id) {
+export async function deleteMessage(id, dev_id, app_id) {
+    const messageIdx = messages.findIndex(m => id == m.id && dev_id == m.endDeviceId && app_id == m.applicationId)
+    if (messageIdx != null) {
+        messages.splice(messageIdx, 1)
+        return true
+    }
+    return false
+    
+    /*
     return findMessageAndDoSomething(
         dev_id,
         app_id,
@@ -46,6 +54,7 @@ export async function deleteMessage(dev_id, app_id) {
             messages.splice(mIdx, 1)
             return m
         })
+    */
 }
 
 // Auxiliary functions

@@ -87,7 +87,6 @@ export default function webApi(config) {
      * @param {express.Response} rsp 
      */
     async function deleteAllMessages(req, rsp) {
-        req.body
         return await services.deleteAllMessages(req.body.deviceId, req.body.appId)
     }
 
