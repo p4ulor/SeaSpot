@@ -1,0 +1,355 @@
+openapi: 3.0.1
+info:
+  title: SeaSpot API
+  description: "An API that acquires stored TTN messages from our DB. Allows getting the message feeds using paging and search filters, and allows obtaining the current values of a specific device. Also allows deleting messages in the feed. App paths here imply /api is before it"
+  termsOfService: http://swagger.io/terms/
+  version: 1.0.0
+
+paths:
+
+  /uplink:
+  
+    post:
+      tags:
+        - Uplink
+      summary: A path that only TTN should be able to call, via it's webhook. It stores the uplink message in our DB
+      requestBody:
+        description: Expected request body sent by TTN
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TTNRequestBody'
+      responses:
+        200:
+          description: Success
+
+  /messages:
+  
+    get:
+      tags:
+        - Messages
+      summary: Obtains message feed, accepts query params
+      parameters:
+        - name: skip
+          in: query
+          description: the amount of messages to skip
+          required: false
+          schema:
+            type: integer
+          example: 5
+        - name: limit
+          in: query
+          description: the list limit of elements
+          required: false
+          schema:
+            type: integer
+          example: 5
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+    delete:
+      tags:
+        - Messages
+      summary: Deletes all message, accepts query params
+      responses:
+        200:
+          description: Success
+
+  /messages/{id}:
+  
+    get:
+      tags: 
+        - Messages
+      summary: Obtains a specific message
+      parameters:
+        - name: id
+          in: path
+          description: the message ID
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        200:
+          description: Returns the message details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+    delete:
+      tags:
+        - Messages
+      summary: Deletes a specific message
+      parameters:
+        - name: id
+          in: path
+          description: the message ID
+          required: true
+          schema:
+            type: integer
+          example: 5
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+  /device/{id}:
+  
+    get:
+      tags:
+        - Devices
+      summary: Obtains information about a specific device
+      parameters:
+        - name: id
+          in: path
+          description: the list limit (max. 250)
+          required: true
+          schema:
+            type: string
+          example: "eui-70b3d57ed005bfb0"
+      responses:
+        200:
+          description: Returns token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'                
+
+components:
+  securitySchemes:
+    userAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+      
+    TTNRequestBody:
+      type: object
+      description: Expected TTN request body
+      properties: 
+        device_id: 
+          type: string
+          example: eui-70b3d57ed005bfb0
+        application_ids: 
+          type: object
+          properties: 
+            application_id: 
+              type: string
+              example: ttgo-test-g10
+        dev_eui: 
+          type: string
+          example: 70B3D57ED005BFB0
+        dev_addr: 
+          type: string
+          example: 260B893E
+        correlation_ids: 
+          type: array
+          items: 
+            type: string
+            example: as:up:01H1HNRJCTWF3W3XVJCKWN95N0
+        received_at: 
+          type: string
+          example: 2023-05-28T17:16:12.569699909Z
+        uplink_message: 
+          type: object
+          properties: 
+            f_port: 
+              type: integer
+              format: int32
+              example: 1
+            frm_payload: 
+              type: string
+              example: AQ==
+            rx_metadata: 
+              type: array
+              items: 
+                type: object
+                properties: 
+                  gateway_ids: 
+                    type: object
+                    properties: 
+                      gateway_id: 
+                        type: string
+                        example: test
+                  rssi: 
+                    type: integer
+                    format: int32
+                    example: 42
+                  channel_rssi: 
+                    type: integer
+                    format: int32
+                    example: 42
+                  snr: 
+                    type: number
+                    example: 4.2
+            settings: 
+              type: object
+              properties: 
+                data_rate: 
+                  type: object
+                  properties: 
+                    lora: 
+                      type: object
+                      properties: 
+                        bandwidth: 
+                          type: integer
+                          format: int32
+                          example: 125000
+                        spreading_factor: 
+                          type: integer
+                          format: int32
+                          example: 7
+                frequency: 
+                  type: string
+                  example: 868000000
+            locations: 
+              type: object
+              properties: 
+                user: 
+                  type: object
+                  properties: 
+                    latitude: 
+                      type: number
+                      example: 38.7565362672383
+                    longitude: 
+                      type: number
+                      example: -9.11603538108787
+                    source: 
+                      type: string
+                      example: SOURCE_REGISTRY
+        simulated: 
+          type: boolean
+          
+    ##############################################################
+
+    MessagesResponse:
+      type: object
+      description: An property with an array of TTN messages
+      properties:
+        messages:
+          type: array 
+          items:
+            oneOf: # https://stackoverflow.com/a/36323059
+              - $ref: '#/components/schemas/MessageResponse'  
+
+    MessageResponse:
+      type: object
+      description: A TTN message
+      properties:
+        application_id: 
+          type: string
+          example: "ttgo-test-g10"
+        endDeviceID: 
+          type: string
+          example: "eui-70b3d57ed005bfb0"
+        deviceAdress: 
+          type: string
+          example: "260B893E"
+        location: 
+          type: object
+          properties: 
+            latitude: 
+              type: number
+              example: 38.7565362672383
+            longitude: 
+              type: number
+              example: -9.11603538108787
+        service_characteristic: 
+          type: integer
+          example: 6
+        payload: 
+          type: string
+          example: "61"
+        received_at: 
+          type: object
+          example: "2023-05-28T19:27:27.931957874Z"
+
+    DeviceResponse:
+      type: object
+      description: Represents the details of a device
+      properties:
+        application_id:
+          type: string
+          format: integer
+          description: Group's ID
+          example: "ttgo-test-g10"
+        endDeviceID:
+          type: string
+          format: integer
+          description: Group's ID
+          example: "eui-70b3d57ed005bfb0"
+        deviceAdress:
+          type: string
+          format: integer
+          description: Group's ID
+          example: "260B893E"
+        location:
+          type: object
+          description: Indicates the device location
+          properties:
+            latitude:
+              format: integer
+              example: 38.7565362672383
+            longitude:
+              format: integer
+              example: -9.11603538108787
+          
+        name:
+          type: string
+          description: Any name that's intended to identify the messenger
+          example: "red buoy"
+        batteryLevel:
+          type: number
+          format: integer
+          description: Group's ID
+          example: 51
+        phone:
+          type: string
+          description: A phone number
+          example: "+351960000000"
+        string:
+          type: string
+          description: Contains any message
+          example: "hello"
+          
+        latestUpdate:
+          type: object
+          description: Date & Time
+          example: "2023-05-28T19:27:27.931957874Z"
+
+    NotFoundResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "{Item} not found"
+          

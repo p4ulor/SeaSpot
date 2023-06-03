@@ -22,12 +22,11 @@ joiner = ttnJoiner.TTNJoiner(lora_payload=lora, dev_addr='260B893E',
 joiner.join()
 print('TTN joined')
 
-# Downlink is an operation that asks TTN to dispatch the latest uplinks so they can be ready to be consumed. They can be done manually in the "messaging tab" or with HTTP requests
-
 def send_data(data):
     # joiner.send_data_bytes(bytes([1, 2, 3]))
     joiner.send_data_bytes(bytearray(data)) # downlink "ab" will show payload: 61 62. In livedata in TTN
 
+# Downlink is an operation that asks TTN to dispatch the latest uplinks so they can be ready to be consumed. They can be done manually in the "messaging tab" or with HTTP requests
 def receive_data():
     # time.sleep(60)
     print('receive_data()')
