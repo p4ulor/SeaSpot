@@ -72,7 +72,8 @@ function webSite(config){
         tryCatch(async () => {
             const view = new HandleBarsView(webPages.allMessages.view, 'Messages')
             view.options.messages = []
-            
+            view.options.allMessagesPage = webPages.allMessages.url
+
             const messages = await services.getAllMessages()
             messages.forEach(message => {
                 view.options.messages.push(
@@ -82,10 +83,12 @@ function webSite(config){
                         endDeviceId : message.messageObj.endDeviceId,
                         payload : message.messageObj.payload,
                         receivedAt : message.messageObj.receivedAt,
-                        messagePage : webPages.messagePage.setUrl(message.id) //Here, we must pass que message Id that still needs to be created
+                        messagePage : webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
+                        deleteMessageURI : apiPaths.deleteMessage.setPath(message.id)
                     }
                 )
             })
+            
             rsp.render(view.file, view.options)
         }, rsp)
     })

@@ -16,6 +16,8 @@ export function extractUplinkInfo(body) {
     const decodedPayload = base64ToHex(payload)
     const characIDandValue = extractCharacteristicAndValue(decodedPayload)
 
+    // characteristic can be read from the f_port, so no ExtratCharar
+
     const receivedAt = body.received_at
 
     return new MessageObj(applicationId, endDeviceID, deviceAdress, location, 

@@ -1,3 +1,5 @@
+<script src="/js/client-fetch.js"></script>
+
 <div class="text-center">
     <h2><a href={{messagePage}}>Message : {{messageId}}</a></h2>
     <h3>Application : {{applicationId}}</h3>
@@ -9,6 +11,13 @@
 
 <script>
     document.getElementsById("deleteMessageButton").onclick = function() {
+        const uri = getHandleBarsOptionString(`${{{deleteMessageURI}}}`)
+        fetx(uri, "DELETE").then(_ => {
+            location.href = getHandlBarsOptionString(`${{{allMessagesPage}}}`)
+        }) 
+    }
 
+    function getHandlBarsOptionString(str){
+        return str.substring(1, str.length) //because the '$' is included in the string... this seems to only occurr inside scripts
     }
 </script>
