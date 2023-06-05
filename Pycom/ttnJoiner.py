@@ -6,7 +6,7 @@ import struct
 
 from network import LoRa
 
-class TTNJoiner:
+class TTNJoiner: #note: "self" is similar to "this" keyword in java
     def __init__(self, lora_payload, dev_addr, nwk_swkey, app_swkey):
         self.lora_payload = lora_payload
         self.dev_addr = struct.unpack(">l", binascii.unhexlify(dev_addr))[0]
@@ -21,8 +21,6 @@ class TTNJoiner:
             time.sleep(2.5)
             print('Not yet joined...')
         
-
-
     def create_socket(self):
         # create a LoRa socket
         s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
@@ -30,28 +28,38 @@ class TTNJoiner:
         s.setblocking(False)
         self.socket=s
 
-    def send_data_bytes(self,data):
+    def send_data_bytes(self, data, characteristicPort): # in use
         # creating Payload Sender packet
-        lpp = payloadSender.PayloadSender(sock=self.socket)
+        socket = self.socket
+        if characteristicPort != None:
+            print("Set Fport: {}".format(characteristicPort))
+            socket.bind(characteristicPort) # https://forum.pycom.io/topic/2735/changing-port-for-sending-data-via-lora/2
+        lpp = payloadSender.PayloadSender(sock=socket)
         lpp.set_payload(data)
         lpp.send(reset_payload=True)
 
-    def send_data_string(self,data):
+    def send_data_string(self,data): # not in use
         # creating Payload Sender packet
         lpp = payloadSender.PayloadSender(sock=self.socket)
         lpp.set_payload_string(data)
         lpp.send(reset_payload=True)
 
-    def receive_data_blocking(self):
-        return receive_data_blocking(self.socket)
+    def receive_data_blocking(self, characteristicPort):
+        socket = self.socket
+        byte_size = 64
+        # Create a buffer to hold incoming data, must be power of 8?
+        # Receive data from the socket
+        
+        if characteristicPort != None:
+            socket.bind(characteristicPort)
+            print("Set Fport: {}".format(characteristicPort)) ## Note: indicating the port doesnt really indicate to only get a downlink whose port is equal to this, it's just to register what characteritic update request was associated to this downlink
+        else:
+            print("characteristicPort is null?: {}".format(characteristicPort))
+        data, fport = socket.recvfrom(byte_size)
+        # Parse the received data
+        print("receive_data_blocking string: {}".format(data))
+        print("Fport: {}".format(fport))
+        decode_data = binascii.hexlify(data).decode()
+        print("Received data raw:", decode_data)
 
-def receive_data_blocking(sock):
-    byte_size = 64
-    # Create a buffer to hold incoming data
-    # Receive data from the socket
-    data = sock.recv(byte_size)
-    # Parse the received data
-    decode_data = binascii.hexlify(data).decode()
-    print("Received data:", decode_data)
-    # Do something with the received data here
-    return decode_data
+        return (decode_data, fport,)

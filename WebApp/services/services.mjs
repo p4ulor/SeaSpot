@@ -1,7 +1,8 @@
 // Module that implements all messages management logic
 let dataMem = await import('../data/data-mem.mjs')
 import { Message } from '../data/Message.mjs'
-import errors from '../utils/errors.mjs'
+import errorMsgs from '../utils/error-messages.mjs'
+import { NotFound } from '../utils/errors-and-codes.mjs'
 
 export const defautSkip = 10
 export const defautLimit = 10
@@ -28,7 +29,7 @@ export default function service(config) {
         if (message) {
             return message
         }
-        throw errors.MESSAGE_NOT_FOUND(app_id)
+        throw new NotFound(errorMsgs.messageNotFound(app_id)) 
     }
 
     async function deleteAllMessages(dev_id, app_id) {

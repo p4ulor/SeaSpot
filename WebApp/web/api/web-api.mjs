@@ -5,6 +5,8 @@ import service from '../../services/services.mjs'
 import { extractUplinkInfo } from './bodies/extractUpLinkInfo.mjs'
 import { base64ToHex } from '../../utils/utils.mjs'
 import { defautLimit, defautSkip } from '../../services/services.mjs'
+import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
+
 
 export const apiPath = "/api"
 export const docsPath = apiPath+'/docs'
@@ -38,7 +40,7 @@ export const apiPaths = {
 
     deleteAllMessages: {
         path: apiPath+"/messages",
-        setDevice: (device, app) => { return `${apiPath}/messages?${queryParams.device}=${device}&${queryParams.app}=${app}` }
+        setDevice: (device) => { return `${apiPath}/messages?${queryParams.device}=${device}` }
         //Put more set's 
     },
 
@@ -86,6 +88,18 @@ export default function webApi(config) {
      * @param {express.Request} req 
      * @param {express.Response} rsp 
      */
+    async function getMessage(req, rsp) {
+        console.log("getMessage()")
+        const [id] = doesPathContain_Query_or_Path_Params(req, [new Param("id")], true)
+        const message = await services.getMessage(id)
+        console.log(message)
+        return message
+    }
+
+    /**
+     * @param {express.Request} req 
+     * @param {express.Response} rsp 
+     */
     async function deleteAllMessages(req, rsp) {
         return await services.deleteAllMessages(req.body.deviceId, req.body.appId)
     }
@@ -95,7 +109,8 @@ export default function webApi(config) {
      * @param {express.Response} rsp
      */
     async function deleteMessage(req, rsp){
-        //return await services.deleteMessage()
+        console.log("deleteMessage()")
+        return await services.deleteMessage()
     }
 
     return {
@@ -107,6 +122,11 @@ export default function webApi(config) {
         getAllMessages: {
             path: apiPaths.getAllMessages.path,
             handler: handleRequest(getAllMessages)
+        },
+
+        getMessage: {
+            path: apiPaths.getMessage.path,
+            handler: handleRequest(getMessage)
         },
 
         deleteAllMessages: {

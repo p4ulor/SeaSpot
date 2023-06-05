@@ -1,6 +1,7 @@
 import express from 'express'
 import { apiPath, apiPaths, docsPath } from '../api/web-api.mjs'
 import * as service from '../../services/services.mjs'
+import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
 
 export const webPages = {
     home: {
@@ -43,13 +44,13 @@ function webSite(config){
             this.file = file
             this.options = {
                 title: !title ? "SeaSpot" : title,
-                host: host,
                 script: script,
+
+                host: host,
                 apiPath: apiPath,
                 homePath: webPages.home.url,
                 docsPath: docsPath,
-                messagesPath: webPages.allMessages.url
-                /* api: server.apiPath */
+                messagesPath: webPages.allMessages.url,
             }
         }
     }
@@ -78,13 +79,13 @@ function webSite(config){
             messages.forEach(message => {
                 view.options.messages.push(
                     {
-                        messageId : message.id, 
-                        applicationId : message.messageObj.applicationId,
-                        endDeviceId : message.messageObj.endDeviceId,
-                        payload : message.messageObj.payload,
-                        receivedAt : message.messageObj.receivedAt,
-                        messagePage : webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
-                        deleteMessageURI : apiPaths.deleteMessage.setPath(message.id)
+                        messageId: message.id, 
+                        applicationId: message.messageObj.applicationId,
+                        endDeviceId: message.messageObj.endDeviceId,
+                        payload: message.messageObj.payload,
+                        receivedAt: message.messageObj.receivedAt,
+                        messagePage: webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
+                        deleteMessageURI: apiPaths.deleteMessage.setPath(message.id)
                     }
                 )
             })
@@ -97,24 +98,26 @@ function webSite(config){
         tryCatch(async () => {
             const view = new HandleBarsView(webPages.messagePage.view)
 
-            const message = await services.getMessage(req.params.dev_id, req.params.app_id)
-            view.options.messagePage = webPages.messagePage.setUrl(message.id)
+            const [id] = doesPathContain_Query_or_Path_Params(req, [new Param("id")], true)
+            const m = await services.getMessage(id)
+            view.options.messagePage = webPages.messagePage.setUrl(m.id)
             view.options.allMessagesPage = webPages.allMessages.url
-            view.options.messageId = message.id
-            view.options.applicationId = message.messageObj.applicationId
-            view.options.endDeviceId = message.messageObj.endDeviceId
-            view.options.deviceAddress = message.messageObj.deviceAddress
-            view.options.location = message.messageObj.location
-            view.options.serviceCharacteristic = message.messageObj.serviceCharacteristic
-            view.options.payload = message.messageObj.payload
-            view.options.receivedAt = message.messageObj.receivedAt
+            view.options.messageId = m.id
+            view.options.applicationId = m.messageObj.applicationId
+            view.options.endDeviceId = m.messageObj.endDeviceId
+            view.options.deviceAddress = m.messageObj.deviceAddress
+            view.options.location = m.messageObj.location
+            view.options.serviceCharacteristic = m.messageObj.serviceCharacteristic
+            view.options.payload = m.messageObj.payload
+            view.options.receivedAt = m.messageObj.receivedAt
 
-            view.options.deleteMessageURI = apiPaths.deleteMessage.setPath(message.id)
+            view.options.deleteMessageURI = apiPaths.deleteMessage.setPath(m.id)
             rsp.render(view.file, view.options)
         }, rsp)
     })
 
     //AUXILIARY FUNCTIONS
+
     /**
      * @param {Function} func 
      * @param {express.Response} rsp 

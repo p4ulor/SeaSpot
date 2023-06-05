@@ -1,15 +1,13 @@
 import { service_characteristic } from "./services-characteristics.mjs"
 
-
-
-
 export class Message {
     /**
-    * @param {string} id //the same as the imdb key of the movie
+    * @param {string} id
     * @param {MessageObj} messageObj 
     */
     constructor(id, messageObj){ 
-        this.id = id; this.messageObj = messageObj 
+        this.id = id
+        this.messageObj = messageObj
     }
 }
 

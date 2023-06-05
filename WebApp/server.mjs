@@ -22,6 +22,9 @@ import webSite from './web/site/web-site.mjs'
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yamljs'
 
+//Node
+import * as path from 'node:path'
+
 /** 
  * @param {ServerConfiguration} config 
  * @returns {Promise<Express>}
@@ -45,20 +48,22 @@ export function Server(config) { //in order be to be used in tests and be more f
     app.set('views', './web/site/views/') 
     app.use(favicon('./web/site/public/favicon.ico'))
     app.use(express.static('./web/site/public'))
-
-    const api = webApi(config)
+    app.use('/js', express.static(path.resolve("./web/site/scripts/").replace(/\\/g, '/'))) //Allows the successful use of <script src="/js/client-fetch.js"></script> inside .hbs files
 
     //API
+    const api = webApi(config)
     app.post(api.upLinkWebHook.path, api.upLinkWebHook.handler)
+    app.get(api.getMessage.path, api.getMessage.handler)
     app.get(api.getAllMessages.path, api.getAllMessages.handler)
     app.delete(api.deleteAllMessages.path, api.deleteAllMessages.handler)
     app.delete(api.deleteMessage.path, api.deleteMessage.handler)
 
     // WEB
-    app.use('/', webSite(config))
+    const webSiteRouter = webSite(config)
+    app.use('/', webSiteRouter)
 
     //DOCS
-    const swaggerDocument = yaml.load('./Docs/api-spec.yaml')
+    const swaggerDocument = yaml.load('./Docs/openapi.yaml')
     //app.use(api.docsPath, swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
     const promise = new Promise((resolve, reject) => {
