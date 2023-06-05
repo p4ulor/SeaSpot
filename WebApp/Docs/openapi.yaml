@@ -285,7 +285,7 @@ components:
               example: -9.11603538108787
         service_characteristic: 
           type: integer
-          example: 6
+          example: 8
         payload: 
           type: string
           example: "61"
