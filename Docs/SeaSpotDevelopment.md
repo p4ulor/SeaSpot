@@ -85,7 +85,7 @@ Consola da TTN - A Consola da TTN é a interface web fornecida pela plataforma. 
 # 3.3 Bluetooth Low Energy
 ## 3.3.1 Visão geral
 
-Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que se concentra no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio.
+Bluetooth Low Energy (BLE) é um padrão aberto e gratuito que concentra-se no consumo ultra baixo de energia. Oferece conexões mais rápidas, procedimentos eficientes de descoberta/conexão e utiliza pacotes muito curtos para transmissão de dados. BLE segue um design assimétrico para periféricos, reutiliza algumas características do Bluetooth Clássico e utiliza uma arquitetura de rádio.
 
 ## 3.3.2 Conexões e funcionalidades BLE
 
@@ -123,13 +123,13 @@ Um conceito importante na conectividade BLE é a diferença entre um dispositivo
 
 Figura 9 - Fase de conexão [9](https://microchipdeveloper.com/wireless:ble-link-layer-roles-states)
 
-Uma distinção importante entre o dispositivo master e slave em uma rede BLE é que um slave só pode ser conectado a um único master, mas um master pode ser conectado a vários slaves. A especificação BLE não limita o número de slaves aos quais um master pode se conectar, mas sempre há uma limitação prática.
+Uma distinção importante entre o dispositivo master e slave em uma rede BLE é que um slave só pode ser conectado a um único master, mas um master pode ser conectado a vários slaves. A especificação BLE não limita o número de slaves aos quais um master pode conectar, mas sempre há uma limitação prática.
 
 ### 3.3.2.3 Funcionalidades do Generic Access Profile (GAP)
 
 Para que dispositivos BLE transmitam dados entre si, deve ser formado um canal de comunicação. A forma como esse canal é formado e mantido é da responsabilidade do GAP.
 
-O GAP informa que para dois dispositivos se conectarem e comunicarem, um deve assumir o role de Central e o outro deve assumir o papel de Peripheral.
+O GAP informa que para dois dispositivos conectarem e comunicarem, um deve assumir o role de Central e o outro deve assumir o papel de Peripheral.
 
 O Central normalmente é um dispositivo poderoso como um telemóvel, enquanto que o Peripheral costuma ser um dispositivo que requer menos energia como o TTGO T-Beam.
 
@@ -164,10 +164,10 @@ Figura 12 - Dispositivo LILYGO® TTGO T-Beam V1.1 ESP32 [12](http://www.lilygo.c
 
 ## 4.4.3 Programação do dispositivo
 
-Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação na The Things Network, é realizada a programação do dispositivo TTGO. O objetivo na programação do dispositivo TTGO é permitir a comunicação de dados usando a tecnologia LoRa (Long Range) e Bluetooth Low Energy (BLE). Com o recurso às bibliotecas fornecidas pela Pycom permite programar o dispositivo para estabelecer a conexão com a rede LoRaWAN e estabelecer uma ligação através do BLE com a aplicação móvel. Para habilitar as funcionalidades de LoRa e BLE no TTGO, precisamos adicionar as bibliotecas adequadas ao ambiente de desenvolvimento. As seguintes bibliotecas são necessárias:
+Com o ambiente de desenvolvimento configurado e com o registo de uma aplicação na The Things Network, é realizada a programação do dispositivo TTGO. Com o recurso às bibliotecas fornecidas pela Pycom permite programar o dispositivo para estabelecer a conexão com a rede LoRaWAN e estabelecer uma ligação através do BLE com a aplicação móvel. Para habilitar as funcionalidades de LoRa e BLE no TTGO, é necessário adicionar as bibliotecas adequadas ao ambiente de desenvolvimento. As seguintes bibliotecas são necessárias:
 
 - Biblioteca LoRa: A biblioteca LoRa ("from network import LoRa") fornece as funções e métodos necessários para a comunicação de dados usando a tecnologia LoRa para dispositivos da classe A. Na LoRa existe dois métodos de conexão que podem ser facilmente configuráveis a LoRaWAN ABP (Activation By Personalization) e a LoRaWAN OTAA (Over The Air Activation)
-    - ABP significa que as chaves criptográficas fornecidas ela TTN (dev_addr, nwk_swkey, app_swkey) são configuradas hardcoded (manualmente) no dispositivo e podem enviar dados para o Gateway sem a necessidade de um procedimento de "handshake" para a troca de chaves (como é feito no método de conexão OTAA).
+    - ABP significa que as chaves criptográficas fornecidas pela TTN (dev_addr, nwk_swkey, app_swkey) são configuradas hardcoded (manualmente) no dispositivo e podem enviar dados para o Gateway sem a necessidade de um procedimento de "handshake" para a troca de chaves (como é feito no método de conexão OTAA).
 
     - OTAA envia uma solicitação de Join para o LoRaWAN Gateway através das chaves (dev_eui, app_eui, app_key) fornecidas pela TTN. Se as chaves estiverem corretas, o Gateway responderá com uma mensagem de aceitação de join e, a partir desse ponto, o dispositivo poderá enviar e receber dados de/para o Gateway. Se as chaves estiverem incorretas, nenhuma resposta será recebida.
 
@@ -194,12 +194,54 @@ Notes: To get any data received after sending the data it is important to keep i
     - socket.setblocking(flag): Define se as operações de envio e receção de dados são bloqueantes ou não bloqueantes.
     - socket.setsockopt(level, optname, value): Define as opções de configuração do socket.
 
-- Biblioteca BLE: A biblioteca BLE ("from network import Bluetooth") está desenhado para facilmente se conectar e comunicar entre dispositivos (em particular plataformas móveis). O BLE usa uma metodologias conhecida como GAP(Generic Access Profile) e GATT(Generic Attribute Profile).
-    - GAP trata do acesso, conexão e autenticação entre dispositivos, definindo papéis (Central e Peripheral) e as operações de advertising, scanning e connection.
+```python
+from network import LoRa
+import socket
+import binascii
+import struct
 
-    - GATT define a estrutura de dados e a comunicação entre eles após a conexão ser estabelecida. O GATT é baseado no conceito de server-client, onde um dispositivo atua como server e outro como client. O server contém serviços e características (atributos) que são fornecidos ao client para read (leitura), write (escrita).
+# Initialise LoRa in LORAWAN mode.
+# With the region that matches it is using
+# Europe = LoRa.EU868
+lora = LoRa(mode=LoRa.LORAWAN, region=LoRa.EU868)
 
-    Na comunicação por BLE o dispositivo TTGO T-Beam vai atuar como server para fornecer leituras e escritas de características que existe em cada serviço para o telemóvel. O telemóvel, por sua vez, atua como client e se conecta ao TTGO para receber esses serviços.
+# create an ABP authentication params
+dev_addr = struct.unpack(">l", binascii.unhexlify('00000005'))[0]
+nwk_swkey = binascii.unhexlify('2B7E151628AED2A6ABF7158809CF4F3C')
+app_swkey = binascii.unhexlify('2B7E151628AED2A6ABF7158809CF4F3C')
+
+# join a network using ABP (Activation By Personalization)
+lora.join(activation=LoRa.ABP, auth=(dev_addr, nwk_swkey, app_swkey))
+
+# create a LoRa socket
+s = socket.socket(socket.AF_LORA, socket.SOCK_RAW)
+
+# set the LoRaWAN data rate
+s.setsockopt(socket.SOL_LORA, socket.SO_DR, 5)
+
+# make the socket blocking
+# (waits for the data to be sent and for the 2 receive windows to expire)
+s.setblocking(True)
+
+# send some data
+s.send(bytes([0x01, 0x02, 0x03]))
+
+# make the socket non-blocking
+# (because if there's no data received it will block forever...)
+s.setblocking(False)
+
+# get any data received (if any...)
+data = s.recv(64)
+decode_data = binascii.hexlify(data).decode()
+print("Received data:", decode_data)
+```
+
+- Biblioteca BLE: A biblioteca BLE ("from network import Bluetooth") está desenhado para facilmente conectar e comunicar entre dispositivos (em particular plataformas móveis). O BLE usa uma metodologia conhecida como GAP(Generic Access Profile) e GATT(Generic Attribute Profile).
+    - GAP trata do acesso, conexão e autenticação entre dispositivos, definindo papéis (Central e Peripheral) e as operações de standby, advertising, scanning e initiating.
+
+    - GATT define a estrutura de dados e a comunicação entre eles após a conexão ser estabelecida. O GATT é baseado no conceito de server-client, onde um dispositivo atua como servidor e outro como cliente. O servidor contém serviços e características (atributos) que são fornecidos ao cliente para read (leitura) e write (escrita).
+
+    Na comunicação por BLE o dispositivo TTGO T-Beam vai atuar como servidor para fornecer leituras e escritas de características que existe em cada serviço para o telemóvel. O telemóvel, por sua vez, atua como cliente e conecta ao TTGO para receber esses serviços.
 
     Alguns dos métodos comuns disponíveis na classe de Bluetooth do Pycom MicroPython:
     - Bluetooth
