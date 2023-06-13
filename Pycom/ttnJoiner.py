@@ -62,4 +62,4 @@ class TTNJoiner: #note: "self" is similar to "this" keyword in java
         decode_data = binascii.hexlify(data).decode()
         print("receive_data_blocking raw:", decode_data)
 
-        return (decode_data, fport,)
+        return (data, fport,)

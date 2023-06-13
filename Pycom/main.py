@@ -31,12 +31,12 @@ def receive_data(characteristicPort):
     print('receive_data()')
     data = ""
     joiner.send_data_bytes(bytes([1]), characteristicPort) # makes uplink, necessary to make an downlink after. Fport will be 2 by default
-    time.sleep(2.5)
+    # time.sleep(2.5)
     data, fport = joiner.receive_data_blocking(characteristicPort) # receive the latest downlink that put in our applciation
     print('receive_data: ', data)
     print("received fport: {}".format(fport))
     # Write the fport value to the ObjectTranfer (service) -> Refresh (charac)
-    # chr7.value(fport)
+    chr7.value(fport)
     if fport==ID_USERDATA_STRING:
         chr1.value(data) # https://docs.pycom.io/firmwareapi/pycom/network/bluetooth/gattscharacteristic/
         print('ID_USERDATA_STRING: ', chr1.value())
