@@ -28,12 +28,15 @@ def send_data(data, characteristicPort):
 
 # Downlink is an operation that asks TTN to dispatch the latest uplinks so they can be ready to be consumed. They can be done manually in the "messaging tab" or with HTTP requests
 def receive_data(characteristicPort):
-    # time.sleep(60)
     print('receive_data()')
     data = ""
-    joiner.send_data_bytes(bytes([1]), None) # makes uplink, necessary to make an downlink after. Fport will be 2 by default
+    joiner.send_data_bytes(bytes([1]), characteristicPort) # makes uplink, necessary to make an downlink after. Fport will be 2 by default
+    time.sleep(2.5)
     data, fport = joiner.receive_data_blocking(characteristicPort) # receive the latest downlink that put in our applciation
     print('receive_data: ', data)
+    print("received fport: {}".format(fport))
+    # Write the fport value to the ObjectTranfer (service) -> Refresh (charac)
+    # chr7.value(fport)
     if fport==ID_USERDATA_STRING:
         chr1.value(data) # https://docs.pycom.io/firmwareapi/pycom/network/bluetooth/gattscharacteristic/
         print('ID_USERDATA_STRING: ', chr1.value())
@@ -104,7 +107,7 @@ def connectionCallback (bt_o):
 def char1_cb_handler(chr, data): # USER_DATA -> ObjectName
     events, value = data # data is like = (16, b'1011')
     print('char1_cb_handler')
-    if  events & Bluetooth.CHAR_WRITE_EVENT:
+    if  events & Bluetooth.CHAR_WRITE_EVENT: ## write = 16, read = 8
         # finalValue = encodePayloadWithCharacIdentifier(value, ID_USERDATA_STRING) # no longer in use
 
         print("On char 1 Write request with value = {}".format(value))
@@ -136,7 +139,7 @@ def char5_cb_handler(chr, data): # PHONE -> OBJECT ID
 
 def char6_cb_handler(chr, data): # PUBLIC_BROADCAST -> STRING
     events, value = data # value type is 'bytes'
-    print('char6_cb_handler')
+    print('char6_cb_handler. Event = {}'.format(events))
     if  events & Bluetooth.CHAR_WRITE_EVENT:
         # finalValue = encodePayloadWithCharacIdentifier(value, ID_BROADCAST_STRING) # no longer in use
         print("On char 6 Write request with value = {}".format(value))

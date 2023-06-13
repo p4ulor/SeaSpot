@@ -86,7 +86,7 @@ enum class AssignedNumbersDescriptors(val value: Int){ //Not being used
 enum class ValueType {
     Text,
     Number,
-    ActionButton //meaning the value of the characteristic is not meant to be changed, it's just that a write operation can be done, in order to trigger an operation in the TTGO
+    ActionButton //meaning the value of the characteristic is not meant to be changed, it's just that a write operation can be done, in order to trigger an operation in the TTGO (Like our Refresh button to make a downlink)
 }
 
 private fun cutUUIDIntoBLE_UUID(uuid: UUID) : String { //UUID to Bluetooth SIG UUID

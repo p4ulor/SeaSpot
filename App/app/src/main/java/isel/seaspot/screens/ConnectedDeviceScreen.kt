@@ -22,9 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import isel.seaspot.R
 import isel.seaspot.activities.MainViewModel
 import isel.seaspot.bluetooth.*
@@ -34,10 +32,7 @@ import isel.seaspot.ui.elements.HeaderText
 import isel.seaspot.utils.doAsync
 import isel.seaspot.utils.log
 import isel.seaspot.utils.toast
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.*
-import kotlin.concurrent.thread
 
 @Composable @SuppressLint("MissingPermission")
 fun ConnectedDeviceScreen(vm: MainViewModel) {
@@ -52,7 +47,11 @@ fun ConnectedDeviceScreen(vm: MainViewModel) {
         mutableStateOf(mutableListOf<Service>()) //This type of MutableState will need to be set w/ a new obj to update the UI
     }
 
-    Column(Modifier.fillMaxWidth().fillMaxHeight().padding(vertical = 40.dp),
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -63,7 +62,9 @@ fun ConnectedDeviceScreen(vm: MainViewModel) {
         }, stringResource(R.string.disconnect))
 
         LazyColumn(
-            Modifier.fillMaxWidth().padding(paddingValues = PaddingValues(start = 5.dp, end = 5.dp)),
+            Modifier
+                .fillMaxWidth()
+                .padding(paddingValues = PaddingValues(start = 5.dp, end = 5.dp)),
             verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
 
             val gatt = vm.getConnectedDeviceGatt()
@@ -77,7 +78,9 @@ fun ConnectedDeviceScreen(vm: MainViewModel) {
 
             items(services) { service ->
                 Card(
-                    Modifier.fillMaxWidth().padding(5.dp)
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp)
                         .clickable {
                             val isItOpen = servicesOpen.get(service.uuid.toString())
                             if (isItOpen != null) {
@@ -105,7 +108,7 @@ fun ConnectedDeviceScreen(vm: MainViewModel) {
                                             val isWritable = doesItContainField(charac.properties, Properties.WRITE)
                                             val values = try {
                                                 charsValues.get(index)
-                                            } catch(e: IndexOutOfBoundsException){
+                                            } catch (e: IndexOutOfBoundsException) {
                                                 byteArrayOf(1)
                                             }
                                             characteristicsOfThisService.add(
@@ -148,7 +151,10 @@ fun CharacteristicDisplay(
     services: MutableList<BluetoothGattService>,
     ctx: Context
 ) {
-    Card(Modifier.fillMaxSize().padding(5.dp), elevation = 10.dp) {
+    Card(
+        Modifier
+            .fillMaxSize()
+            .padding(5.dp), elevation = 10.dp) {
         Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)){
             val service = servicesData.find { it.fullUUID==service.uuid.toString() }
             service?.characteristics?.forEach { characteristic ->
@@ -174,9 +180,18 @@ fun CharacteristicDisplay(
                                 } else { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic#setValue(byte[])
                                     log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
                                     val worked = charac?.setValue(value)
+                                    gatt?.writeCharacteristic(charac)
                                     if(worked==true) toast(success, ctx) else toast(failed, ctx)
                                 }
                             }, stringResource(R.string.refresh))
+
+                            var characName = "${stringResource(R.string.characNotFound)}"
+                            if(characteristic.value.isNotEmpty()){
+                                val r_id = ServCharacBitmap.interpretFport(characteristic.value[0])
+                                if(r_id!=null) characName = "${stringResource(r_id.characName_R_ID)}"
+                                else characName += " (ID = ${characteristic.value[0]})"
+                            }
+                            Text("${stringResource(R.string.value)}: $characName")
                         } else {
                             log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
                             var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }
@@ -209,6 +224,7 @@ fun CharacteristicDisplay(
                                 } else { //https://developer.android.com/reference/android/bluetooth/BluetoothGattCharacteristic#setValue(byte[])
                                     log("Running bellow ${Build.VERSION_CODES.TIRAMISU}")
                                     val worked = charac?.setValue(text)
+                                    gatt?.writeCharacteristic(charac)
                                     if(worked==true) toast(success, ctx) else toast(failed, ctx)
                                 }
                             }, stringResource(R.string.edit), isEditButtonEnabled)

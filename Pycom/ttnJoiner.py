@@ -28,12 +28,12 @@ class TTNJoiner: #note: "self" is similar to "this" keyword in java
         s.setblocking(False)
         self.socket=s
 
-    def send_data_bytes(self, data, characteristicPort): # in use
+    def send_data_bytes(self, data, characteristicPort): # in use uplink
         # creating Payload Sender packet
         socket = self.socket
         if characteristicPort != None:
             print("Set Fport: {}".format(characteristicPort))
-            socket.bind(characteristicPort) # https://forum.pycom.io/topic/2735/changing-port-for-sending-data-via-lora/2
+            # socket.bind(characteristicPort) # https://forum.pycom.io/topic/2735/changing-port-for-sending-data-via-lora/2
         lpp = payloadSender.PayloadSender(sock=socket)
         lpp.set_payload(data)
         lpp.send(reset_payload=True)
@@ -51,15 +51,15 @@ class TTNJoiner: #note: "self" is similar to "this" keyword in java
         # Receive data from the socket
         
         if characteristicPort != None:
-            socket.bind(characteristicPort)
+            # socket.bind(characteristicPort)
             print("Set Fport: {}".format(characteristicPort)) ## Note: indicating the port doesnt really indicate to only get a downlink whose port is equal to this, it's just to register what characteritic update request was associated to this downlink
         else:
             print("characteristicPort is null?: {}".format(characteristicPort))
         data, fport = socket.recvfrom(byte_size)
         # Parse the received data
         print("receive_data_blocking string: {}".format(data))
-        print("Fport: {}".format(fport))
+        print("receive_data_blocking Fport: {}".format(fport))
         decode_data = binascii.hexlify(data).decode()
-        print("Received data raw:", decode_data)
+        print("receive_data_blocking raw:", decode_data)
 
         return (decode_data, fport,)
