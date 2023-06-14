@@ -2,6 +2,7 @@ import express from 'express'
 import { apiPath, apiPaths, docsPath } from '../api/web-api.mjs'
 import * as service from '../../services/services.mjs'
 import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
+import { strTobase64 } from '../../utils/utils.mjs'
 
 export const webPages = {
     home: {
@@ -76,6 +77,7 @@ function webSite(config){
             view.options.allMessagesPage = webPages.allMessages.url
 
             const messages = await services.getAllMessages()
+            
             messages.forEach(message => {
                 view.options.messages.push(
                     {
@@ -83,6 +85,7 @@ function webSite(config){
                         applicationId: message.messageObj.applicationId,
                         endDeviceId: message.messageObj.endDeviceId,
                         payload: message.messageObj.payload,
+                        payloadStr: strTobase64(message.messageObj.payload.replace(" ","")),
                         receivedAt: message.messageObj.receivedAt,
                         messagePage: webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
                         deleteMessageURI: apiPaths.deleteMessage.setPath(message.id)

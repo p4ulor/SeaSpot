@@ -9,22 +9,22 @@ const messages = [
     new Message("5c659dbc-81d8-4759-a41b-6d6276bae1b9", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
                                                         new Location(38.7565362672383, -9.11603538108787), 
                                                         service_characteristic.ID_BROADCAST_STRING, 
-                                                        61, new Date("2023-05-28T19:27:27.931957874Z"))),
+                                                        "61", new Date("2023-05-28T19:27:27.931957874Z"))),
 
     new Message("33e9fbbd-5fa4-42ab-abd6-6fb5ffa415a9", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
                                                         new Location(38.7565362672383, -9.11603538108787), 
                                                         service_characteristic.ID_BROADCAST_STRING,
-                                                        616263, new Date("2023-05-28T19:27:27.931957874Z"))),
+                                                        "61 62 63", new Date("2023-05-28T19:27:27.931957874Z"))),
 
     new Message("ed19bc3a-19e0-4683-82b2-a162d8d1c5ed", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
                                                         new Location(38.7565362672383, -9.11603538108787), 
                                                         service_characteristic.ID_BROADCAST_STRING,
-                                                        646566, new Date("2023-06-01T19:27:27.931957874Z"))),
+                                                        "64 65 66", new Date("2023-06-01T19:27:27.931957874Z"))),
 
     new Message("47c87c28-31fe-4a97-8a18-62a8d312a41b", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
                                                         new Location(38.7565362672383, -9.11603538108787), 
                                                         service_characteristic.ID_BROADCAST_STRING,
-                                                        676869, new Date("2023-06-02T19:27:27.931957874Z"))),
+                                                        "67 68 69", new Date("2023-06-02T19:27:27.931957874Z"))),
 ]
 
 const devices = [

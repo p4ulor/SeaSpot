@@ -3,9 +3,10 @@ import express from 'express'
 import * as codes from '../../utils/errors-and-codes.mjs'
 import service from '../../services/services.mjs'
 import { extractUplinkInfo } from './bodies/extractUpLinkInfo.mjs'
-import { base64ToHex } from '../../utils/utils.mjs'
+import { base64ToHex, fetx } from '../../utils/utils.mjs'
 import { defautLimit, defautSkip } from '../../services/services.mjs'
 import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
+import { Downlink, ScheduleDownlinkObj } from '../../data/ScheduleDownlinkObj.mjs'
 
 
 export const apiPath = "/api"
@@ -72,6 +73,13 @@ export default function webApi(config) {
         console.log("upLinkWebHook message =", JSON.stringify(upLinkMessage))
 
         services.addMessage(upLinkMessage)
+
+        //Schedule downlink
+        const device_id = upLinkMessage.endDeviceId
+        const url = `https://eu1.cloud.thethings.network/api/v3/as/applications/ttgo-test-g10/webhooks/seaspot-webhook/devices/${device_id}/down/replace`
+        const body = new ScheduleDownlinkObj([new Downlink(upLinkMessage.payload, upLinkMessage.serviceCharacteristic)])
+        console.log("Body =", JSON.stringify(body))
+        fetx(url, "POST", body)
     }
 
     /**

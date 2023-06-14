@@ -4,14 +4,20 @@ import { base64ToHex, getCharacteristicID} from "../../../utils/utils.mjs"
 /**
  * @returns {MessageObj}
  */
+/**
+ * @returns {MessageObj}
+ */
 export function extractUplinkInfo(body) {
     const applicationId = body.end_device_ids.application_ids.application_id
     const endDeviceID = body.end_device_ids.device_id
     const deviceAdress = body.end_device_ids.dev_addr
 
-    const loc = body.uplink_message.locations.user
-    const location = new Location(loc.latitude, loc.longitude)
-
+    let location = new Location(0, 0)  
+    if(body.uplink_message.locations!=undefined){
+        const loc = body.uplink_message.locations.user
+        location = new Location(loc.latitude, loc.longitude)  
+    }
+    
     const payload = body.uplink_message.frm_payload
     const decodedPayload = base64ToHex(payload)
     const fPort = body.uplink_message.f_port
