@@ -61,9 +61,9 @@ export async function deleteAllMessages(dev_id, app_id) {
     return messages
 }
 
-export async function deleteMessage(id, dev_id, app_id) {
-    const messageIdx = messages.findIndex(m => id == m.id && dev_id == m.endDeviceId && app_id == m.applicationId)
-    if (messageIdx != null) {
+export async function deleteMessage(id) {
+    const messageIdx = messages.findIndex(m => id == m.id)
+    if (messageIdx != -1) {
         messages.splice(messageIdx, 1)
         return true
     }

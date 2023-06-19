@@ -18,6 +18,9 @@ export const webPages = {
         view: "message.hbs",
         setUrl: (id) => { return `/messages/${id}` }
     },
+    messageDelete: {
+        url: "/messages/:id/delete"
+    },
     pageError: {
         url: "/error",
         view: "error.hbs",
@@ -29,7 +32,7 @@ export const webPages = {
  * @param {server.ServerConfig} config 
  * @return {express.Router} router
  */
-function webSite(config){
+function webSite(config) {
     const host = config.hostAndPort
 
     const services = service.default(config)
@@ -77,22 +80,22 @@ function webSite(config){
             view.options.allMessagesPage = webPages.allMessages.url
 
             const messages = await services.getAllMessages()
-            
+
             messages.forEach(message => {
                 view.options.messages.push(
                     {
-                        messageId: message.id, 
+                        messageId: message.id,
                         applicationId: message.messageObj.applicationId,
                         endDeviceId: message.messageObj.endDeviceId,
                         payload: message.messageObj.payload,
-                        payloadStr: strTobase64(message.messageObj.payload.replace(" ","")),
+                        payloadStr: strTobase64(message.messageObj.payload.replace(" ", "")),
                         receivedAt: message.messageObj.receivedAt,
                         messagePage: webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
                         deleteMessageURI: apiPaths.deleteMessage.setPath(message.id)
                     }
                 )
             })
-            
+
             rsp.render(view.file, view.options)
         }, rsp)
     })
@@ -119,17 +122,24 @@ function webSite(config){
         }, rsp)
     })
 
+    router.post(webPages.messageDelete.url, (req, rsp) => {
+        tryCatch(async () => {
+            const m = await services.deleteMessage(req.params.id)
+            rsp.redirect(webPages.allMessages.url)
+        }, rsp)
+    })
+
     //AUXILIARY FUNCTIONS
 
     /**
      * @param {Function} func 
      * @param {express.Response} rsp 
      */
-    async function tryCatch(func, rsp){ //this cuts down 3 lines per api/controller method
-        if(typeof func !== 'function') throw new Error("Can't use this function like this. param 'func' must be a function")
+    async function tryCatch(func, rsp) { //this cuts down 3 lines per api/controller method
+        if (typeof func !== 'function') throw new Error("Can't use this function like this. param 'func' must be a function")
         try {
             await func()
-        } catch(e) {
+        } catch (e) {
             console.log(e)
             redirect(rsp, webPages.pageError.setUrl(encodeURIComponent(`${e.name}: ${e.message}`))) //https://stackoverflow.com/a/19038048
         }
@@ -139,7 +149,7 @@ function webSite(config){
      * @param {express.Response} resp 
      * @param {string} url 
      */
-    function redirect(resp, url){
+    function redirect(resp, url) {
         resp.setHeader('Location', url) // OR -> resp.redirect(`/`)
             .status(302).end()
     }

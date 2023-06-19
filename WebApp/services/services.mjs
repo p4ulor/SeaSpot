@@ -36,8 +36,8 @@ export default function service(config) {
         return data.deleteAllMessages(dev_id, app_id)
     }
 
-    async function deleteMessage(id, dev_id, app_id) {
-        return data.deleteMessage(id, dev_id, app_id)
+    async function deleteMessage(id) {
+        return data.deleteMessage(id)
     }
 
     return {

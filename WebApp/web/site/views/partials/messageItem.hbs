@@ -6,22 +6,12 @@
         <h3>Payload raw : {{payload}}</h3>
         <h3>Payload string : {{payloadStr}}</h3>
         <h3>Received At : {{receivedAt}}</h3>
-        
+
         <div class="d-grid gap-2 col-6 mx-auto" style="width: 200px;">
-            <button class="btn btn-primary btn-block" id="deleteMessageButton" type="submit">Delete</button>
+            <form action="/messages/{{messageId}}/delete" method="POST">
+                <input class="btn btn-primary btn-block" type="submit" value="Delete message" />
+            </form>
         </div>
+
     </div>
 </div>
-
-<script>
-    document.getElementById("deleteMessageButton").onclick = function() {
-        const uri = getHandleBarsOptionString(`${{{deleteMessageURI}}}`)
-        fetx(uri, "DELETE").then(_ => {
-            location.href = getHandleBarsOptionString(`${{{allMessagesPage}}}`)
-        }) 
-    }
-
-    function getHandleBarsOptionString(str){
-        return str.substring(1, str.length) //because the '$' is included in the string... this seems to only occurr inside scripts
-    }
-</script>

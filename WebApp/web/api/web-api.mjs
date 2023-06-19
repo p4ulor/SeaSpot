@@ -74,12 +74,14 @@ export default function webApi(config) {
 
         services.addMessage(upLinkMessage)
 
+        console.log('add')
+
         //Schedule downlink
-        const device_id = upLinkMessage.endDeviceId
+        /*const device_id = upLinkMessage.endDeviceId
         const url = `https://eu1.cloud.thethings.network/api/v3/as/applications/ttgo-test-g10/webhooks/seaspot-webhook/devices/${device_id}/down/replace`
         const body = new ScheduleDownlinkObj([new Downlink(upLinkMessage.payload, upLinkMessage.serviceCharacteristic)])
         console.log("Body =", JSON.stringify(body))
-        fetx(url, "POST", body)
+        fetx(url, "POST", body)*/
     }
 
     /**
@@ -117,8 +119,7 @@ export default function webApi(config) {
      * @param {express.Response} rsp
      */
     async function deleteMessage(req, rsp){
-        console.log("deleteMessage()")
-        return await services.deleteMessage()
+        return await services.deleteMessage(req.params.id)
     }
 
     return {
