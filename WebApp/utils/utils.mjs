@@ -28,6 +28,14 @@ export function strTobase64(value){
         value.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" "))
     );
 }
+/**
+ * Convert value to ASCII
+ * @param {String} value 
+ * @returns {String}
+ */
+export function hexToASCII(value){
+    return Buffer.from(value, 'hex');
+}
 
 /**
  * Convert value to base64
