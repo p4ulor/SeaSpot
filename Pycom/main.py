@@ -6,6 +6,9 @@ import binascii
 from network import LoRa
 from network import Bluetooth
 from machine import Timer
+from machine import ADC
+
+
 
 def uuid2bytes(uuid):
     uuid = uuid.encode().replace(b'-',b'')
@@ -19,8 +22,9 @@ lora = LoRa(mode=LoRa.LORAWAN, region=LoRa.EU868)
 
 joiner = ttnJoiner.TTNJoiner(lora_payload=lora, dev_addr='260B893E',
                              nwk_swkey='AA1EC267112FA32D3226CEDA4E570621', app_swkey='397680F10D67E165FD9993BA91BF4468')
-joiner.join()
-print('TTN joined')
+didJoin = joiner.join()
+if didJoin:
+    print('TTN joined')
 
 def send_data(data, characteristicPort):
     # joiner.send_data_bytes(bytes([1, 2, 3]))
@@ -189,4 +193,62 @@ chr6_cb = chr7.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE
 
 print('Start BLE Service')
 
-#_thread.start_new_thread(ble_thread, ()) # ble server
+
+
+def updateBatteryVoltage(): # https://docs.pycom.io/tutorials/expansionboards/vbat/#:~:text=Expansionboard%203.0%20/%203.1
+    adc = ADC()
+    while True :
+        bat_voltage = adc.channel(attn=ADC.ATTN_11DB, pin='P16')
+        vbat = bat_voltage.voltage()
+        # note that the expansionboard 3 has a voltage divider of 1M / 1M to account for
+        # 1M / 1M, ratio = 1:2
+        level = vbat*2
+        print('battery voltage:', level, 'mV')
+        chr2.value(level)
+        _thread.start_new_thread(send_data, (level, ID_BATTERY_LEVEL,))
+        time.sleep(3600)
+
+# _thread.start_new_thread(updateBatteryVoltage, ())
+
+from micropyGPS import MicropyGPS
+my_gps = MicropyGPS()
+my_sentence = '$GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62'
+for x in my_sentence:
+    my_gps.update(x)
+
+print('gps: ', my_gps.latitude)
+
+from machine import Pin, UART
+
+uart = UART(1, 9600)  
+uart.init(9600, bits=8, parity=None, stop=1)
+print("any", uart.any())
+b = uart.read()
+print("b=", b)
+
+
+""" from machine import Pin, UART
+
+uart = UART(1, baudrate=9600, pins=('P34', 'P12'))
+
+while True:
+    print("here", uart)
+    if uart.any():
+        sentence = uart.readline().decode('utf-8')  # Read the NMEA sentence as a string
+        print("sentence", sentence)
+        if sentence.startswith('$GPGGA'):  # Check if the sentence is the GGA (Global Positioning System Fix Data) sentence
+            data = sentence.split(',')
+            print("data", data)
+            if data[2]:  # Check if a valid fix is available
+                latitude = float(data[2][:2]) + float(data[2][2:]) / 60
+                longitude = float(data[4][:3]) + float(data[4][3:]) / 60
+
+                if data[3] == 'S':  # Adjust latitude based on hemisphere (South is negative)
+                    latitude = -latitude
+                if data[5] == 'W':  # Adjust longitude based on hemisphere (West is negative)
+                    longitude = -longitude
+
+                print("Latitude:", latitude)
+                print("Longitude:", longitude)
+
+    time.sleep(5)  # Pause for a short time before checking again """

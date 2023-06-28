@@ -6,6 +6,8 @@ import struct
 
 from network import LoRa
 
+MAX_JOINING_ATTEMPTS = 10
+
 class TTNJoiner: #note: "self" is similar to "this" keyword in java
     def __init__(self, lora_payload, dev_addr, nwk_swkey, app_swkey):
         self.lora_payload = lora_payload
@@ -17,9 +19,14 @@ class TTNJoiner: #note: "self" is similar to "this" keyword in java
         
     def join(self):
         self.lora.join(activation=LoRa.ABP, auth=(self.dev_addr, self.nwk_swkey, self.app_swkey))
-        while not self.lora.has_joined():
+        attempts = 0
+        while not self.lora.has_joined(): #with ABP it never reache this point, only with OTAA there can be a delay
+            if(attempts==MAX_JOINING_ATTEMPTS): 
+                return False
             time.sleep(2.5)
             print('Not yet joined...')
+            attempts += 1
+        return True
         
     def create_socket(self):
         # create a LoRa socket
