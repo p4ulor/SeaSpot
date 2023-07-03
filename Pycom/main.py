@@ -210,45 +210,8 @@ def updateBatteryVoltage(): # https://docs.pycom.io/tutorials/expansionboards/vb
 
 # _thread.start_new_thread(updateBatteryVoltage, ())
 
-from micropyGPS import MicropyGPS
-my_gps = MicropyGPS()
-my_sentence = '$GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62'
-for x in my_sentence:
-    my_gps.update(x)
+import gps_data
 
-print('gps: ', my_gps.latitude)
+gps = gps_data.GPS_data(['G12', 'G34'])
 
-from machine import Pin, UART
-
-uart = UART(1, 9600)  
-uart.init(9600, bits=8, parity=None, stop=1)
-print("any", uart.any())
-b = uart.read()
-print("b=", b)
-
-
-""" from machine import Pin, UART
-
-uart = UART(1, baudrate=9600, pins=('P34', 'P12'))
-
-while True:
-    print("here", uart)
-    if uart.any():
-        sentence = uart.readline().decode('utf-8')  # Read the NMEA sentence as a string
-        print("sentence", sentence)
-        if sentence.startswith('$GPGGA'):  # Check if the sentence is the GGA (Global Positioning System Fix Data) sentence
-            data = sentence.split(',')
-            print("data", data)
-            if data[2]:  # Check if a valid fix is available
-                latitude = float(data[2][:2]) + float(data[2][2:]) / 60
-                longitude = float(data[4][:3]) + float(data[4][3:]) / 60
-
-                if data[3] == 'S':  # Adjust latitude based on hemisphere (South is negative)
-                    latitude = -latitude
-                if data[5] == 'W':  # Adjust longitude based on hemisphere (West is negative)
-                    longitude = -longitude
-
-                print("Latitude:", latitude)
-                print("Longitude:", longitude)
-
-    time.sleep(5)  # Pause for a short time before checking again """
+gps_array, timestamp, valid = gps.get_loc()
