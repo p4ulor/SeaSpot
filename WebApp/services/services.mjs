@@ -3,6 +3,7 @@ let dataMem = await import('../data/data-mem.mjs')
 import { Message } from '../data/Message.mjs'
 import errorMsgs from '../utils/error-messages.mjs'
 import { NotFound } from '../utils/errors-and-codes.mjs'
+import elasticDB from '../data/data-elastic.mjs'
 
 export const defautSkip = 10
 export const defautLimit = 10
@@ -25,11 +26,9 @@ export default function service(config) {
     }
 
     async function getMessage(dev_id, app_id) {
-        const message = await data.getMessage(dev_id, app_id)
-        if (message) {
-            return message
-        }
-        throw new NotFound(errorMsgs.messageNotFound(app_id)) 
+        try {
+            return await data.getMessage(dev_id, app_id)
+        } catch(e) { throw e }
     }
 
     async function deleteAllMessages(dev_id, app_id) {
@@ -38,6 +37,29 @@ export default function service(config) {
 
     async function deleteMessage(id) {
         return data.deleteMessage(id)
+    }
+
+    /**
+     * @param {DeviceObj} deviceObj
+     * @returns {String} id of the device created
+     */
+    async function addDevice(deviceObj){
+        return data.addDevice(deviceObj)
+    }
+
+    /**
+     * @param {String} id
+     * @returns {Device}
+     */
+    async function getDevice(id){
+        return data.getDevice(id)
+    }
+
+    /**
+     * @param {String} id
+     */
+    async function deleteDevice(id){
+        return data.deleteDevice(id)
     }
 
     return {

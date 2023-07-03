@@ -15,7 +15,7 @@ import * as data from './data/data-mem.mjs'
 import webServices from './services/services.mjs'
 
 //Web
-import webApi, { apiPaths } from './web/api/web-api.mjs'
+import webApi, { apiPaths, docsPath } from './web/api/web-api.mjs'
 import webSite from './web/site/web-site.mjs'
 
 //Docs
@@ -63,8 +63,8 @@ export function Server(config) { //in order be to be used in tests and be more f
     app.use('/', webSiteRouter)
 
     //DOCS
-    const swaggerDocument = yaml.load('./Docs/openapi.yaml')
-    //app.use(api.docsPath, swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+    const swaggerDocument = yaml.load('./docs/openapi.yaml')
+    app.use(docsPath, swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
     const promise = new Promise((resolve, reject) => {
         app.listen(PORT, () => {

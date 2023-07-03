@@ -4,12 +4,12 @@
 
 ## Plain run:
 - node setup-server.mjs
-or
+
+## Run with nodemon (auto re-runs on code changes)
 - npm run start
 
 ## Test with ngrok:
 - ngrok http 1904
-
 
 ## NPM Packages/dependencies included:
 ### For creating and managing the server

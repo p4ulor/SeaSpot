@@ -4,6 +4,8 @@ import crypto from 'crypto'
 import { Message, MessageObj } from './Message.mjs'
 import { Device, DeviceObj, Location } from './Device.mjs'
 import { service_characteristic } from './services-characteristics.mjs'
+import { NotFound } from '../utils/errors-and-codes.mjs'
+import errorMsgs from '../utils/error-messages.mjs'
 
 const messages = [
     new Message("5c659dbc-81d8-4759-a41b-6d6276bae1b9", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
@@ -36,40 +38,60 @@ const devices = [
 ]
 
 /**
- * @param {Message} message 
+ * @param {MessageObj} messageObj 
  */
-export async function addMessage(message) {
-    const newMessage = new Message(crypto.randomUUID(), message)
+export async function addMessage(messageObj) {
+    const id = crypto.randomUUID()
+    const newMessage = new Message(id, messageObj)
     messages.push(newMessage)
+    return id
 }
 
-export async function getAllMessages() {
+/**
+ * @param {String} dev_id
+ * @param {String} app_id
+ * @param {Int} skip
+ * @param {Int} limit
+ * @returns {Array<Message>} 
+ */
+export async function getAllMessages(dev_id, app_id, skip, limit) { //TODO
     return messages
 }
 
 /**
- * @returns {Message} 
+ * @returns {Message}
+ * @throws {NotFound}
  */
 export async function getMessage(id) {
-    return messages.find(message => {
+    const message = messages.find(message => {
         return message.id==id
     })
+    if(! message) throw new NotFound(errorMsgs.messageNotFound(id))
+    return message
 }
 
+/**
+ * @param {String} dev_id
+ * @param {String} app_id
+ */
 export async function deleteAllMessages(dev_id, app_id) {
     messages = messages.filter(message => message.endDeviceId !==dev_id && message.applicationId !== app_id)
     return messages
 }
 
+/**
+ * @param {String} id
+ * @returns {Boolean} true on success
+ */
 export async function deleteMessage(id) {
     const messageIdx = messages.findIndex(m => id == m.id)
     if (messageIdx != -1) {
         messages.splice(messageIdx, 1)
-        return true
+        return
     }
-    return false
+    throw new NotFound(errorMsgs.messageDeletionFail(id))
     
-    /*
+    /* //Alternative:
     return findMessageAndDoSomething(
         dev_id,
         app_id,
@@ -78,6 +100,46 @@ export async function deleteMessage(id) {
             return m
         })
     */
+}
+
+///////////////////// DEVICES /////////////////////
+
+/**
+ * @param {DeviceObj} deviceObj
+ * @returns {String} id of the device created
+ */
+export async function addDevice(deviceObj) {
+    const id = crypto.randomUUID()
+    const newDevice = new Device(id, deviceObj)
+    messages.push(newDevice)
+    return id
+}
+
+/**
+ * @param {String} id
+ * @returns {Device}
+ * @throws {NotFound}
+ */
+export async function getDevice(id){
+    return elasticFetx.getDoc(ourIndexes.devices, id).then(obj => {
+        console.log("Obtained device ->", JSON.stringify(obj))
+        
+        if(obj.found==false) throw new NotFound(errorMsgs.deviceNotFound(id))
+        return new Message(obj._id, obj._source)
+    })
+}
+
+/**
+ * @param {String} id
+ * @throws {NotFound}
+ */
+export async function deleteDevice(id){
+    const messageIdx = messages.findIndex(m => id == m.id)
+    if (messageIdx != -1) {
+        messages.splice(messageIdx, 1)
+        return
+    }
+    throw new NotFound(errorMsgs.deviceDeletionFail(id))
 }
 
 // Auxiliary functions
