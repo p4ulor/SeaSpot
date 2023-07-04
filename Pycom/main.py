@@ -8,6 +8,8 @@ from network import Bluetooth
 from machine import Timer
 from machine import ADC
 
+import gps_data
+
 
 
 def uuid2bytes(uuid):
@@ -168,8 +170,8 @@ srv1 = bluetooth.service(uuid=SERVICE_USER_DATA, isprimary=True) # By default, n
 chr1 = srv1.characteristic(uuid=CHARACTERISTIC_NAME, value='LilyGo') # By default, the charac has:  properties=Bluetooth.PROP_WRITE | Bluetooth.PROP_WRITE_NR
 chr1_cb = chr1.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char1_cb_handler)
 
-srv2 = bluetooth.service(uuid=SERVICE_BATTERY, isprimary=True)
-chr2 = srv2.characteristic(uuid=CHARACTERISTIC_LEVEL, properties=Bluetooth.PROP_READ, value='51%')
+srv2 = bluetooth.service(uuid=SERVICE_BATTERY, isprimary=True, nbr_chars=1)
+chr2 = srv2.characteristic(uuid=CHARACTERISTIC_LEVEL, properties=Bluetooth.PROP_READ, value='0') # Default value
 chr2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
 srv3 = bluetooth.service(uuid=SERVICE_LOCATION, isprimary=True, nbr_chars=2)
@@ -204,14 +206,43 @@ def updateBatteryVoltage(): # https://docs.pycom.io/tutorials/expansionboards/vb
         # 1M / 1M, ratio = 1:2
         level = vbat*2
         print('battery voltage:', level, 'mV')
-        chr2.value(level)
-        _thread.start_new_thread(send_data, (level, ID_BATTERY_LEVEL,))
+        converted_level = str(level)
+        chr2.value(converted_level)
         time.sleep(3600)
 
-# _thread.start_new_thread(updateBatteryVoltage, ())
+_thread.start_new_thread(updateBatteryVoltage, ())
 
-import gps_data
+def getGPSCoordinates():
+    gps = gps_data.GPS_data(['G12', 'G34'])
+    gps_array, timestamp, valid = gps.get_loc()
 
-gps = gps_data.GPS_data(['G12', 'G34'])
+    decoded_gps = decode_gps_array(gps_array)
 
-gps_array, timestamp, valid = gps.get_loc()
+    print("decoded gps ", decoded_gps["data"])
+
+
+_thread.start_new_thread(getGPSCoordinates, ())
+
+def decode_gps_array(input):
+    bytes = input
+    decoded = {}
+
+    if len(bytes) == 10:
+        decoded['gpsfix'] = True
+        decoded['latitude'] = ((bytes[0] << 16) & 0xFFFFFF) + ((bytes[1] << 8) & 0xFFFF) + bytes[2]
+        decoded['latitude'] = (decoded['latitude'] / 16777215.0 * 180) - 90
+        decoded['longitude'] = ((bytes[3] << 16) & 0xFFFFFF) + ((bytes[4] << 8) & 0xFFFF) + bytes[5]
+        decoded['longitude'] = (decoded['longitude'] / 16777215.0 * 360) - 180
+        altValue = ((bytes[6] << 8) & 0xFFFF) + bytes[7]
+        sign = bytes[6] & (1 << 7)
+        if sign:
+            decoded['altitude'] = 0xFFFF0000 | altValue
+        else:
+            decoded['altitude'] = altValue
+        decoded['hdop'] = bytes[8] / 10.0
+        decoded['sats'] = bytes[9]
+
+    if decoded.get('latitude') == -90:
+        decoded = {'gpsfix': False}
+
+    return {'data': decoded}

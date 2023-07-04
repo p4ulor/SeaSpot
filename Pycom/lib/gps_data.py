@@ -63,7 +63,7 @@ class GPS_data():
                         self.gps_dev.update(chr(x))
                     except Exception as err:
                         print("Exception: ", err)
-                if True:
+                if False:
                     print(sentence)
                     print('Longitude', self.gps_dev.longitude)
                     print('Latitude', self.gps_dev.latitude)
