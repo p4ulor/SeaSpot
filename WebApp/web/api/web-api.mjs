@@ -61,7 +61,9 @@ export default function webApi(config) {
     const services = service(config)
     
     /**
-     * This method should be called only be called by TTN
+     * This method should be called only be called by TTN. When an Uplink is made by a device, TTN will call this method,
+     * which will store the message in our DB. After that, we schedule a downlink with the same info, so that other devices
+     * can obtain the message
      * @param {express.Request} req 
      * @param {express.Response} rsp 
      */
@@ -157,7 +159,7 @@ export default function webApi(config) {
                 let body = await handler(req, rsp)
                 rsp.status(codes.statusCodes.OK).json(body ? body : {}) //By default all handlers will just return OK if not error occurred
             } catch (e) { //e.code is a property that's added to our list of Exceptions
-                console.log("Warning, client got error: ", e)
+                console.log("web-api: Warning, client got error: ", e)
                 if (e.code) rsp.status(e.code).json({ error: e.message })
                 else rsp.status(codes.statusCodes.INTERNAL_SERVER_ERROR).json({ error: e.message })
             }

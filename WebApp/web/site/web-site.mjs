@@ -2,7 +2,7 @@ import express from 'express'
 import { apiPath, apiPaths, docsPath } from '../api/web-api.mjs'
 import * as service from '../../services/services.mjs'
 import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
-import { hexToASCII, strTobase64 } from '../../utils/utils.mjs'
+import { dateToString, hexToASCII, strTobase64 } from '../../utils/utils.mjs'
 
 export const webPages = {
     home: {
@@ -20,6 +20,10 @@ export const webPages = {
     },
     messageDelete: {
         url: "/messages/:id/delete"
+    },
+    devicePage: {
+        url: "/devices/:id",
+        view: "device.hbs"
     },
     pageError: {
         url: "/error",
@@ -83,6 +87,7 @@ function webSite(config) {
 
             messages.forEach(message => {
                 const trimMessage = message.messageObj.payload.replaceAll(' ','')
+                
                 view.options.messages.push(
                     {
                         messageId: message.id,
@@ -91,7 +96,7 @@ function webSite(config) {
                         payload: trimMessage,
                         payloadASCII: hexToASCII(trimMessage),
                         payloadStr: strTobase64(trimMessage),
-                        receivedAt: message.messageObj.receivedAt,
+                        receivedAt: dateToString(message.messageObj.receivedAt),
                         messagePage: webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
                         deleteMessageURI: apiPaths.deleteMessage.setPath(message.id)
                     }
@@ -115,9 +120,9 @@ function webSite(config) {
             view.options.endDeviceId = m.messageObj.endDeviceId
             view.options.deviceAddress = m.messageObj.deviceAddress
             view.options.location = m.messageObj.location
-            view.options.serviceCharacteristic = m.messageObj.serviceCharacteristic
+            view.options.serviceCharacteristic = m.messageObj.serviceCharacteristic.inString
             view.options.payload = m.messageObj.payload
-            view.options.receivedAt = m.messageObj.receivedAt
+            view.options.receivedAt = dateToString(m.messageObj.receivedAt)
 
             view.options.deleteMessageURI = apiPaths.deleteMessage.setPath(m.id)
             rsp.render(view.file, view.options)
@@ -131,6 +136,41 @@ function webSite(config) {
         }, rsp)
     })
 
+    router.get(webPages.devicePage.url, (req, rsp) => {
+        tryCatch(async () => {
+            const view = new HandleBarsView(webPages.messagePage.view)
+
+            const [id] = doesPathContain_Query_or_Path_Params(req, [new Param("id")], true)
+            const dev = await services.getDevice(id)
+
+            view.options.endDeviceID = dev.id
+
+            view.options.applicationId = dev.deviceObj.applicationId
+            view.options.deviceAdress = dev.deviceObj.deviceAdress
+
+            view.options.location = dev.deviceObj.location
+
+            view.options.name = dev.deviceObj.name
+            view.options.batteryLevel = dev.deviceObj.batteryLevel
+            view.options.phone = dev.deviceObj.phone
+            view.options.string = dev.deviceObj.string
+
+            view.options.latestUpdate = dateToString(m.messageObj.receivedAt)
+
+            rsp.render(view.file, view.options)
+        }, rsp)
+    })
+
+    router.get(webPages.pageError.url, (req, rsp) => {
+        tryCatch(async () => {
+            const view = new HandleBarsView(webPages.pageError.view, null)
+            console.log(`Encoded query.type error = ${req.query.type}`)
+            if(req.query) view.options.msg = decodeURIComponent(req.query.type)
+            else view.options.msg = "Internal Server Error"
+            rsp.render(view.file, view.options)
+        })
+    })
+
     //AUXILIARY FUNCTIONS
 
     /**
@@ -142,7 +182,7 @@ function webSite(config) {
         try {
             await func()
         } catch (e) {
-            console.log(e)
+            console.log("web-site: Warning, client got error: ", e)
             redirect(rsp, webPages.pageError.setUrl(encodeURIComponent(`${e.name}: ${e.message}`))) //https://stackoverflow.com/a/19038048
         }
     }

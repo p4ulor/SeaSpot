@@ -1,13 +1,19 @@
 <div class="text-center">
     <div class="card">
-        <h5 class="card-header"><a href={{messagePage}}>Message : {{messageId}}</a></h5>
-        <h3>Application : {{applicationId}}</h3>
-        <h3>End Device : {{endDeviceId}}</h3>
-        <div class="bg-light mb-3">
-            <h3>Payload Hexadecimal : {{payload}}</h3>
-            <h3>Payload ASCII : {{payloadASCII}}</h3>
-            <h3>Payload Base64 : {{payloadStr}}</h3>
+        <h3 class="card-header"><a href={{messagePage}}>Message : {{messageId}}</a></h3>
+        <h5>End Device : {{endDeviceId}}</h5>
+
+        <div class="card" style="max-width: fit-content; margin: 0 auto;">
+            <div class="card-body bg-light mb-3">
+                <ul>
+                    <h3>Payload</h3>
+                    <li>Hexadecimal ➡️ {{payload}}</li>
+                    <li>ASCII ➡️ {{payloadASCII}}</li>
+                    <li>Base64 ➡️ {{payloadStr}}</li>
+                </ul>
+            </div>
         </div>
+
         <h3>Received At : {{receivedAt}}</h3>
 
         <div class="d-grid gap-2 col-6 mx-auto" style="width: 200px;">

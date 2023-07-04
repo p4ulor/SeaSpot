@@ -1,11 +1,11 @@
 // Module that implements all messages management logic
-let dataMem = await import('../data/data-mem.mjs')
+let dataMem = await import('../data/data-mem.mjs') //await before import was causing problems in linux
 import { Message } from '../data/Message.mjs'
 import errorMsgs from '../utils/error-messages.mjs'
 import { NotFound } from '../utils/errors-and-codes.mjs'
 import elasticDB from '../data/data-elastic.mjs'
 
-export const defautSkip = 10
+export const defautSkip = 0
 export const defautLimit = 10
 
 /** @param {ServerConfig} config */
@@ -21,14 +21,16 @@ export default function service(config) {
         return await data.addMessage(message)
     }
 
-    async function getAllMessages() {
-        return data.getAllMessages()
+    async function getAllMessages(skip, limit) {
+        let s = skip
+        let l = limit
+        if(! skip || skip < 0) s = defautSkip
+        if(! limit || limit < 0) l = defautLimit
+        return data.getAllMessages(null, null, s, l)
     }
 
-    async function getMessage(dev_id, app_id) {
-        try {
-            return await data.getMessage(dev_id, app_id)
-        } catch(e) { throw e }
+    async function getMessage(id) {
+        return await data.getMessage(id)
     }
 
     async function deleteAllMessages(dev_id, app_id) {
@@ -40,6 +42,7 @@ export default function service(config) {
     }
 
     /**
+     * Not in use
      * @param {DeviceObj} deviceObj
      * @returns {String} id of the device created
      */
@@ -56,6 +59,7 @@ export default function service(config) {
     }
 
     /**
+     * Not in use
      * @param {String} id
      */
     async function deleteDevice(id){
@@ -68,5 +72,9 @@ export default function service(config) {
         getMessage,
         deleteAllMessages,
         deleteMessage,
+
+        //addDevice
+        getDevice
+        //deleteDevice
     }
 } 

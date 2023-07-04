@@ -7,7 +7,7 @@ import { service_characteristic } from './services-characteristics.mjs'
 import { NotFound } from '../utils/errors-and-codes.mjs'
 import errorMsgs from '../utils/error-messages.mjs'
 
-const messages = [
+export const messages = [
     new Message("5c659dbc-81d8-4759-a41b-6d6276bae1b9", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
                                                         new Location(38.7565362672383, -9.11603538108787), 
                                                         service_characteristic.ID_BROADCAST_STRING, 
@@ -29,7 +29,7 @@ const messages = [
                                                         "67 68 69", new Date("2023-06-02T19:27:27.931957874Z"))),
 ]
 
-const devices = [
+export const devices = [
     new Device("eui-70b3d57ed005bfb0", 
         new DeviceObj("ttgo-test-g10", "260B893E", new Location(38.7565362672383, -9.11603538108787),
         "SeaSpot", 51, "+361 968", "CDE", new Date("2023-06-02T19:27:27.931957874Z")
@@ -55,7 +55,13 @@ export async function addMessage(messageObj) {
  * @returns {Array<Message>} 
  */
 export async function getAllMessages(dev_id, app_id, skip, limit) { //TODO
-    return messages
+    const msgs = messages.slice(skip, skip+limit) 
+    if(! dev_id || ! app_id){
+        return msgs.filter((m) => {
+            return m.messageObj.deviceAddress==dev_id && m.messageObj.applicationId==app_id
+        })
+    }
+    else return msgs
 }
 
 /**
@@ -105,11 +111,11 @@ export async function deleteMessage(id) {
 ///////////////////// DEVICES /////////////////////
 
 /**
+ * @param {String} id
  * @param {DeviceObj} deviceObj
  * @returns {String} id of the device created
  */
-export async function addDevice(deviceObj) {
-    const id = crypto.randomUUID()
+export async function addDevice(id, deviceObj) {
     const newDevice = new Device(id, deviceObj)
     messages.push(newDevice)
     return id

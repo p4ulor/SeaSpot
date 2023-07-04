@@ -15,7 +15,7 @@ export class DeviceObj {
      * @param {String} deviceAdress 260B893E
      * @param {Location} location 
      * 
-     * @param {String} name 
+     * @param {String} name AKA Userdata string
      * @param {Number} batteryLevel 
      * @param {String} phone 
      * @param {String} string

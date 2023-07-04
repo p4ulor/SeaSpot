@@ -1,10 +1,14 @@
 import { BadRequest, Conflict, Forbidden, NotFound, ServerError } from '../utils/errors-and-codes.mjs';
 import { Message, MessageObj } from './Message.mjs';
 import { Device, DeviceObj } from './Device.mjs';
-import elasticFetch from '../utils/elastic-fetch.mjs'
+import elasticFetch, { searchObjToObjArray } from '../utils/elastic-fetch.mjs'
 import * as bodies from '../utils/resp-bodies.mjs'
 import * as utils from '../utils/utils.mjs'
 import errorMsgs from '../utils/error-messages.mjs'
+let dataMem = await import('../data/data-mem.mjs') //to insert sample data
+
+var indexedCreated = false
+const insertSampleData = true
 
 /** @param {ServerConfig} config */
 function elasticDB(config){
@@ -15,21 +19,39 @@ function elasticDB(config){
         devices: "devices",
         messages: "messages"
     }
+
+    function addSampleDataMessages(){
+        dataMem.messages.forEach(msg => {
+            elasticFetx.createDocWithID(ourIndexes.messages, msg.messageObj, msg.id)
+        })
+    }
+
+    function addSampleDataDevices(){
+        dataMem.devices.forEach(dev => {
+            elasticFetx.createDocWithID(ourIndexes.devices, dev.deviceObj, dev.id)
+        })
+    }
     
     function createOurIndexes(){
         Object.values(ourIndexes).forEach(async indexName => {
-            console.log("wtf")
+            console.log("Will create index", indexName, "if it doesn't exist")
             await elasticFetx.doesIndexExist(indexName).then(async doesExist =>{
                 if(! doesExist){
                     await elasticFetx.createIndex(indexName)
                     console.log("created index:", indexName)
+                     if(insertSampleData){
+                        try {
+                            if(indexName==ourIndexes.messages) addSampleDataMessages()
+                            if(indexName==ourIndexes.devices) addSampleDataDevices()
+                        } catch(e){}
+                    }
                 }
-                console.log("ab", indexName)
             })
         })
+        indexedCreated = true
     }
 
-    createOurIndexes()
+    if(! indexedCreated) createOurIndexes()
 
     /**
      * @param {MessageObj} messageObj
@@ -47,25 +69,33 @@ function elasticDB(config){
     }
 
     /**
-     * @param {String} dev_id
-     * @param {String} app_id
+     * @param {String} dev_id (endDeviceID)
+     * @param {String} app_id (applicationId)
      * @param {Int} skip
      * @param {Int} limit
      * @returns {Array<Message>} 
      */
-    async function getAllMessages(dev_id, app_id, skip, limit){ //TODO
+    async function getAllMessages(dev_id, app_id, skip, limit){
         try {
-            const groupsFound = user.userObj.groups.slice(skip, skip+limit).map(groupID => {
-                return elasticFetx.getDoc(ourIndexes.groups, groupID).then(obj => {
-                    console.log(JSON.stringify(obj))
-                    if(obj.found==false) throw new NotFound(`The user w/ id=${userID} has the group w/ id=${groupID} but it wasn't found in the index 'groups'`)
-                    return {id: obj._id, groupObj: obj._source}
-                }).then (group => {
-                    return new bodies.GroupsItemListResponse(group.id, group.groupObj.name)
+            let messagesFound
+            if(! dev_id || ! app_id){
+                messagesFound = await elasticFetx.searchDocPaged(ourIndexes.messages, skip, limit).then(obj => {
+                    return searchObjToObjArray(obj).map(msgObj => {
+                        return new Message(msgObj.id, msgObj.obj)
+                    })
                 })
-            })
-            const resolvedGroupsFound = await (Promise.all(groupsFound))
-            return resolvedGroupsFound
+
+            } else {
+                messagesFound = await elasticFetx.searchDocWithValuesPaged(ourIndexes.messages,
+                    ["endDeviceID", "applicationId"], [dev_id, app_id], skip, limit
+                ).then(obj => {
+                    return searchObjToObjArray(obj).map(msgObj => {
+                        return new Message(msgObj.id, msgObj.obj)
+                    })
+                })
+            }
+
+            return messagesFound
         } catch(e) { throw e }
     }
 
@@ -73,13 +103,10 @@ function elasticDB(config){
      * @param {String} id
      */
     async function getMessage(id){
-        try {
-            return elasticFetx.getDoc(ourIndexes.messages, id).then(obj => {
-                console.log("Obtained message ->", JSON.stringify(obj))
-                if(obj.found==false) throw new NotFound(errorMsgs.messageNotFound(id))
-                return new Message(obj._id, obj._source)
-            })
-        } catch(e) { throw e }
+        const obj = await elasticFetx.getDoc(ourIndexes.messages, id)
+        console.log("Obtained message ->", JSON.stringify(obj))
+        if(obj.found==false) throw new NotFound(errorMsgs.messageNotFound(id))
+        return new Message(obj._id, obj._source)
     }
 
     /**
@@ -106,14 +133,14 @@ function elasticDB(config){
     ///////////////////// DEVICES /////////////////////
 
     /**
+     * @param {String} id
      * @param {DeviceObj} deviceObj
      * @returns {String} id of the device created
      */
-    async function addDevice(deviceObj){
+    async function addDevice(id, deviceObj){
         try {
             console.log("Adding device -> ", JSON.stringify(deviceObj))
-            
-            return elasticFetx.createDoc(ourIndexes.devices, deviceObj).then(obj => {
+            return elasticFetx.createDocWithID(ourIndexes.devices, deviceObj, id).then(obj => {
                 console.log("Device source:", obj._source)
                 return {id: obj._id}
             })
@@ -158,9 +185,9 @@ function elasticDB(config){
         deleteAllMessages,
         deleteMessage,
 
-        addDevice,
+        //addDevice,
         getDevice,
-        deleteDevice
+        //deleteDevice
     }
 }
 

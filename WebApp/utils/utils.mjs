@@ -65,7 +65,17 @@ export function getCharacteristicID(f_port){
     return f_port
 }
 
-const token = "NNSXS.X5XMG64FN6MRORA3IO5S7BMB4KAEBQE5RMDHENI.QOLJRUL2L2NS7E3EQEVWFM5RZRUDNAO7CSTKCOGN73SEOJHTD6TQ"
+/**
+ * @param {Date} date 
+ * @returns {string}
+ */
+export function dateToString(date){
+    if(typeof date == 'string') date = new Date(date) //useful because when getting data from elastic search, it comes as a string, making it not possible to call the methods
+    // British English uses day-month-year order
+    return `${date.toLocaleDateString("en-GB")} - ${date.toLocaleTimeString()}` 
+}
+
+const token = "NNSXS.X5XMG64FN6MRORA3IO5S7BMB4KAEBQE5RMDHENI.QOLJRUL2L2NS7E3EQEVWFM5RZRUDNAO7CSTKCOGN73SEOJHTD6TQ" //used for requesting TTN to scheduele a downlink
 
 /**
  * @param {string} path

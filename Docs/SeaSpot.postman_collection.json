@@ -1,13 +1,322 @@
 {
 	"info": {
-		"_postman_id": "02289864-92a6-400e-9012-b6ac46e84eaa",
+		"_postman_id": "617fe35b-657b-46fd-8226-90091008af25",
 		"name": "SeaSpot",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "24004812"
+		"_exporter_id": "24004812",
+		"_collection_link": "https://cloudy-water-990573.postman.co/workspace/SeaSpot~c464a824-99bc-40bd-8028-202873133d72/collection/24004812-617fe35b-657b-46fd-8226-90091008af25?action=share&creator=24004812&source=collection_link"
 	},
 	"item": [
 		{
-			"name": "downlink request",
+			"name": "Elastic Requests",
+			"item": [
+				{
+					"name": "Get all messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9200/messages/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all messages with paging",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9200/messages/_search?from=0&size=1",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get message w/ ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9200/messages/_doc/5c659dbc-81d8-4759-a41b-6d6276bae1b9",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_doc",
+								"5c659dbc-81d8-4759-a41b-6d6276bae1b9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get device w/ ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9200/device/_doc/eui-70b3d57ed005bfb0",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"device",
+								"_doc",
+								"eui-70b3d57ed005bfb0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all devices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:9200/devices/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"devices",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete message w/ ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9200/messages/_doc/5c659dbc-81d8-4759-a41b-6d6276bae1b9",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_doc",
+								"5c659dbc-81d8-4759-a41b-6d6276bae1b9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete devices w/ ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9200/devices/_doc/eui-70b3d57ed005bfb0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"devices",
+								"_doc",
+								"eui-70b3d57ed005bfb0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete devices index",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9200/devices/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"devices",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete messages index",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9200/messages/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Requests",
+			"item": [
+				{
+					"name": "Get Message w/ ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}{{apiPath}}/messages/:id",
+							"host": [
+								"{{host}}{{apiPath}}"
+							],
+							"path": [
+								"messages",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "33e9fbbd-5fa4-42ab-abd6-6fb5ffa415a9"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}{{apiPath}}/messages",
+							"host": [
+								"{{host}}{{apiPath}}"
+							],
+							"path": [
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete All Messages",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}{{apiPath}}/messages",
+							"host": [
+								"{{host}}{{apiPath}}"
+							],
+							"path": [
+								"messages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Message w/ ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}{{apiPath}}/messages/:id",
+							"host": [
+								"{{host}}{{apiPath}}"
+							],
+							"path": [
+								"messages",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "33e9fbbd-5fa4-42ab-abd6-6fb5ffa415a9"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Det Device w/ ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}{{apiPath}}/device/:id",
+							"host": [
+								"{{host}}{{apiPath}}"
+							],
+							"path": [
+								"device",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "ui-70b3d57ed005bfb0"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "schedule downlink request",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -35,7 +344,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"downlinks\": [\r\n        {\r\n            \"frm_payload\": \"YWI=\",\r\n            \"f_port\": 15,\r\n            \"priority\": \"NORMAL\"\r\n        }\r\n    ]\r\n}"
+					"raw": "{\r\n    \"downlinks\": [\r\n        {\r\n            \"frm_payload\": \"BmE=\",\r\n            \"f_port\": 15,\r\n            \"priority\": \"NORMAL\"\r\n        }\r\n    ]\r\n}"
 				},
 				"url": {
 					"raw": "https://eu1.cloud.thethings.network/api/v3/as/applications/ttgo-test-g10/webhooks/seaspot-webhook/devices/eui-70b3d57ed005bfb0/down/push",
@@ -88,6 +397,11 @@
 		{
 			"key": "host",
 			"value": "http://localhost:1904",
+			"type": "string"
+		},
+		{
+			"key": "apiPath",
+			"value": "/path",
 			"type": "string"
 		}
 	]
