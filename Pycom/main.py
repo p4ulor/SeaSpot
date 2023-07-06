@@ -92,7 +92,8 @@ CHARACTERISTIC_LATITUDE = 0x2aae
 CHARACTERISTIC_LONGITUDE = 0x2aaf
 CHARACTERISTIC_PHONE_ID = 0x2AC3 # Object ID
 CHARACTERISTIC_STRING = 0x2BDE # Fixed String 64
-CHARACTERISTIC_REFRESH = 0x2A31 # ScanRefresh, only relevant between Android and TTGO
+CHARACTERISTIC_REFRESH_DOWNLINK = 0x2A31 # ScanRefresh, only relevant between Android and TTGO
+CHARACTERISTIC_REFRESH_LOCATION = 0xFFFF
 
 # List of unique identifiers for each variable that's displayed by the TTGO
 # _Service _ Characteristic
@@ -102,6 +103,7 @@ ID_LOCATION_LATITUDE = 0x5
 ID_LOCATION_LONGITUDE = 0x6
 ID_PHONE_ID = 0x7
 ID_BROADCAST_STRING = 0x8
+ID_LOCATION = 0X9
 
 def connectionCallback (bt_o): 
     events = bt_o.events()
@@ -123,12 +125,25 @@ def char1_cb_handler(chr, data): # USER_DATA -> ObjectName
 
 def char2_cb_handler(chr, data): # BATTERY -> LEVEL
     events, value = data
+    chr2.value(str(updateBatteryVoltage()))
     print('Read request on char 2 ', chr.value())
         
 def char3_cb_handler(chr, data): # LOCATION -> LATITUDE
     events, value = data
+    gps_coordinates = getGPSCoordinates()
+
+    decoded_gps = decode_gps_array(gps_coordinates['gps_array'])
+
+    gps_raw_data = decoded_gps['data']
+    if gps_raw_data['gpsfix']:
+        gps_latitude = gps_raw_data['latitude']
+        gps_longitude = gps_raw_data['longitude']
+        gps_string = str(gps_latitude) + ', ' + str(gps_longitude)
+        chr3.value(gps_string)
+    else:
+        chr3.value(str(-1))
     print('Read request on char 3 ', chr.value())
-        
+
 def char4_cb_handler(chr, data): # LOCATION -> LONGITUDE
     events, value = data
     print('Read request on char 4 ', chr.value())
@@ -160,6 +175,18 @@ def char7_cb_handler(chr, data): # OBJECT_TRANSFER -> REFRESH
         print("On char 7 Write request with value = {}".format(value))
         _thread.start_new_thread(receive_data, (ID_PHONE_ID,))
 
+def char8_cb_handler(chr, data):
+    events, value = data
+    print('char8_cb_handler. Event = {}'.format(events))
+    if  events & Bluetooth.CHAR_WRITE_EVENT:
+        print("On char 8 Write request with value = {}".format(value))
+        # Get the GPS Location Latitude and longitude and send throw uplink
+        latitude_longitude = chr3.value() + chr4.value()
+        print('latitude and longitude ', latitude_longitude)
+        #_thread.start_new_thread(send_data, (value, ID_LOCATION))
+    else:
+        print('Read request on char 8 ', chr.value())
+
 
 bluetooth = Bluetooth()
 bluetooth.set_advertisement(name='SEASPOT', service_uuid=uuid2bytes(SERVICE_UUID))
@@ -190,8 +217,11 @@ chr6 = srv5.characteristic(uuid=CHARACTERISTIC_STRING, value='Write Any Message'
 chr6_cb = chr6.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char6_cb_handler)
 
 srv6 = bluetooth.service(uuid=SERVICE_OBJECT_TRANSFER, isprimary=True)
-chr7 = srv6.characteristic(uuid=CHARACTERISTIC_REFRESH, value=0x1)
+chr7 = srv6.characteristic(uuid=CHARACTERISTIC_REFRESH_DOWNLINK, value=0x1)
 chr6_cb = chr7.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char7_cb_handler)
+
+chr8 = srv6.characteristic(uuid=CHARACTERISTIC_REFRESH_LOCATION, value=0x1)
+chr7_cb = chr8.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char8_cb_handler)
 
 print('Start BLE Service')
 
@@ -199,29 +229,21 @@ print('Start BLE Service')
 
 def updateBatteryVoltage(): # https://docs.pycom.io/tutorials/expansionboards/vbat/#:~:text=Expansionboard%203.0%20/%203.1
     adc = ADC()
-    while True :
-        bat_voltage = adc.channel(attn=ADC.ATTN_11DB, pin='P16')
-        vbat = bat_voltage.voltage()
-        # note that the expansionboard 3 has a voltage divider of 1M / 1M to account for
-        # 1M / 1M, ratio = 1:2
-        level = vbat*2
-        print('battery voltage:', level, 'mV')
-        converted_level = str(level)
-        chr2.value(converted_level)
-        time.sleep(3600)
-
-_thread.start_new_thread(updateBatteryVoltage, ())
+    bat_voltage = adc.channel(attn=ADC.ATTN_11DB, pin='P16')
+    vbat = bat_voltage.voltage()
+    # note that the expansionboard 3 has a voltage divider of 1M / 1M to account for
+    # 1M / 1M, ratio = 1:2
+    level = vbat*2
+    return level
 
 def getGPSCoordinates():
     gps = gps_data.GPS_data(['G12', 'G34'])
     gps_array, timestamp, valid = gps.get_loc()
 
-    decoded_gps = decode_gps_array(gps_array)
+    # decoded_gps = decode_gps_array(gps_array)
 
-    print("decoded gps ", decoded_gps["data"])
-
-
-_thread.start_new_thread(getGPSCoordinates, ())
+    # print("decoded gps ", decoded_gps["data"])
+    return {'gps_array': gps_array, 'timestamp':timestamp, 'valid':valid}
 
 def decode_gps_array(input):
     bytes = input
