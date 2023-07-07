@@ -1,4 +1,5 @@
 import { service_characteristic } from "./services-characteristics.mjs"
+import { Location } from "./Location.mjs"
 
 export class Message {
     /**
@@ -15,11 +16,11 @@ export class MessageObj {
     /**
      * @param {String} applicationId
      * @param {String} endDeviceID Ours is eui-70b3d57ed005bfb0
-     * @param {String} deviceAdress 260B893E
-     * @param {Location} location
+     * @param {String} deviceAdress (dev_addr) 260B893E Note: this field in specific might not be unique or might change at some later time https://www.thethingsnetwork.org/docs/lorawan/addressing/#devices
+     * @param {Location} location the location of the gateway the TTGO used to uplink this message
      * 
      * @param {service_characteristic} serviceCharacteristic
-     * @param {String} payload
+     * @param {String} payload in hexadecimal format. Example: 61 62 63
      * 
      * @param {Date} receivedAt
      */

@@ -67,15 +67,9 @@ function elasticFetch(config){
      */
     async function searchDocWithValuesPaged(index, fields, values, skip, limit){
         if(fields.length!=values.length) throw new Error("Invalid usage of searchDocWithValuesPaged")
-        let query = {
-            match : {}
-        }
+        const query = makeQuery(fields, values)
 
-        fields.forEach((field, index) => {
-            query.match[field] = values[index]
-        })
-
-        let bodyQuery = makeQueryObj(skip, limit, query)
+        const bodyQuery = makeQueryObjWithPaging(skip, limit, query)
 
         const uri = searchDocPlainUri(index)
         return easyFetch(uri, "GET", bodyQuery)
@@ -105,6 +99,14 @@ function elasticFetch(config){
         const uri = deleteDocUri(index, id)
         return easyFetch(uri, "DELETE")
     }
+
+    async function deleteByQuery(index, fields, values){
+        if(fields.length!=values.length) throw new Error("Invalid usage of deleteByQuery")
+        const query = makeQuery(fields, values)
+
+        const uri = deleteDocsUri(index)
+        return easyFetch(uri, "POST", {query: query})
+    }
     
     /**
      * @param {string} uri 
@@ -121,7 +123,7 @@ function elasticFetch(config){
             options.body= JSON.stringify(body)
         }
         options.method = method //if undefined/null, a GET will be done
-        options.agent = new http.Agent({ keepAlive: true }); //needed when indexes are created for some reason, https://github.com/node-fetch/node-fetch/issues/1735 https://stackoverflow.com/q/16995184
+        options.agent = new http.Agent({ keepAlive: true }); //needed when indexes are created for some reason, [1] [2]
     
         return fetch(uri, options).then(response => 
             response.json()
@@ -139,15 +141,32 @@ function elasticFetch(config){
     const createIndexUri = (index) => `${ELASTIC_SEARCH_URL}/${index}?refresh=true`
     const updateDocUri = (index, id) => `${ELASTIC_SEARCH_URL}/${index}/_update/${id}?refresh=wait_for`
     const deleteDocUri = (index, id) => `${ELASTIC_SEARCH_URL}/${index}/_doc/${id}?refresh=wait_for`
+    const deleteDocsUri = (index) => `${ELASTIC_SEARCH_URL}/${index}/_delete_by_query` // [3]
     
-    const updateBody = (body) => { return {doc: body}}
+    const updateBody = (body) => { return {doc: body}} // [4]
 
-    function makeQueryObj(skip, limit, query){
+    function makeQueryObjWithPaging(skip, limit, query){
         return {
             "from" : skip,
             "size" : limit,
             "query" : query
         }
+    }
+
+    //Utils
+    /**
+     * Aids in making a valid body to delete doc's with fields equal to the values indicaded [3]
+     * @param {Array<string>} fields the name of the fields
+     * @param {Array<Object>} values the values of the fields
+     * @returns {{match: { }}}
+     */
+    function makeQuery(fields, values){
+        const match = {}
+
+        fields.forEach((field, index) => {
+            match[field] = values[index]
+        })
+        return match
     }
 
     return {
@@ -161,7 +180,8 @@ function elasticFetch(config){
         updateDoc,
         createDoc,
         createDocWithID,
-        deleteDoc
+        deleteDoc,
+        deleteByQuery
     }
 
 }
@@ -184,3 +204,10 @@ export function searchObjToObjArray(obj){
     })
     return arr
 }
+
+/** References
+ * [1] https://github.com/node-fetch/node-fetch/issues/1735 
+ * [2] https://stackoverflow.com/q/16995184
+ * [3] https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete-by-query.html
+ * [4] https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-update.html#_update_part_of_a_document
+ */

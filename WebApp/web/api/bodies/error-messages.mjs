@@ -1,4 +1,8 @@
 export default {
+    noPermissions: (client) => {
+        return `Client ${client} doesn't have permission to perform this request`
+    },
+
     messageNotFound: (idMessage) => {
         return `Message with id ${idMessage} not found`
     },
@@ -14,4 +18,8 @@ export default {
     deviceDeletionFail: (idDevice) => {
         return `Deletion of device with id ${idDevice} failed`
     },
+
+    idNotProvided: (path) => {
+        return `id at ${path} not provided`
+    }
 }

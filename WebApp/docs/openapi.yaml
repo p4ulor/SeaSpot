@@ -12,7 +12,7 @@ paths:
     post:
       tags:
         - Uplink
-      summary: A path that only TTN should be able to call, via it's webhook. It stores the uplink message in our DB
+      summary: A path that only TTN can call, via it's webhook. It stores the uplink message in our DB
       requestBody:
         description: Expected request body sent by TTN
         content:
@@ -57,11 +57,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFoundResponse'
-
+                
+  /messages/all/{id}:
     delete:
       tags:
         - Messages
-      summary: Deletes all message, accepts query params
+      summary: Deletes all messages of a specific device
+      parameters:
+        - name: id
+          in: path
+          description: the device ID
+          required: true
+          schema:
+            type: integer
+          example: "eui-70b3d57ed005bfb0"
       responses:
         200:
           description: Success
@@ -79,7 +88,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 5
+          example: "47c87c28-31fe-4a97-8a18-62a8d312a41b"
       responses:
         200:
           description: Returns the message details
@@ -116,7 +125,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/NotFoundResponse'
 
-  /device/{id}:
+  /devices/{id}:
   
     get:
       tags:
@@ -265,86 +274,184 @@ components:
       type: object
       description: A TTN message
       properties:
-        application_id: 
+        id: 
           type: string
-          example: "ttgo-test-g10"
-        endDeviceID: 
-          type: string
-          example: "eui-70b3d57ed005bfb0"
-        deviceAdress: 
-          type: string
-          example: "260B893E"
-        location: 
+          example: 33e9fbbd-5fa4-42ab-abd6-6fb5ffa415a9
+        messageObj: 
           type: object
           properties: 
-            latitude: 
-              type: number
-              example: 38.7565362672383
-            longitude: 
-              type: number
-              example: -9.11603538108787
-        service_characteristic: 
-          type: integer
-          example: 8
-        payload: 
-          type: string
-          example: "61"
-        received_at: 
-          type: object
-          example: "2023-05-28T19:27:27.931957874Z"
+            applicationId: 
+              type: string
+              example: ttgo-test-g10
+            endDeviceId: 
+              type: string
+              example: eui-70b3d57ed005bfb0
+            deviceAddress: 
+              type: string
+              example: 260B893E
+            location: 
+              type: object
+              properties: 
+                latitude: 
+                  type: object
+                  properties: 
+                    value: 
+                      type: number
+                      example: 38.7565362672383
+                    id: 
+                      type: object
+                      properties: 
+                        code: 
+                          type: number
+                          example: 5
+                        inString: 
+                          type: string
+                          example: Latitude
+                longitude: 
+                  type: object
+                  properties: 
+                    value: 
+                      type: number
+                      example: -9.11603538108787
+                    id: 
+                      type: object
+                      properties: 
+                        code: 
+                          type: number
+                          example: 6
+                        inString: 
+                          type: string
+                          example: Longitude
+            serviceCharacteristic: 
+              type: object
+              properties: 
+                code: 
+                  type: number
+                  example: 8
+                inString: 
+                  type: string
+                  example: Broadcast string
+            payload: 
+              type: string
+              example: 61 62 63
+            receivedAt: 
+              type: string
+              format: date-time
+              example: 2023-05-28T19:27:27.931Z
 
     DeviceResponse:
       type: object
       description: Represents the details of a device
       properties:
-        application_id:
+        id: 
           type: string
-          format: integer
-          description: Group's ID
-          example: "ttgo-test-g10"
-        endDeviceID:
-          type: string
-          format: integer
-          description: Group's ID
-          example: "eui-70b3d57ed005bfb0"
-        deviceAdress:
-          type: string
-          format: integer
-          description: Group's ID
-          example: "260B893E"
-        location:
+          example: eui-70b3d57ed005bfb0
+        deviceObj: 
           type: object
-          description: Indicates the device location
-          properties:
-            latitude:
-              format: integer
-              example: 38.7565362672383
-            longitude:
-              format: integer
-              example: -9.11603538108787
-          
-        name:
-          type: string
-          description: Any name that's intended to identify the messenger
-          example: "red buoy"
-        batteryLevel:
-          type: number
-          format: integer
-          description: Group's ID
-          example: 51
-        phone:
-          type: string
-          description: A phone number
-          example: "+351960000000"
-        string:
-          type: string
-          description: Contains any message
-          example: "hello"
-          
-        latestUpdate:
-          type: object
-          description: Date & Time
-          example: "2023-05-28T19:27:27.931957874Z"
+          properties: 
+            applicationId: 
+              type: string
+              example: ttgo-test-g10
+            deviceAdress: 
+              type: string
+              example: 260B893E
+            location: 
+              type: object
+              properties: 
+                latitude: 
+                  type: object
+                  properties: 
+                    value: 
+                      type: number
+                      example: 38.7562409625148
+                    id: 
+                      type: object
+                      properties: 
+                        code: 
+                          type: number
+                          example: 5
+                        inString: 
+                          type: string
+                          example: Latitude
+                longitude: 
+                  type: object
+                  properties: 
+                    value: 
+                      type: number
+                      example: -9.117382657933856
+                    id: 
+                      type: object
+                      properties: 
+                        code: 
+                          type: number
+                          example: 6
+                        inString: 
+                          type: string
+                          example: Longitude
+            name: 
+              type: object
+              properties: 
+                value: 
+                  type: string
+                  example: SeaSpot
+                id: 
+                  type: object
+                  properties: 
+                    code: 
+                      type: number
+                      example: 3
+                    inString: 
+                      type: string
+                      example: Userdata string
+            batteryLevel: 
+              type: object
+              properties: 
+                value: 
+                  type: number
+                  example: 51
+                id: 
+                  type: object
+                  properties: 
+                    code: 
+                      type: number
+                      example: 4
+                    inString: 
+                      type: string
+                      example: Battery level
+            phone: 
+              type: object
+              properties: 
+                value: 
+                  type: string
+                  example: +351 960 000 000
+                id: 
+                  type: object
+                  properties: 
+                    code: 
+                      type: number
+                      example: 7
+                    inString: 
+                      type: string
+                      example: Phone
+            string: 
+              type: object
+              properties: 
+                value: 
+                  type: string
+                  example: Olá SOS
+                id: 
+                  type: object
+                  properties: 
+                    code: 
+                      type: number
+                      example: 8
+                    inString: 
+                      type: string
+                      example: Broadcast string
+            latestUpdate: 
+              type: string
+              format: date-time
+              example: 2023-06-02T19:27:27.931Z
 
     NotFoundResponse:
       type: object
@@ -352,4 +459,14 @@ components:
         error:
           type: string
           example: "{Item} not found"
+          
+    DeleteAllMessagesRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: "eui-70b3d57ed005bfb0"
+        appId:
+          type: string
+          example: ttgo-test-g10
           

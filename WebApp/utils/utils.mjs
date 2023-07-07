@@ -34,7 +34,7 @@ export function strTobase64(value){
  * @returns {String}
  */
 export function hexToASCII(value){
-    return Buffer.from(value, 'hex');
+    return Buffer.from(value, 'hex').toString();
 }
 
 /**
@@ -49,20 +49,16 @@ export function byteArrayTobase64(bytearray){
 
 /**
  * @param {integer} f_port 
- * @return {integer} service_characteristic
+ * @return {service_characteristic} service_characteristic
  */
 export function getCharacteristicID(f_port){
     const characs = Object.values(service_characteristic)
-
-    const diesFportIdentifyCharacteristic = characs.some(value => {
-        return value==f_port
+    let service_charac = service_characteristic.ID_BROADCAST_STRING // publishing the message in BROADCAST_STRING by default if the f_port didn't identify any of our characteristics
+    characs.forEach(value => {
+        if(value.code==f_port)
+            service_charac = value
     })
-
-    if(! diesFportIdentifyCharacteristic) {
-        console.log("Characteristic identifier not found, publishing the message in BROADCAST_STRING")
-        return service_characteristic.ID_BROADCAST_STRING //by default treat this as broadcast string
-    }
-    return f_port
+    return service_charac
 }
 
 /**
@@ -75,7 +71,42 @@ export function dateToString(date){
     return `${date.toLocaleDateString("en-GB")} - ${date.toLocaleTimeString()}` 
 }
 
-const token = "NNSXS.X5XMG64FN6MRORA3IO5S7BMB4KAEBQE5RMDHENI.QOLJRUL2L2NS7E3EQEVWFM5RZRUDNAO7CSTKCOGN73SEOJHTD6TQ" //used for requesting TTN to scheduele a downlink
+/**
+ * 
+ * @param {Int} skip 
+ * @param {Int} limit 
+ * @param {Int} defaultSkip 
+ * @param {Int} defautLimit 
+ * @returns 
+ */
+export function validatePaging(skip, limit, defaultSkip, defautLimit){
+    if(isBadNumber(defaultSkip) || isBadNumber(defautLimit))
+        throw new Error("Invalid usage of validatePaging()")
+    let s = skip
+    let l = limit
+    if(isBadNumber(skip)) s = defaultSkip
+    if(isBadNumber(limit)) l = defautLimit
+    return {
+        skip: s,
+        limit: l
+    }
+}
+
+function isBadNumber(number){
+    return isNaN(number) || number < 0
+}
+
+/**
+ * @param {Array<Object>} values 
+ * @returns {Boolean} true if all values are strings
+ */
+export function checkAllString(values){
+    return values.every(value => {
+        return typeof value == 'string'
+    })
+}
+
+export const ourApplicationApiKey = "NNSXS.X5XMG64FN6MRORA3IO5S7BMB4KAEBQE5RMDHENI.QOLJRUL2L2NS7E3EQEVWFM5RZRUDNAO7CSTKCOGN73SEOJHTD6TQ" //used for requesting TTN to scheduele a downlink
 
 /**
  * @param {string} path
@@ -86,7 +117,7 @@ export async function fetx(path, method, body){
     return fetch(path, {
         method: method, 
         body : (body || method!="GET" || method!="DELETE") ? JSON.stringify(body) : null ,
-        headers: { "Content-Type": "application/json" , "Accept" : "application/json", "Authorization" : `Bearer ${token}`}
+        headers: { "Content-Type": "application/json" , "Accept" : "application/json", "Authorization" : `Bearer ${ourApplicationApiKey}`}
     }).then(rsp => {
         return rsp.text().then(obj => {
             console.log(`Fetch result -> ${JSON.stringify(obj)}`)

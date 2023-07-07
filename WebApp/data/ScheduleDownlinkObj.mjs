@@ -11,7 +11,6 @@ export class ScheduleDownlinkObj {
 
 export class Downlink {
     /**
-     * 
      * @param {Array<Number>} frm_payload 
      * @param {Number} f_port 1-255
      * @param {String} priority Example: "NORMAL"

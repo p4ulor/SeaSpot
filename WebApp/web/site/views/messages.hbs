@@ -1,9 +1,38 @@
-<script src="/js/client-fetch.js"></script>
-
 <div class="text-center">
     <h1>Messages of Application {{applicationId}}</h1>
     {{#each messages}}
         {{> messageItem}} {{!-- The '> messageItem' says that this variable is to be interpreted as a .hbs view --}}
-        <hr>
     {{/each}}
+
+    <form method="GET" action={{submitUrl}}>
+        <button class="btn btn-primary btn-block" type="submit" name="page" value={{pageNumber}}>
+            Next page
+        </button>
+    </form>
+
+    <button style="margin: 20px; width: 200px;" class="btn btn-primary btn-danger" 
+           type="submit" id="deleteAllMessagesButton"
+           onclick="deleteAllMessages()">Delete ALL messages</button>
+
+    <script>
+        function deleteAllMessages(){
+            let deviceID = prompt("Device ID?", "eui-70b3d57ed005bfb0");
+            if (deviceID!="") {
+                const apiPath = getHandlBarsOptionString(`${{{apiPath}}}`) //apiPath needs to be converted to string otherwise the error occurs: "unterminated regular expression literal" because the double brackets are not included in the apiPath value
+                const funcSetPath = {{{function_deleteAllMessagesSetPath}}} //(see handlebars registered helpers in server.mjs)  https://handlebarsjs.com/guide/#html-escaping
+                
+                const refreshPath = getHandlBarsOptionString(`${{{refreshPath}}}`)
+                
+                fetx(funcSetPath(deviceID), "DELETE").then(_ => {
+                    location.href = refreshPath
+                })
+            } 
+            else alert("Invalid device ID")
+        }
+
+        function getHandlBarsOptionString(str){
+            return str.substring(1, str.length) //because the '$' is included in the string... this seems to only occurr inside scripts
+        }
+    </script>
+    
 </div>

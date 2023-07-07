@@ -43,8 +43,12 @@ export function Server(config) { //in order be to be used in tests and be more f
     app.use(cookieParser())
 
     //View's setup
-    app.set('view engine', 'hbs')
+    //app.engine('hbs', hbs({defaultLayout:'layout', extname: 'hbs'})) //optional
+    app.set('view engine', 'hbs') 
     hbs.registerPartials('./web/site/views/partials')
+    hbs.registerHelper('function_deleteAllMessagesSetPath', function() { //https://handlebarsjs.com/guide/#custom-helpers Note: helpers need to be set here or it doesnt work. The helpers are useful to "import" function to allow us to reference functions in the .hbs files
+        return apiPaths.deleteAllMessages.setDevice
+    })
     app.set('views', './web/site/views/') 
     app.use(favicon('./web/site/public/favicon.ico'))
     app.use(express.static('./web/site/public'))
@@ -52,19 +56,20 @@ export function Server(config) { //in order be to be used in tests and be more f
 
     //API
     const api = webApi(config)
-    app.post(api.upLinkWebHook.path, api.upLinkWebHook.handler)
-    app.get(api.getMessage.path, api.getMessage.handler)
-    app.get(api.getAllMessages.path, api.getAllMessages.handler)
-    app.delete(api.deleteAllMessages.path, api.deleteAllMessages.handler)
-    app.delete(api.deleteMessage.path, api.deleteMessage.handler)
-
-    // WEB
-    const webSiteRouter = webSite(config)
-    app.use('/', webSiteRouter)
+    app.post(api.upLinkWebHook.path, api.upLinkWebHook.handler) //api/uplink
+    app.delete(api.deleteMessage.path, api.deleteMessage.handler) //api/messages/all/{deviceID}
+    app.get(api.getMessage.path, api.getMessage.handler) //api/messages/{id}
+    app.get(api.getAllMessages.path, api.getAllMessages.handler) //api/messages/
+    app.delete(api.deleteAllMessages.path, api.deleteAllMessages.handler) //api/messages/{id}
+    app.get(api.getDevice.path, api.getDevice.handler) //api/devices/{id}
 
     //DOCS
     const swaggerDocument = yaml.load('./docs/openapi.yaml')
     app.use(docsPath, swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+
+    // WEB
+    const webSiteRouter = webSite(config)
+    app.use('/', webSiteRouter)
 
     const promise = new Promise((resolve, reject) => {
         app.listen(PORT, () => {

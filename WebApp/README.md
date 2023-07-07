@@ -11,7 +11,7 @@
 ## Test with ngrok:
 - ngrok http 1904
 
-## NPM Packages/dependencies included:
+## Main NPM Packages/dependencies included:
 ### For creating and managing the server
 - [express](https://www.npmjs.com/package/express) - For Handling HTTP requests
 - [node-fetch](https://www.npmjs.com/package/node-fetch) - For Making server side HTTP requests
@@ -20,6 +20,8 @@
 ### For creating the front-end UI (the view engine)
 - [hbs](https://www.npmjs.com/package/hbs)
 - [serve-favicon](https://www.npmjs.com/package/serve-favicon)
+### For displaying a map
+- [leaflet](https://www.npmjs.com/package/leaflet)
 ## For integrated tests
 - [mocha](https://www.npmjs.com/package/mocha) - A framework to run tests (which allows the use of other assertion libraries)
 - [chai](https://www.npmjs.com/package/chai) - The assertion library to use

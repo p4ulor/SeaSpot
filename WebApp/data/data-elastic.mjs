@@ -1,16 +1,19 @@
-import { BadRequest, Conflict, Forbidden, NotFound, ServerError } from '../utils/errors-and-codes.mjs';
+import { BadRequest, Conflict, Forbidden, NotFound, ServerError } from '../web/api/bodies/errors-and-codes.mjs'
 import { Message, MessageObj } from './Message.mjs';
 import { Device, DeviceObj } from './Device.mjs';
 import elasticFetch, { searchObjToObjArray } from '../utils/elastic-fetch.mjs'
-import * as bodies from '../utils/resp-bodies.mjs'
+import * as bodies from '../web/api/bodies/req-resp-bodies.mjs'
 import * as utils from '../utils/utils.mjs'
-import errorMsgs from '../utils/error-messages.mjs'
+import errorMsgs from '../web/api/bodies/error-messages.mjs'
 let dataMem = await import('../data/data-mem.mjs') //to insert sample data
 
 var indexedCreated = false
 const insertSampleData = true
 
-/** @param {ServerConfig} config */
+/** 
+ * Note: It's not recommended to throw exceptions inside .then() statements because they wont be catched, use await instead
+ * @param {ServerConfig} config 
+ * */
 function elasticDB(config){
 
     const elasticFetx = elasticFetch(config)
@@ -53,19 +56,19 @@ function elasticDB(config){
 
     if(! indexedCreated) createOurIndexes()
 
+    ///////////////////// MESSAGES /////////////////////
+
     /**
      * @param {MessageObj} messageObj
      * @returns {String} id of the message created
      */
     async function addMessage(messageObj){
-        try {
-            console.log("Adding message -> ", JSON.stringify(messageObj))
-            
-            return elasticFetx.createDoc(ourIndexes.messages, messageObj).then(obj => {
-                console.log("Msg source:", obj._source)
-                return {id: obj._id}
-            })
-        } catch(e) { throw e }
+        console.log("Adding message -> ", JSON.stringify(messageObj))
+        
+        return elasticFetx.createDoc(ourIndexes.messages, messageObj).then(obj => {
+            console.log("Msg source:", obj._source)
+            return {id: obj._id}
+        })
     }
 
     /**
@@ -76,45 +79,49 @@ function elasticDB(config){
      * @returns {Array<Message>} 
      */
     async function getAllMessages(dev_id, app_id, skip, limit){
-        try {
-            let messagesFound
-            if(! dev_id || ! app_id){
-                messagesFound = await elasticFetx.searchDocPaged(ourIndexes.messages, skip, limit).then(obj => {
-                    return searchObjToObjArray(obj).map(msgObj => {
-                        return new Message(msgObj.id, msgObj.obj)
-                    })
+        let messagesFound
+        if(! dev_id || ! app_id){
+            messagesFound = await elasticFetx.searchDocPaged(ourIndexes.messages, skip, limit).then(obj => {
+                return searchObjToObjArray(obj).map(msgObj => {
+                    return new Message(msgObj.id, msgObj.obj)
                 })
+            })
 
-            } else {
-                messagesFound = await elasticFetx.searchDocWithValuesPaged(ourIndexes.messages,
-                    ["endDeviceID", "applicationId"], [dev_id, app_id], skip, limit
-                ).then(obj => {
-                    return searchObjToObjArray(obj).map(msgObj => {
-                        return new Message(msgObj.id, msgObj.obj)
-                    })
+        } else {
+            messagesFound = await elasticFetx.searchDocWithValuesPaged(ourIndexes.messages,
+                ["endDeviceID", "applicationId"], [dev_id, app_id], skip, limit
+            ).then(obj => {
+                return searchObjToObjArray(obj).map(msgObj => {
+                    return new Message(msgObj.id, msgObj.obj)
                 })
-            }
+            })
+        }
 
-            return messagesFound
-        } catch(e) { throw e }
+        return messagesFound
     }
 
     /**
-     * @param {String} id
+     * @param {String} id unique elastic-search generated UUID
+     * @returns {Message}
+     * @throws {NotFound}
      */
     async function getMessage(id){
         const obj = await elasticFetx.getDoc(ourIndexes.messages, id)
-        console.log("Obtained message ->", JSON.stringify(obj))
+        //console.log("Obtained message ->", JSON.stringify(obj))
         if(obj.found==false) throw new NotFound(errorMsgs.messageNotFound(id))
         return new Message(obj._id, obj._source)
     }
 
     /**
      * @param {String} dev_id 
-     * @param {String} app_id 
+     * @returns {Boolean} true on success
      */
-    async function deleteAllMessages(dev_id, app_id, skip, limit){ //TODO
-        
+    async function deleteAllMessages(dev_id){ //TODO
+        const obj = await elasticFetx.deleteByQuery(ourIndexes.messages, 
+            ["endDeviceID"], [dev_id]
+        )
+        if (obj.result == "deleted") return true
+        else return false
     }
     
     /**
@@ -122,12 +129,9 @@ function elasticDB(config){
      * @returns {Boolean} true on success
      */
     async function deleteMessage(id){
-        try {
-            return await elasticFetx.deleteDoc(ourIndexes.messages, id).then(async obj =>{
-                if (obj.result == "deleted") return true
-                else throw new NotFound(errorMsgs.messageDeletionFail(id))
-            })   
-        } catch(e) { throw e }
+        const obj = await elasticFetx.deleteDoc(ourIndexes.messages, id)
+        if (obj.result == "deleted") return true
+        else throw new NotFound(errorMsgs.messageDeletionFail(id))
     }
 
     ///////////////////// DEVICES /////////////////////
@@ -138,13 +142,11 @@ function elasticDB(config){
      * @returns {String} id of the device created
      */
     async function addDevice(id, deviceObj){
-        try {
-            console.log("Adding device -> ", JSON.stringify(deviceObj))
-            return elasticFetx.createDocWithID(ourIndexes.devices, deviceObj, id).then(obj => {
-                console.log("Device source:", obj._source)
-                return {id: obj._id}
-            })
-        } catch(e) { throw e }
+        console.log("Adding device -> ", JSON.stringify(deviceObj))
+        return elasticFetx.createDocWithID(ourIndexes.devices, deviceObj, id).then(obj => {
+            console.log("Device source:", obj._source)
+            return {id: obj._id}
+        })
     }
     
     /**
@@ -152,14 +154,25 @@ function elasticDB(config){
      * @returns {Device}
      */
     async function getDevice(id){
-        try {
-            return elasticFetx.getDoc(ourIndexes.devices, id).then(obj => {
-                console.log("Obtained device ->", JSON.stringify(obj))
-                
-                if(obj.found==false) throw new NotFound(errorMsgs.deviceNotFound(id))
-                return new Message(obj._id, obj._source)
-            })
-        } catch(e) { throw e }
+        const obj = await elasticFetx.getDoc(ourIndexes.devices, id)
+        //console.log("Obtained device ->", JSON.stringify(obj))
+        
+        if(obj.found==false) throw new NotFound(errorMsgs.deviceNotFound(id))
+        return new Device(obj._id, obj._source)
+    }
+
+    /**
+     * @param {String} endDeviceID 
+     * @param {service_characteristic} service_characteristic 
+     * @param {String} value 
+     */
+    async function updateDevice(endDeviceID, service_characteristic, value){
+        const obj = await elasticFetx.getDoc(ourIndexes.devices, endDeviceID)
+        if(obj.found==false) throw new NotFound(errorMsgs.deviceNotFound(id))
+
+        const device = new Device(obj._id, obj._source)
+        const wasSet = device.deviceObj.setCharacteristic(service_characteristic, value)
+        if(wasSet) await elasticFetx.updateDoc(ourIndexes.devices, device.id, device.deviceObj)
     }
     
     /**
@@ -167,12 +180,9 @@ function elasticDB(config){
      * @returns {Boolean} true on success
      */
     async function deleteDevice(id){
-        try {
-            return await elasticFetx.deleteDoc(ourIndexes.devices, id).then(async obj =>{
-                if (obj.result == "deleted") return true
-                else throw new NotFound(errorMsgs.deviceDeletionFail(id))
-            })   
-        } catch(e) { throw e }
+        const obj = await elasticFetx.deleteDoc(ourIndexes.devices, id)
+        if (obj.result == "deleted") return true
+        else throw new NotFound(errorMsgs.deviceDeletionFail(id))
     }
     
     return {
@@ -185,8 +195,9 @@ function elasticDB(config){
         deleteAllMessages,
         deleteMessage,
 
-        //addDevice,
+        addDevice,
         getDevice,
+        updateDevice,
         //deleteDevice
     }
 }

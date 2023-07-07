@@ -226,7 +226,70 @@
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Get Message w/ ID example",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}{{apiPath}}/messages/:id",
+									"host": [
+										"{{host}}{{apiPath}}"
+									],
+									"path": [
+										"messages",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "33e9fbbd-5fa4-42ab-abd6-6fb5ffa415a9"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "450"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"1c2-VdNRJbJX7M6DBVezr2Ad7GAIed4\""
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 07 Jul 2023 15:04:07 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"33e9fbbd-5fa4-42ab-abd6-6fb5ffa415a9\",\n    \"messageObj\": {\n        \"applicationId\": \"ttgo-test-g10\",\n        \"endDeviceId\": \"eui-70b3d57ed005bfb0\",\n        \"deviceAddress\": \"260B893E\",\n        \"location\": {\n            \"latitude\": {\n                \"value\": 38.7565362672383,\n                \"id\": {\n                    \"code\": 5,\n                    \"inString\": \"Latitude\"\n                }\n            },\n            \"longitude\": {\n                \"value\": -9.11603538108787,\n                \"id\": {\n                    \"code\": 6,\n                    \"inString\": \"Longitude\"\n                }\n            }\n        },\n        \"serviceCharacteristic\": {\n            \"code\": 8,\n            \"inString\": \"Broadcast string\"\n        },\n        \"payload\": \"61 62 63\",\n        \"receivedAt\": \"2023-05-28T19:27:27.931Z\"\n    }\n}"
+						}
+					]
 				},
 				{
 					"name": "Get All Messages",
@@ -251,12 +314,20 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{host}}{{apiPath}}/messages",
+							"raw": "{{host}}{{apiPath}}/messages/all/:id",
 							"host": [
 								"{{host}}{{apiPath}}"
 							],
 							"path": [
-								"messages"
+								"messages",
+								"all",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "eui-70b3d57ed005bfb0"
+								}
 							]
 						}
 					},
@@ -292,23 +363,86 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}{{apiPath}}/device/:id",
+							"raw": "{{host}}{{apiPath}}/devices/:id",
 							"host": [
 								"{{host}}{{apiPath}}"
 							],
 							"path": [
-								"device",
+								"devices",
 								":id"
 							],
 							"variable": [
 								{
 									"key": "id",
-									"value": "ui-70b3d57ed005bfb0"
+									"value": "eui-70b3d57ed005bfb0"
 								}
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Det Device w/ ID example",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{host}}{{apiPath}}/device/:id",
+									"host": [
+										"{{host}}{{apiPath}}"
+									],
+									"path": [
+										"device",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "eui-70b3d57ed005bfb0"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "604"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"25c-uDFSOR4GrfJNaQSC0Auqg6nkheA\""
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 07 Jul 2023 15:03:13 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"eui-70b3d57ed005bfb0\",\n    \"deviceObj\": {\n        \"applicationId\": \"ttgo-test-g10\",\n        \"deviceAdress\": \"260B893E\",\n        \"location\": {\n            \"latitude\": {\n                \"value\": 38.7562409625148,\n                \"id\": {\n                    \"code\": 5,\n                    \"inString\": \"Latitude\"\n                }\n            },\n            \"longitude\": {\n                \"value\": -9.117382657933856,\n                \"id\": {\n                    \"code\": 6,\n                    \"inString\": \"Longitude\"\n                }\n            }\n        },\n        \"name\": {\n            \"value\": \"SeaSpot\",\n            \"id\": {\n                \"code\": 3,\n                \"inString\": \"Userdata string\"\n            }\n        },\n        \"batteryLevel\": {\n            \"value\": 51,\n            \"id\": {\n                \"code\": 4,\n                \"inString\": \"Battery level\"\n            }\n        },\n        \"phone\": {\n            \"value\": \"+351 960 000 000\",\n            \"id\": {\n                \"code\": 7,\n                \"inString\": \"Phone\"\n            }\n        },\n        \"string\": {\n            \"value\": \"Olá, SOS\",\n            \"id\": {\n                \"code\": 8,\n                \"inString\": \"Broadcast string\"\n            }\n        },\n        \"latestUpdate\": \"2023-06-02T19:27:27.931Z\"\n    }\n}"
+						}
+					]
 				}
 			]
 		},
@@ -396,12 +530,12 @@
 	"variable": [
 		{
 			"key": "host",
-			"value": "http://localhost:1904",
+			"value": "http://localhost:5000",
 			"type": "string"
 		},
 		{
 			"key": "apiPath",
-			"value": "/path",
+			"value": "/api",
 			"type": "string"
 		}
 	]

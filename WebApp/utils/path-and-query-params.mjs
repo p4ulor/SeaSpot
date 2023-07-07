@@ -9,6 +9,13 @@ export class Param {
     }
 }
 
+/**
+* @param {Express.Request} req 
+* @param {Array<Param>} arrayOfParams accepts array in case we want to join the 2 boolean conditions together
+* @param {Boolean} isPathParams 
+* @param {Boolean} isMandatory if true, and if the field is null or undefined, throws BadRequest
+* @returns {Object}
+*/
 export function doesPathContain_Query_or_Path_Params(req, arrayOfParams, isPathParams, isMandatory){
     const paramValues = []
     arrayOfParams.forEach(param => {

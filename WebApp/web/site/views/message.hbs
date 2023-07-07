@@ -2,7 +2,7 @@
     <div class="card">
         <h3 class="card-header">Message: {{messageId}}</h3>
 
-        <h5 class="p-2">End Device: {{endDeviceId}}</h5>
+        <h5 class="p-2"><a href={{endDevicePage}}>End Device : {{endDeviceId}}</a></h5>
         
         <p class="p-2">Application: {{applicationId}}</p>
         <p class="p-2">Device Address: {{deviceAddress}}</p>
@@ -14,4 +14,19 @@
             
         <p class="p-2">Received At: {{receivedAt}}</p>
     </div>
+
+    <div id="map" 
+        style="position:relative;
+        margin: 60px;
+        justify-content: center;
+        border: 5px solid rgb(126, 126, 126);
+        border-radius: 5px;
+        width: auto; 
+        height: 720px"
+    />
+
+    <script>
+        showMap({{location.latitude}}, {{location.longitude}}, 'Device')
+    </script>
+
 </div>

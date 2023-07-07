@@ -9,3 +9,16 @@
 .btn-space {
     margin: 10px 10px 10px 10px;
 }
+
+/* WARNING: leaflet will not apply this CSS, it needs to be explicitely indicated in style. 
+Also doesn't seem to work well wit bootstrap classes
+*/
+#map { 
+    position:relative;
+    margin: 60px;
+    justify-content: center;
+    border: 5px solid rgb(126, 126, 126);
+    border-radius: 5px;
+    width: auto; 
+    height: 720px"
+}

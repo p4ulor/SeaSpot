@@ -4,6 +4,8 @@ import * as service from '../../services/services.mjs'
 import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
 import { dateToString, hexToASCII, strTobase64 } from '../../utils/utils.mjs'
 
+const DEFAULT_ITEMS_PAGE_LIMIT = 2
+
 export const webPages = {
     home: {
         url: "/",
@@ -23,7 +25,8 @@ export const webPages = {
     },
     devicePage: {
         url: "/devices/:id",
-        view: "device.hbs"
+        view: "device.hbs",
+        setUrl: (id) => { return `/devices/${id}` }
     },
     pageError: {
         url: "/error",
@@ -66,13 +69,6 @@ function webSite(config) {
     router.get(webPages.home.url, (req, rsp) => {
         tryCatch(() => {
             const view = new HandleBarsView(webPages.home.view, 'Home')
-
-            //Fetch messages
-            //const msgs = fetch
-
-            //Populate the partial "messages"
-            //view.options.messages = msgs.
-
             rsp.render(view.file, view.options)
         }, rsp)
     })
@@ -81,9 +77,13 @@ function webSite(config) {
         tryCatch(async () => {
             const view = new HandleBarsView(webPages.allMessages.view, 'Messages')
             view.options.messages = []
-            view.options.allMessagesPage = webPages.allMessages.url
 
-            const messages = await services.getAllMessages()
+            view.options.pageNumber = req.query.page==undefined ? 1 : new Number(req.query.page)+1
+            const skip = new Number(view.options.pageNumber) * DEFAULT_ITEMS_PAGE_LIMIT - DEFAULT_ITEMS_PAGE_LIMIT
+
+            const messages = await services.getAllMessages(skip, DEFAULT_ITEMS_PAGE_LIMIT)
+
+            view.options.submitUrl = webPages.allMessages.url
 
             messages.forEach(message => {
                 const trimMessage = message.messageObj.payload.replaceAll(' ','')
@@ -91,19 +91,24 @@ function webSite(config) {
                 view.options.messages.push(
                     {
                         messageId: message.id,
-                        applicationId: message.messageObj.applicationId,
+                        messagePage: webPages.messagePage.setUrl(message.id),
                         endDeviceId: message.messageObj.endDeviceId,
-                        payload: trimMessage,
+                        endDevicePage: webPages.devicePage.setUrl(message.messageObj.endDeviceId),
+
+                        payload: message.messageObj.payload.replaceAll(' ',', '),
                         payloadASCII: hexToASCII(trimMessage),
                         payloadStr: strTobase64(trimMessage),
+
                         receivedAt: dateToString(message.messageObj.receivedAt),
-                        messagePage: webPages.messagePage.setUrl(message.id), //Here, we must pass que message Id that still needs to be created
                         deleteMessageURI: apiPaths.deleteMessage.setPath(message.id)
                     }
                 )
             })
 
+            view.options.refreshPath = webPages.allMessages.url
+
             rsp.render(view.file, view.options)
+
         }, rsp)
     })
 
@@ -113,13 +118,22 @@ function webSite(config) {
 
             const [id] = doesPathContain_Query_or_Path_Params(req, [new Param("id")], true)
             const m = await services.getMessage(id)
-            view.options.messagePage = webPages.messagePage.setUrl(m.id)
-            view.options.allMessagesPage = webPages.allMessages.url
+
             view.options.messageId = m.id
+            view.options.messagePage = webPages.messagePage.setUrl(m.id)
+            view.options.endDeviceId = m.messageObj.endDeviceId,
+            view.options.endDevicePage = webPages.devicePage.setUrl(m.messageObj.endDeviceId)
+            
             view.options.applicationId = m.messageObj.applicationId
             view.options.endDeviceId = m.messageObj.endDeviceId
             view.options.deviceAddress = m.messageObj.deviceAddress
-            view.options.location = m.messageObj.location
+
+            const loc = m.messageObj.location
+            view.options.location = {
+                latitude: loc.latitude.value ? loc.latitude.value : "Not obtained",
+                longitude: loc.longitude.value ? loc.longitude.value : "Not obtained"
+            }    
+
             view.options.serviceCharacteristic = m.messageObj.serviceCharacteristic.inString
             view.options.payload = m.messageObj.payload
             view.options.receivedAt = dateToString(m.messageObj.receivedAt)
@@ -138,7 +152,7 @@ function webSite(config) {
 
     router.get(webPages.devicePage.url, (req, rsp) => {
         tryCatch(async () => {
-            const view = new HandleBarsView(webPages.messagePage.view)
+            const view = new HandleBarsView(webPages.devicePage.view)
 
             const [id] = doesPathContain_Query_or_Path_Params(req, [new Param("id")], true)
             const dev = await services.getDevice(id)
@@ -147,15 +161,19 @@ function webSite(config) {
 
             view.options.applicationId = dev.deviceObj.applicationId
             view.options.deviceAdress = dev.deviceObj.deviceAdress
+            
+            const loc = dev.deviceObj.location.value
+            view.options.location = {
+                latitude: loc.latitude.value ? loc.latitude.value : "Not obtained",
+                longitude: loc.longitude.value ? loc.longitude.value : "Not obtained"
+            }  
+            
+            view.options.name = dev.deviceObj.name.value
+            view.options.batteryLevel = dev.deviceObj.batteryLevel.value
+            view.options.phone = dev.deviceObj.phone.value
+            view.options.string = dev.deviceObj.string.value
 
-            view.options.location = dev.deviceObj.location
-
-            view.options.name = dev.deviceObj.name
-            view.options.batteryLevel = dev.deviceObj.batteryLevel
-            view.options.phone = dev.deviceObj.phone
-            view.options.string = dev.deviceObj.string
-
-            view.options.latestUpdate = dateToString(m.messageObj.receivedAt)
+            view.options.latestUpdate = dateToString(dev.deviceObj.latestUpdate)
 
             rsp.render(view.file, view.options)
         }, rsp)
@@ -171,11 +189,17 @@ function webSite(config) {
         })
     })
 
+    router.get('*', function(req, rsp){
+        tryCatch(() => {
+            redirect(rsp, webPages.pageError.setUrl(encodeURIComponent(`Page not found`)))
+        }, rsp)
+    })
+
     //AUXILIARY FUNCTIONS
 
     /**
      * @param {Function} func 
-     * @param {express.Response} rsp 
+     * @param {express.Response} rsp
      */
     async function tryCatch(func, rsp) { //this cuts down 3 lines per api/controller method
         if (typeof func !== 'function') throw new Error("Can't use this function like this. param 'func' must be a function")

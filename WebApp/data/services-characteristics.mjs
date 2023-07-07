@@ -23,5 +23,9 @@ export const service_characteristic = {
     ID_BROADCAST_STRING: {
         code: 0x8,
         inString: "Broadcast string"
+    }, 
+    ID_LOCATION: {
+        code: 0x9,
+        inString: "Latitude and Longitude"
     }
 }

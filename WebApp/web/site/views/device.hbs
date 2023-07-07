@@ -5,12 +5,31 @@
         <h5>Application ➡️ {{applicationId}}</h5>
         <h5>Device adress ➡️ {{deviceAdress}}</h5>
 
-        <h5>Location (Lat, Long) ➡️ {{location.latitude}}, {{location.longitude}}</h5>
-        <h5>User data ➡️ {{name}}</h5>
-        <h5>Battery level ➡️ {{batteryLevel}}</h5>
-        <h5>Phone ➡️ {{phone}}</h5>
-        <h5>Broadcast string ➡️ {{string}}</h5>
+        <div class="card" style="max-width: fit-content; margin: 0 auto;">
+            <div class="card-body bg-light mb-3">
+                <h5>Location (Lat, Long) ➡️ {{location.latitude}}, {{location.longitude}}</h5>
+                <h5>User data ➡️ {{name}}</h5>
+                <h5>Battery level ➡️ {{batteryLevel}}</h5>
+                <h5>Phone ➡️ {{phone}}</h5>
+                <h5>Broadcast string ➡️ {{string}}</h5>
+            </div>
+        </div>
 
         <h5>Latest update ➡️ {{latestUpdate}}</h5>
     </div>
+
+    <div id="map" 
+        style="position:relative;
+        margin: 60px;
+        justify-content: center;
+        border: 5px solid rgb(126, 126, 126);
+        border-radius: 5px;
+        width: auto; 
+        height: 720px"
+    />
+
+    <script>
+        showMap({{location.latitude}}, {{location.longitude}}, 'Device')
+    </script>
+
 </div>
