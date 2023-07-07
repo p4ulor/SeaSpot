@@ -50,7 +50,7 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     Humidity(0x2A6F, ValueType.Number),
     Latitude(0x2AAE, ValueType.Number),
     Longitude(0x2AAF, ValueType.Number),
-    LocationName(0x2AB5, ValueType.Text),
+    LocationName(0x2AB5, ValueType.ActionButton),
     ObjectName(0x2ABE, ValueType.Text),
     ObjectProperties(0x2AC4, ValueType.Text),
     ObjectID(0x2AC3, ValueType.Number),

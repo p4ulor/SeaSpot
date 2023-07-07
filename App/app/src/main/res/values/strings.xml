@@ -30,4 +30,5 @@
     <string name="phone_id">Phone ID</string>
     <string name="broadcast_string">Broadcast String</string>
     <string name="loc_longitude">Location Longitude</string>
+    <string name="loc_refresh">Refresh Location</string>
 </resources>

@@ -31,4 +31,5 @@
     <string name="phone_id">ID do telemóvel</string>
     <string name="broadcast_string">Mensagem geral</string>
     <string name="loc_longitude">Localização: Longitude</string>
+    <string name="loc_refresh">Atualizar Localização</string>
 </resources>

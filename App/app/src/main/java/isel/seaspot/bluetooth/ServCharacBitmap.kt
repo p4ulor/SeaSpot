@@ -8,7 +8,8 @@ enum class ServCharacBitmap(val fport: Byte, val characName_R_ID: Int) {
     ID_LOCATION_LATITUDE(0x5, R.string.loc_latitude),
     ID_LOCATION_LONGITUDE(0x6, R.string.loc_longitude),
     ID_PHONE_ID(0x7, R.string.phone_id),
-    ID_BROADCAST_STRING (0x8, R.string.broadcast_string);
+    ID_BROADCAST_STRING (0x8, R.string.broadcast_string),
+    ID_LOCATION_REFRESH (0x9, R.string.loc_refresh);
     companion object {
         fun interpretFport(fport: Byte) : ServCharacBitmap? {
             ServCharacBitmap.values().forEach {

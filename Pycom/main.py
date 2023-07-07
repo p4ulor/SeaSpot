@@ -93,7 +93,7 @@ CHARACTERISTIC_LONGITUDE = 0x2aaf
 CHARACTERISTIC_PHONE_ID = 0x2AC3 # Object ID
 CHARACTERISTIC_STRING = 0x2BDE # Fixed String 64
 CHARACTERISTIC_REFRESH_DOWNLINK = 0x2A31 # ScanRefresh, only relevant between Android and TTGO
-CHARACTERISTIC_REFRESH_LOCATION = 0xFFFF
+CHARACTERISTIC_REFRESH_LOCATION = 0x2AB5
 
 # List of unique identifiers for each variable that's displayed by the TTGO
 # _Service _ Characteristic
@@ -103,7 +103,7 @@ ID_LOCATION_LATITUDE = 0x5
 ID_LOCATION_LONGITUDE = 0x6
 ID_PHONE_ID = 0x7
 ID_BROADCAST_STRING = 0x8
-ID_LOCATION = 0X9
+ID_LOCATION_REFRESH = 0X9
 
 def connectionCallback (bt_o): 
     events = bt_o.events()
@@ -131,22 +131,18 @@ def char2_cb_handler(chr, data): # BATTERY -> LEVEL
 def char3_cb_handler(chr, data): # LOCATION -> LATITUDE
     events, value = data
     gps_coordinates = getGPSCoordinates()
-
-    decoded_gps = decode_gps_array(gps_coordinates['gps_array'])
-
-    gps_raw_data = decoded_gps['data']
-    if gps_raw_data['gpsfix']:
+    if gps_coordinates['valid']:
+        decoded_gps = decode_gps_array(gps_coordinates['gps_array'])
+        gps_raw_data = decoded_gps['data']
         gps_latitude = gps_raw_data['latitude']
         gps_longitude = gps_raw_data['longitude']
-        gps_string = str(gps_latitude) + ', ' + str(gps_longitude)
-        chr3.value(gps_string)
+        chr3.value(str(gps_latitude))
+        chr4.value(str(gps_longitude))
     else:
+        print("Failed to get GPS location. Valid? ", gps_coordinates['valid'])
         chr3.value(str(-1))
+        chr4.value(str(-2))
     print('Read request on char 3 ', chr.value())
-
-def char4_cb_handler(chr, data): # LOCATION -> LONGITUDE
-    events, value = data
-    print('Read request on char 4 ', chr.value())
 
 def char5_cb_handler(chr, data): # PHONE -> OBJECT ID
     events, value = data
@@ -180,12 +176,13 @@ def char8_cb_handler(chr, data):
     print('char8_cb_handler. Event = {}'.format(events))
     if  events & Bluetooth.CHAR_WRITE_EVENT:
         print("On char 8 Write request with value = {}".format(value))
-        # Get the GPS Location Latitude and longitude and send throw uplink
-        latitude_longitude = chr3.value() + chr4.value()
-        print('latitude and longitude ', latitude_longitude)
-        #_thread.start_new_thread(send_data, (value, ID_LOCATION))
-    else:
-        print('Read request on char 8 ', chr.value())
+        gps_coordinates = getGPSCoordinates()
+        if gps_coordinates['valid']:
+            # Get the GPS Location Latitude and longitude and send throw uplink
+            print('latitude and longitude ', gps_coordinates)
+            _thread.start_new_thread(send_data, (gps_coordinates["gps_array"], ID_LOCATION_REFRESH))
+        else:
+            print("Failed to send gps location. Valid? ", gps_coordinates['valid'])
 
 
 bluetooth = Bluetooth()
@@ -201,12 +198,12 @@ srv2 = bluetooth.service(uuid=SERVICE_BATTERY, isprimary=True, nbr_chars=1)
 chr2 = srv2.characteristic(uuid=CHARACTERISTIC_LEVEL, properties=Bluetooth.PROP_READ, value='0') # Default value
 chr2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
-srv3 = bluetooth.service(uuid=SERVICE_LOCATION, isprimary=True, nbr_chars=2)
+srv3 = bluetooth.service(uuid=SERVICE_LOCATION, isprimary=True, nbr_chars=3)
 chr3 = srv3.characteristic(uuid=CHARACTERISTIC_LATITUDE, properties=Bluetooth.PROP_READ, value='100')
 chr3_cb = chr3.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char3_cb_handler)
 
 chr4 = srv3.characteristic(uuid=CHARACTERISTIC_LONGITUDE, properties=Bluetooth.PROP_READ, value='200')
-chr4_cb = chr4.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char4_cb_handler)
+chr4_cb = chr4.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char3_cb_handler)
 
 srv4 = bluetooth.service(uuid=SERVICE_PHONE, isprimary=True)
 chr5 = srv4.characteristic(uuid=CHARACTERISTIC_PHONE_ID, value='+351')
@@ -220,7 +217,7 @@ srv6 = bluetooth.service(uuid=SERVICE_OBJECT_TRANSFER, isprimary=True)
 chr7 = srv6.characteristic(uuid=CHARACTERISTIC_REFRESH_DOWNLINK, value=0x1)
 chr6_cb = chr7.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char7_cb_handler)
 
-chr8 = srv6.characteristic(uuid=CHARACTERISTIC_REFRESH_LOCATION, value=0x1)
+chr8 = srv3.characteristic(uuid=CHARACTERISTIC_REFRESH_LOCATION, value=0x1)
 chr7_cb = chr8.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char8_cb_handler)
 
 print('Start BLE Service')
