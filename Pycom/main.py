@@ -93,8 +93,8 @@ CHARACTERISTIC_LATITUDE = 0x2aae
 CHARACTERISTIC_LONGITUDE = 0x2aaf
 CHARACTERISTIC_PHONE_ID = 0x2AC3 # Object ID
 CHARACTERISTIC_STRING = 0x2BDE # Fixed String 64
-CHARACTERISTIC_REFRESH_DOWNLINK = 0x2A31 # ScanRefresh, only relevant between Android and TTGO
-CHARACTERISTIC_REFRESH_LOCATION = 0x2AB5
+CHARACTERISTIC_REFRESH_DOWNLINK = 0x2A31 # ScanRefresh, only relevant between Android and TTGO. Performs downlink request
+CHARACTERISTIC_REFRESH_LOCATION = 0x2A5D # Sensor Location, only relevant between Android and TTGO. Performs an uplink with the Location (Latitude, Longitude, Altitude, etc)
 
 # List of unique identifiers for each variable that's displayed by the TTGO
 # _Service _ Characteristic
@@ -104,7 +104,7 @@ ID_LOCATION_LATITUDE = 0x5
 ID_LOCATION_LONGITUDE = 0x6
 ID_PHONE_ID = 0x7
 ID_BROADCAST_STRING = 0x8
-ID_LOCATION_REFRESH = 0X9
+ID_LOCATION = 0X9
 
 def connectionCallback (bt_o): 
     events = bt_o.events()
@@ -181,7 +181,7 @@ def char8_cb_handler(chr, data):
         if gps_coordinates['valid']:
             # Get the GPS Location Latitude and longitude and send throw uplink
             print('latitude and longitude ', gps_coordinates)
-            _thread.start_new_thread(send_data, (gps_coordinates["gps_array"], ID_LOCATION_REFRESH,))
+            _thread.start_new_thread(send_data, (gps_coordinates["gps_array"], ID_LOCATION,))
             chr8.value("Success")
         else:
             print("Failed to send gps location. Valid? ", gps_coordinates['valid'])

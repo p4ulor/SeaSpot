@@ -50,13 +50,12 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     Humidity(0x2A6F, ValueType.Number),
     Latitude(0x2AAE, ValueType.Number),
     Longitude(0x2AAF, ValueType.Number),
-    LocationName(0x2AB5, ValueType.ActionButton),
+    SensorLocation(0x2A5D, ValueType.ActionButton), //Action -> Uplink location (latitude & longitude)
     ObjectName(0x2ABE, ValueType.Text),
     ObjectProperties(0x2AC4, ValueType.Text),
     ObjectID(0x2AC3, ValueType.Number),
-    SensorLocation(0x2A5D, ValueType.Number),
     SerialNumberString(0x2A25, ValueType.Text),
-    Refresh(0x2A31, ValueType.ActionButton), //(ScanRefresh)
+    Refresh(0x2A31, ValueType.ActionButton), // //Action -> ScanRefresh (downlink)
     Temperature(0x2A6E, ValueType.Number),
     TimeZone(0x2A0E, ValueType.Text),
     URI(0x2AB6, ValueType.Text),
