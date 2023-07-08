@@ -40,7 +40,7 @@ class TTNJoiner: #note: "self" is similar to "this" keyword in java
         socket = self.socket
         if characteristicPort != None:
             print("Set Fport: {}".format(characteristicPort))
-            # socket.bind(characteristicPort) # https://forum.pycom.io/topic/2735/changing-port-for-sending-data-via-lora/2
+            socket.bind(characteristicPort) # https://forum.pycom.io/topic/2735/changing-port-for-sending-data-via-lora/2
         lpp = payloadSender.PayloadSender(sock=socket)
         lpp.set_payload(data)
         lpp.send(reset_payload=True)

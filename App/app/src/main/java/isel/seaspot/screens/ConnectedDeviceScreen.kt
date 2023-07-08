@@ -185,13 +185,13 @@ fun CharacteristicDisplay(
                                 }
                             }, stringResource(R.string.refresh))
 
-                            var characName = "${stringResource(R.string.characNotFound)}"
+                            /*var characName = "${stringResource(R.string.characNotFound)}"
                             if(characteristic.value.isNotEmpty()){
                                 val r_id = ServCharacBitmap.interpretFport(characteristic.value[0])
                                 if(r_id!=null) characName = "${stringResource(r_id.characName_R_ID)}"
                                 else characName += " (ID = ${characteristic.value[0]})"
-                            }
-                            Text("${stringResource(R.string.value)}: $characName")
+                            }*/
+                            Text("${stringResource(R.string.value)}: ${characteristic.value.decodeToString()}")
                         } else {
                             log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
                             var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }
