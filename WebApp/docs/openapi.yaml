@@ -28,7 +28,7 @@ paths:
     get:
       tags:
         - Messages
-      summary: Obtains message feed, accepts query params
+      summary: Obtains message feed, accepts paging query params
       parameters:
         - name: skip
           in: query
@@ -91,7 +91,7 @@ paths:
           example: "47c87c28-31fe-4a97-8a18-62a8d312a41b"
       responses:
         200:
-          description: Returns the message details
+          description: Returns the Message
           content:
             application/json:
               schema:
@@ -134,14 +134,14 @@ paths:
       parameters:
         - name: id
           in: path
-          description: the list limit (max. 250)
+          description: the device ID
           required: true
           schema:
             type: string
           example: "eui-70b3d57ed005bfb0"
       responses:
         200:
-          description: Returns token.
+          description: Returns a Device.
           content:
             application/json:
               schema:
@@ -194,7 +194,7 @@ components:
             f_port: 
               type: integer
               format: int32
-              example: 1
+              example: 8
             frm_payload: 
               type: string
               example: AQ==
@@ -243,7 +243,7 @@ components:
             locations: 
               type: object
               properties: 
-                user: 
+                frm-payload: 
                   type: object
                   properties: 
                     latitude: 
@@ -254,7 +254,7 @@ components:
                       example: -9.11603538108787
                     source: 
                       type: string
-                      example: SOURCE_REGISTRY
+                      example: SOURCE_GPS
         simulated: 
           type: boolean
           
@@ -393,7 +393,7 @@ components:
               properties: 
                 value: 
                   type: string
-                  example: SeaSpot
+                  example: TTGO ESP32
                 id: 
                   type: object
                   properties: 
@@ -408,7 +408,7 @@ components:
               properties: 
                 value: 
                   type: number
-                  example: 51
+                  example: 248
                 id: 
                   type: object
                   properties: 
@@ -459,14 +459,3 @@ components:
         error:
           type: string
           example: "{Item} not found"
-          
-    DeleteAllMessagesRequest:
-      type: object
-      properties:
-        deviceId:
-          type: string
-          example: "eui-70b3d57ed005bfb0"
-        appId:
-          type: string
-          example: ttgo-test-g10
-          
