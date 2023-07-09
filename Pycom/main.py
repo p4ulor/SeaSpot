@@ -11,6 +11,9 @@ from machine import ADC
 
 import gps_data
 
+import axp202
+from machine import UART
+
 
 
 def uuid2bytes(uuid):
@@ -47,9 +50,9 @@ def receive_data(characteristicPort):
     if fport==ID_USERDATA_STRING:
         chr1.value(data) # https://docs.pycom.io/firmwareapi/pycom/network/bluetooth/gattscharacteristic/
         print('ID_USERDATA_STRING: ', chr1.value())
-    elif fport==ID_BATTERY_LEVEL:
+    elif fport==ID_BATTERY_ENERGY_STATUS:
         chr2.value(data)
-        print('ID_BATTERY_LEVEL: ', chr2.value())
+        print('ID_BATTERY_ENERGY_STATUS: ', chr2.value())
 
     elif fport==ID_LOCATION_LATITUDE:
         chr3.value(data)
@@ -88,7 +91,7 @@ SERVICE_PUBLIC_BROADCAST = 0x1856 # Public Broadcast Announcement
 SERVICE_OBJECT_TRANSFER = 0x1825 # Will be used as what represents "updating the characteristics" from the TTN
 
 CHARACTERISTIC_NAME = 0x2ABE # ObjectName
-CHARACTERISTIC_LEVEL = 0x2a19 # BatteryLevel
+CHARACTERISTIC_BATTERY_ENERGY_STATUS = 0x2bf0 # Battery Energy Status
 CHARACTERISTIC_LATITUDE = 0x2aae
 CHARACTERISTIC_LONGITUDE = 0x2aaf
 CHARACTERISTIC_PHONE_ID = 0x2AC3 # Object ID
@@ -99,7 +102,7 @@ CHARACTERISTIC_REFRESH_LOCATION = 0x2A5D # Sensor Location, only relevant betwee
 # List of unique identifiers for each variable that's displayed by the TTGO
 # _Service _ Characteristic
 ID_USERDATA_STRING = 0x3
-ID_BATTERY_LEVEL = 0x4
+ID_BATTERY_ENERGY_STATUS = 0x4
 ID_LOCATION_LATITUDE = 0x5
 ID_LOCATION_LONGITUDE = 0x6
 ID_PHONE_ID = 0x7
@@ -124,7 +127,7 @@ def char1_cb_handler(chr, data): # USER_DATA -> ObjectName
     else:
         print('Read request on char 1 ', chr.value()) # 'value' sometimes/seems to be 'None' in read operations, so I'm using chr.value()
 
-def char2_cb_handler(chr, data): # BATTERY -> LEVEL
+def char2_cb_handler(chr, data): # BATTERY -> ENERGY STATUS
     events, value = data
     chr2.value(str(updateBatteryVoltage()))
     print('Read request on char 2 ', chr.value())
@@ -198,7 +201,7 @@ chr1 = srv1.characteristic(uuid=CHARACTERISTIC_NAME, value='LilyGo') # By defaul
 chr1_cb = chr1.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char1_cb_handler)
 
 srv2 = bluetooth.service(uuid=SERVICE_BATTERY, isprimary=True, nbr_chars=1)
-chr2 = srv2.characteristic(uuid=CHARACTERISTIC_LEVEL, properties=Bluetooth.PROP_READ, value='0') # Default value
+chr2 = srv2.characteristic(uuid=CHARACTERISTIC_BATTERY_ENERGY_STATUS, properties=Bluetooth.PROP_READ, value='0') # Default value
 chr2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
 srv3 = bluetooth.service(uuid=SERVICE_LOCATION, isprimary=True, nbr_chars=3)
@@ -224,7 +227,28 @@ chr7_cb = chr8.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE
 
 print('Start BLE Service')
 
+"""
+Micropython code for TTGO T-Beam V1.0 and V1.1 to enable GPS in micropython pycom variant
 
+Inspired by:
+    - Korving-F @ https://github.com/Korving-F/ublox/
+    - Original arduino sketch by LilyGO @ https://github.com/LilyGO/TTGO-T-Beam/tree/master/GPS-T22_v1.0-20190612
+    - Kizniche for his advice on @ https://github.com/kizniche/ttgo-tbeam-ttn-tracker/issues/20
+    - SparkFun Ublox Arduino Library @ https://github.com/sparkfun/SparkFun_Ublox_Arduino_Library
+    - AXP202 lib by lewsxhe @ https://github.com/lewisxhe/AXP202_PythonLibrary
+
+For T22_v1.0 20190612 and the T22_v1.1 20191212 and T22_v1.1 2021
+"""
+
+axp=axp202.PMU(address=axp202.AXP192_SLAVE_ADDRESS)
+axp.setLDO3Voltage(3300)   # T-Beam GPS  VDD    3v3
+axp.enablePower(axp202.AXP192_LDO3)
+
+dev = UART(1, 9600, pins=('G12','G34'))
+msg = b'\xb5b\x06\x00\x14\x00\x01\x00\x00\x00\xd0\x08\x00\x00\x80%\x00\x00\x07\x00\x03\x00\x00\x00\x00\x00\xa2\xb5'
+dev.write(msg)
+
+print("GPS enabled")
 
 def updateBatteryVoltage(): # https://docs.pycom.io/tutorials/expansionboards/vbat/#:~:text=Expansionboard%203.0%20/%203.1
     adc = ADC()

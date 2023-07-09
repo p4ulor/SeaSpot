@@ -4,7 +4,7 @@ import isel.seaspot.R
 
 enum class ServCharacBitmap(val fport: Byte, val characName_R_ID: Int) {
     ID_USERDATA_STRING(0x3, R.string.userdata_string),
-    ID_BATTERY_LEVEL(0x4, R.string.battery_level),
+    ID_BATTERY_ENERGY_STATUS(0x4, R.string.battery_energy),
     ID_LOCATION_LATITUDE(0x5, R.string.loc_latitude),
     ID_LOCATION_LONGITUDE(0x6, R.string.loc_longitude),
     ID_PHONE_ID(0x7, R.string.phone_id),
