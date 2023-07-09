@@ -3,8 +3,7 @@ import express from 'express'
 import * as codes from './bodies/errors-and-codes.mjs'
 import service from '../../services/services.mjs'
 import { extractUplinkInfo } from './bodies/extractUpLinkInfo.mjs'
-import { base64ToHex, fetx, ourApplicationApiKey } from '../../utils/utils.mjs'
-import { defautLimit, defaultSkip } from '../../services/services.mjs'
+import { ourApplicationApiKey } from '../../utils/utils.mjs'
 import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
 import { Downlink, ScheduleDownlinkObj } from '../../data/ScheduleDownlinkObj.mjs'
 import errorMessages from './bodies/error-messages.mjs'
@@ -27,7 +26,12 @@ export const apiPaths = {
     },
 
     getAllMessages: {
-        path: apiPath+"/messages"
+        path: apiPath+"/messages",
+        queryParams: {
+            skip: "skip",
+            limit: "limit",
+            characteristic: "characteristic"
+        }
     },
 
     getMessage: {
@@ -77,9 +81,9 @@ export default function webApi(config) {
         console.log('Add the uplinked message, will schedule downlink')
 
         //Schedule downlink
-        const device_id = upLinkMessage.endDeviceId
+        const device_id = upLinkMessage.msg.endDeviceId
         const url = `https://eu1.cloud.thethings.network/api/v3/as/applications/ttgo-test-g10/webhooks/seaspot-webhook/devices/${device_id}/down/replace`
-        //const body = new ScheduleDownlinkObj([new Downlink(upLinkMessage.payload, upLinkMessage.serviceCharacteristic)])
+        //const body = new ScheduleDownlinkObj([new Downlink(upLinkMessage.msg.payload, upLinkMessage.msg.characteristic)])
         //console.log("Body =", JSON.stringify(body))
 
         //fetx(url, "POST", body) //comment this line when testing ttgo while having the webapp running
@@ -90,8 +94,14 @@ export default function webApi(config) {
      * @param {express.Response} rsp 
      */
     async function getAllMessages(req, rsp) {
-        const [skip, limit] = doesPathContain_Query_or_Path_Params(req, [new Param("skip", true), new Param("limit", true)])
-        const messages = await services.getAllMessages(skip, limit); // Await the promise to get the result
+        const [skip, limit] = doesPathContain_Query_or_Path_Params(req, 
+                [new Param(apiPaths.getAllMessages.queryParams.skip, true), 
+                new Param(apiPaths.getAllMessages.queryParams.limit, true)]
+            )
+        const [characteristic] = doesPathContain_Query_or_Path_Params(req, 
+                [new Param(apiPaths.getAllMessages.queryParams.characteristic, true)]
+            )
+        const messages = await services.getAllMessages(skip, limit, characteristic); // Await the promise to get the result
         console.log(messages)
         return messages
     }

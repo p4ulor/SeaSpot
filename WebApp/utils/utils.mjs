@@ -1,5 +1,5 @@
 import { Message } from "../data/Message.mjs"
-import { service_characteristic } from "../data/services-characteristics.mjs"
+import { Characteristic, service_characteristics } from "../data/services-characteristics.mjs"
 import fetch from "node-fetch"
 import btoa from "btoa";
 import atob from "atob";
@@ -20,7 +20,7 @@ export function base64ToHex(payload) {
 
 /**
  * Convert value to base64
- * @param {String} value 
+ * @param {String} value receives something like "616263" ("abc")
  * @returns {String}
  */
 export function strTobase64(value){
@@ -49,11 +49,11 @@ export function byteArrayTobase64(bytearray){
 
 /**
  * @param {integer} f_port 
- * @return {service_characteristic} service_characteristic
+ * @return {Characteristic} characteristic
  */
 export function getCharacteristicID(f_port){
-    const characs = Object.values(service_characteristic)
-    let service_charac = service_characteristic.ID_BROADCAST_STRING // publishing the message in BROADCAST_STRING by default if the f_port didn't identify any of our characteristics
+    const characs = Object.values(service_characteristics)
+    let service_charac = service_characteristics.ID_BROADCAST_STRING // publishing the message in BROADCAST_STRING by default if the f_port didn't identify any of our characteristics
     characs.forEach(value => {
         if(value.code==f_port)
             service_charac = value
@@ -72,23 +72,21 @@ export function dateToString(date){
 }
 
 /**
- * 
  * @param {Int} skip 
  * @param {Int} limit 
  * @param {Int} defaultSkip 
  * @param {Int} defautLimit 
- * @returns 
+ * @param {Int} maxLimit 
  */
-export function validatePaging(skip, limit, defaultSkip, defautLimit){
+export function validatePaging(skip, limit, defaultSkip, defautLimit, maxLimit){
     if(isBadNumber(defaultSkip) || isBadNumber(defautLimit))
         throw new Error("Invalid usage of validatePaging()")
-    let s = skip
-    let l = limit
-    if(isBadNumber(skip)) s = defaultSkip
-    if(isBadNumber(limit)) l = defautLimit
+    if(isBadNumber(skip)) skip = defaultSkip
+    if(isBadNumber(limit)) limit = defautLimit
+    if(limit > maxLimit) limit = maxLimit
     return {
-        skip: s,
-        limit: l
+        skip,
+        limit
     }
 }
 

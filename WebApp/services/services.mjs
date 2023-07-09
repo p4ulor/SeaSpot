@@ -5,12 +5,14 @@ import errorMsgs from '../web/api/bodies/error-messages.mjs'
 import elasticDB from '../data/data-elastic.mjs'
 import * as utils from '../utils/utils.mjs'
 import { DeviceObj } from '../data/Device.mjs'
-import { service_characteristic } from '../data/services-characteristics.mjs'
+import { Characteristic, service_characteristics } from '../data/services-characteristics.mjs'
 import { Location } from '../data/Location.mjs'
 import { UpLinkInfo } from '../web/api/bodies/extractUpLinkInfo.mjs'
+import { messages } from '../data/data-mem.mjs'
 
 export const defaultSkip = 0
 export const defautLimit = 10
+const maxLimit = 100
 
 /** @param {ServerConfig} config */
 export default function service(config) {
@@ -33,7 +35,7 @@ export default function service(config) {
         }
         //Ignore the commented code because it will always update the location everytime a location is sent
         /* if(upLinkInfo.ttnDecodedPayload!=undefined){
-            if(upLinkInfo.msg.serviceCharacteristic==service_characteristic.ID_LOCATION){
+            if(upLinkInfo.msg.characteristic==service_characteristic.ID_LOCATION){
                 const loc = upLinkInfo.ttnDecodedPayload
                 const location = new Location(loc.latitude, loc.longitude)
                 await updateDeviceRaw(devID, service_characteristic.ID_LOCATION, location)
@@ -41,17 +43,28 @@ export default function service(config) {
         } 
         else 
         */
-        const char_loc = upLinkInfo.msg.serviceCharacteristic.ID_LOCATION
-        await updateDevice(devID, char_loc, upLinkInfo.msg.location) //Update location everytime a msg is recieved
-        if(char_loc!=upLinkInfo.msg.serviceCharacteristic) //if the message itself, was the location, no need to update the device details again
-            await updateDevice(devID, upLinkInfo.msg.serviceCharacteristic, upLinkInfo.msg.payload)
+        const char_loc = service_characteristics.ID_LOCATION
+        await updateDeviceRaw(devID, char_loc, upLinkInfo.msg.location) //Update location everytime a msg is recieved
+        if(char_loc!=upLinkInfo.msg.characteristic) //if the message itself, was the location, no need to update the device details again
+            await updateDevice(devID, upLinkInfo.msg.characteristic, upLinkInfo.msg.payload)
         return await data.addMessage(upLinkInfo.msg)
     }
 
-    async function getAllMessages(skip, limit) {
+    /**
+     * @param {Int} skip 
+     * @param {Int} limit
+     * @param {Characteristic | undefined} characteristic
+     * @returns 
+     */
+    async function getAllMessages(skip, limit, characteristic) {
         console.log("Services getAllMessages() skip", skip, "limit", limit)
-        const paging = utils.validatePaging(skip, limit, defaultSkip, defautLimit)
-        return data.getAllMessages(null, null, paging.skip, paging.limit)
+        const paging = utils.validatePaging(skip, limit, defaultSkip, defautLimit, maxLimit)
+        const messages = await data.getAllMessages(null, null, paging.skip, paging.limit, characteristic)
+        return messages.sort((a, b) => {
+            const d1 = new Date(a.messageObj.receivedAt)
+            const d2 = new Date(b.messageObj.receivedAt)
+            return d2 - d1
+        })
     }
 
     async function getMessage(id) {
@@ -95,25 +108,26 @@ export default function service(config) {
     /**
      * Given the payload, converts it to ascii
      * @param {String} endDeviceID 
-     * @param {service_characteristic} service_characteristic 
+     * @param {Characteristic} characteristic 
      * @param {String} payload 
      */
-    async function updateDevice(endDeviceID, service_characteristic, payload){
+    async function updateDevice(endDeviceID, characteristic, payload){
         payload = payload.replaceAll(' ','')
         const value = utils.hexToASCII(payload)
-        const newData = {endDeviceID, service_characteristic, value}
+        const newData = {endDeviceID, characteristic, value}
         console.log("Updating device info ->", JSON.stringify(newData))
-        return data.updateDevice(endDeviceID, service_characteristic, value)
+        return data.updateDevice(endDeviceID, characteristic, value)
     }
 
     /**
      * Exceptional to set device characteristics. Converts the payload to ASCII. This method does not
      * @param {String} endDeviceID 
+     * @param {Characteristic} characteristic
      * @param {Object} value 
      */
-    async function updateDeviceRaw(endDeviceID, service_characteristic, value){
+    async function updateDeviceRaw(endDeviceID, characteristic, value){
         console.log("Updating device info ->", JSON.stringify(value))
-        await data.updateDevice(endDeviceID, service_characteristic, value)
+        await data.updateDevice(endDeviceID, characteristic, value)
     }
 
     /**

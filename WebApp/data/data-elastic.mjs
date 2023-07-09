@@ -5,6 +5,7 @@ import elasticFetch, { searchObjToObjArray } from '../utils/elastic-fetch.mjs'
 import * as bodies from '../web/api/bodies/req-resp-bodies.mjs'
 import * as utils from '../utils/utils.mjs'
 import errorMsgs from '../web/api/bodies/error-messages.mjs'
+import { Characteristic } from './services-characteristics.mjs';
 let dataMem = await import('../data/data-mem.mjs') //to insert sample data
 
 var indexedCreated = false
@@ -76,11 +77,12 @@ function elasticDB(config){
      * @param {String} app_id (applicationId)
      * @param {Int} skip
      * @param {Int} limit
+     * @param {Characteristic | undefined} characteristic
      * @returns {Array<Message>} 
      */
-    async function getAllMessages(dev_id, app_id, skip, limit){
+    async function getAllMessages(dev_id, app_id, skip, limit, characteristic){
         let messagesFound
-        if(! dev_id || ! app_id){
+        if(! dev_id && ! app_id && ! characteristic){
             messagesFound = await elasticFetx.searchDocPaged(ourIndexes.messages, skip, limit).then(obj => {
                 return searchObjToObjArray(obj).map(msgObj => {
                     return new Message(msgObj.id, msgObj.obj)
@@ -88,8 +90,14 @@ function elasticDB(config){
             })
 
         } else {
-            messagesFound = await elasticFetx.searchDocWithValuesPaged(ourIndexes.messages,
-                ["endDeviceID", "applicationId"], [dev_id, app_id], skip, limit
+            const fields = []
+            const values = []
+            if(dev_id) { fields.push("endDeviceID"); values.push(dev_id) }
+            if(app_id) { fields.push("applicationId"); values.push(app_id) }
+            if(characteristic) { fields.push("characteristic"); values.push(characteristic) }
+            messagesFound = await elasticFetx.searchDocWithValuesPaged(
+                ourIndexes.messages,
+                fields, values, skip, limit
             ).then(obj => {
                 return searchObjToObjArray(obj).map(msgObj => {
                     return new Message(msgObj.id, msgObj.obj)
@@ -163,15 +171,15 @@ function elasticDB(config){
 
     /**
      * @param {String} endDeviceID 
-     * @param {service_characteristic} service_characteristic 
+     * @param {Characteristic} characteristic 
      * @param {String} value 
      */
-    async function updateDevice(endDeviceID, service_characteristic, value){
+    async function updateDevice(endDeviceID, characteristic, value){
         const obj = await elasticFetx.getDoc(ourIndexes.devices, endDeviceID)
         if(obj.found==false) throw new NotFound(errorMsgs.deviceNotFound(id))
 
         const device = new Device(obj._id, obj._source)
-        const wasSet = device.deviceObj.setCharacteristic(service_characteristic, value)
+        const wasSet = device.deviceObj.setCharacteristic(characteristic, value)
         if(wasSet) await elasticFetx.updateDoc(ourIndexes.devices, device.id, device.deviceObj)
     }
     

@@ -1,6 +1,19 @@
 import { checkAllString as areAllString } from "../utils/utils.mjs"
 import { Location } from "./Location.mjs"
-import { service_characteristic } from "./services-characteristics.mjs"
+import { Characteristic, service_characteristics } from "./services-characteristics.mjs"
+
+export class Field {
+    /**
+     * @param {String | Number | Location} value 
+     * @param {Characteristic} characteristic
+     * @param {String | null} unit
+     */
+    constructor(value, characteristic, unit){
+        this.value = value
+        this.characteristic = characteristic
+        this.unit = unit
+    }
+}
 
 /**
  * Every application in EU starts with 70B3D57ED. 70b3d57ed005bfb0 - 70B3D57ED = 005bfb0 -> 7 alpha numeric symbols
@@ -24,12 +37,12 @@ export class DeviceObj {
     /**
      * @param {String} applicationId ttgo-test-g10 (required on initialization)
      * @param {String} deviceAdress 260B893E (required on initialization)
-     * @param {Location} location the actual GPS location of the TTGO
+     * @param {Field} location the actual GPS location of the TTGO
      * 
-     * @param {String} name AKA Userdata string
-     * @param {Number} batteryLevel 
-     * @param {String} phone 
-     * @param {String} string
+     * @param {Field} name AKA Userdata string
+     * @param {Field} batteryLevel 
+     * @param {Field} phone 
+     * @param {Field} string
      * 
      * @param {Date} latestUpdate Indicates the date & time at which one of the mutable properties have been changed
      *  
@@ -40,40 +53,28 @@ export class DeviceObj {
         this.applicationId = applicationId
         this.deviceAdress = deviceAdress
 
-        this.location = {
-            value: location ? location : new Location(0, 0),
-            id: service_characteristic.ID_LOCATION
-        }
-        this.name = {
-            value: name,
-            id: service_characteristic.ID_USERDATA_STRING
-        }
-        this.batteryLevel = {
-            value: batteryLevel,
-            id: service_characteristic.ID_BATTERY_LEVEL
-        }
-        this.phone = {
-            value: phone,
-            id: service_characteristic.ID_PHONE_ID
-        }
-        this.string = {
-            value: string,
-            id: service_characteristic.ID_BROADCAST_STRING
-        }
+        const loc = location ? location : new Location(undefined, undefined)
+        this.location = new Field(loc, service_characteristics.ID_LOCATION)
+
+        this.name = new Field(name, service_characteristics.ID_USERDATA_STRING)
+        this.batteryLevel = new Field(batteryLevel, service_characteristics.ID_BATTERY_LEVEL, "mV (Millivolts)")
+        this.phone = new Field(phone, service_characteristics.ID_PHONE_ID)
+        this.string = new Field(string, service_characteristics.ID_BROADCAST_STRING)
+
         this.latestUpdate = latestUpdate ? latestUpdate : new Date()
 
         /**
         * An alternative to this would be to make each chracteristic field have the props field and value
         * We think this approach is more simple
-        * @param {service_characteristic}
+        * @param {Characteristic}
         * @param {Object} value
         * @returns {Boolean} true on success
         */
-        this.setCharacteristic = function (service_characteristic, value){ 
+        this.setCharacteristic = function (characteristic, value){ 
             let wasSet = false
             Object.values(this).forEach(field => {
-                if(field.id!=undefined) {
-                    if(field.id.code==service_characteristic.code){
+                if(field.characteristic!=undefined) {
+                    if(field.characteristic.code==characteristic.code){
                         field.value = value
                         wasSet = true
                     }

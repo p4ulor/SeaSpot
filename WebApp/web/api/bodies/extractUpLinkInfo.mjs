@@ -3,9 +3,8 @@ import { Location } from "../../../data/Location.mjs"
 import { base64ToHex, getCharacteristicID} from "../../../utils/utils.mjs"
 
 /**
- * 
  * @param {Object} body 
- * @returns {}
+ * @returns {UpLinkInfo}
  */
 export function extractUplinkInfo(body) {
     const applicationId = body.end_device_ids.application_ids.application_id
@@ -44,7 +43,6 @@ export function extractUplinkInfo(body) {
 
 export class UpLinkInfo {
     /**
-     * 
      * @param {MessageObj} msg 
      * @param {Object | undefined} ttnDecodedPayload 
      */

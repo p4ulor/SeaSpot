@@ -3,6 +3,7 @@ import { apiPath, apiPaths, docsPath } from '../api/web-api.mjs'
 import * as service from '../../services/services.mjs'
 import { doesPathContain_Query_or_Path_Params, Param } from '../../utils/path-and-query-params.mjs'
 import { dateToString, hexToASCII, strTobase64 } from '../../utils/utils.mjs'
+import { service_characteristics } from '../../data/services-characteristics.mjs'
 
 const DEFAULT_ITEMS_PAGE_LIMIT = 2
 
@@ -14,6 +15,10 @@ export const webPages = {
     allMessages: {
         url: "/messages",
         view: "messages.hbs",
+        queryParams: {
+            page: "page",
+            characteristic: "characteristic"
+        }
     },
     messagePage: {
         url: "/messages/:id",
@@ -50,8 +55,10 @@ function webSite(config) {
         /**
          * @param {String} file 
          * @param {Object} options
+         * @param {Object} script
+         * @param {Object} queries
          */
-        constructor(file, title, script) {
+        constructor(file, title, script, queries) {
             this.file = file
             this.options = {
                 title: !title ? "SeaSpot" : title,
@@ -62,6 +69,7 @@ function webSite(config) {
                 homePath: webPages.home.url,
                 docsPath: docsPath,
                 messagesPath: webPages.allMessages.url,
+                queries: queries
             }
         }
     }
@@ -75,25 +83,38 @@ function webSite(config) {
 
     router.get(webPages.allMessages.url, (req, rsp) => {
         tryCatch(async () => {
-            const view = new HandleBarsView(webPages.allMessages.view, 'Messages')
+            const view = new HandleBarsView(webPages.allMessages.view, 'Messages', null, {
+                characteristic: webPages.allMessages.queryParams.characteristic,
+                page: webPages.allMessages.queryParams.page
+            })
             view.options.messages = []
 
             view.options.pageNumber = req.query.page==undefined ? 1 : new Number(req.query.page)+1
             const skip = new Number(view.options.pageNumber) * DEFAULT_ITEMS_PAGE_LIMIT - DEFAULT_ITEMS_PAGE_LIMIT
-
-            const messages = await services.getAllMessages(skip, DEFAULT_ITEMS_PAGE_LIMIT)
+            
+            const characteristic = req.query[webPages.allMessages.queryParams.characteristic] //TODO
+            console.log("aaaaaaaaaaa", characteristic)
+            
+            const messages = await services.getAllMessages(skip, DEFAULT_ITEMS_PAGE_LIMIT, characteristic)
 
             view.options.submitUrl = webPages.allMessages.url
 
+            view.options.characteristics = [undefined]
+            Object.values(service_characteristics).forEach(v => {
+                view.options.characteristics.push(v)
+            })
+
             messages.forEach(message => {
                 const trimMessage = message.messageObj.payload.replaceAll(' ','')
-                
+
                 view.options.messages.push(
                     {
                         messageId: message.id,
                         messagePage: webPages.messagePage.setUrl(message.id),
                         endDeviceId: message.messageObj.endDeviceId,
                         endDevicePage: webPages.devicePage.setUrl(message.messageObj.endDeviceId),
+
+                        characteristic: message.messageObj.characteristic.inString,
 
                         payload: message.messageObj.payload.replaceAll(' ',', '),
                         payloadASCII: hexToASCII(trimMessage),
@@ -134,8 +155,13 @@ function webSite(config) {
                 longitude: loc.longitude.value ? loc.longitude.value : "Not obtained"
             }    
 
-            view.options.serviceCharacteristic = m.messageObj.serviceCharacteristic.inString
+            view.options.characteristic = m.messageObj.characteristic.inString
+
+            const trimMessage = m.messageObj.payload.replaceAll(' ','')
             view.options.payload = m.messageObj.payload
+            view.options.payloadASCII = hexToASCII(trimMessage),
+            view.options.payloadStr = strTobase64(trimMessage),
+
             view.options.receivedAt = dateToString(m.messageObj.receivedAt)
 
             view.options.deleteMessageURI = apiPaths.deleteMessage.setPath(m.id)

@@ -1,10 +1,19 @@
 <div class="text-center">
     <h1>Messages of Application {{applicationId}}</h1>
+
+    <span>Filter by characteristic (optional):</span>
+    <select id="characteristicSelection" onchange="updateQueryCharacteristic(this.value)">
+    {{#each characteristics}}
+        <option value="{{code}}">{{inString}}</option>
+    {{/each}}
+    </select>
+
     {{#each messages}}
         {{> messageItem}} {{!-- The '> messageItem' says that this variable is to be interpreted as a .hbs view --}}
     {{/each}}
 
     <form method="GET" action={{submitUrl}}>
+        <input type="submit" name="characteristic" value="3333" hidden="true"></input>
         <button class="btn btn-primary btn-block" type="submit" name="page" value={{pageNumber}}>
             Next page
         </button>
@@ -15,6 +24,38 @@
            onclick="deleteAllMessages()">Delete ALL messages</button>
 
     <script>
+
+        const selector = document.getElementById("characteristicSelection")
+        const keyword = "characteristic="
+        if(window.location.search.includes("characteristic")){
+            const characteristicQueryIdx = window.location.search.indexOf(keyword)
+            const endOfKeywordAndEqualOperator = characteristicQueryIdx + keyword.length
+            const syncronizedSelectorValue = window.location.search.substring(endOfKeywordAndEqualOperator, endOfKeywordAndEqualOperator+1)
+            selector.value = syncronizedSelectorValue
+        }
+
+        function updateQueryCharacteristic(code){
+            console.log("code", code)
+            let query = window.location.search //gets query params client side
+            if(! query.includes("characteristic")) query = query + "?characteristic=" //TODO fix harcoded
+
+            let newQuery = "?"
+
+            const queries = query.split("?")
+            queries.forEach(q => {
+                if(q.includes("characteristic")){
+                    let queryAndEqual = q.substring(0, q.lastIndexOf("=") + 1)
+                    if(newQuery.includes("=")) queryAndEqual = "&" + queryAndEqual
+                    newQuery = newQuery + queryAndEqual + code
+                } else {
+                    if(newQuery.includes("=")) queryAndEqual = "&" + queryAndEqual
+                    newQuery = newQuery + q
+                }
+            })
+            console.log("New path = ", window.location.pathname + newQuery )
+            window.location.href = window.location.pathname + newQuery 
+        }
+
         function deleteAllMessages(){
             let deviceID = prompt("Device ID?", "eui-70b3d57ed005bfb0");
             if (deviceID!="") {
