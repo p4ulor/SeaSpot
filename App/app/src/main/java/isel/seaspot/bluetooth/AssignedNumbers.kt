@@ -44,6 +44,7 @@ enum class AssignedNumbersCharacteristics(val value: Int, val type: ValueType){
     AverageCurrent(0x2AE0, ValueType.Number),
     AverageVoltage(0x2AE1, ValueType.Number),
     BatteryLevel(0x2A19, ValueType.Number),
+    BatteryEnergyStatus(0x2BF0, ValueType.Number),
     CurrentTime(0x2A2B, ValueType.Number),
     String(0x2BDE, ValueType.Text), //(Fixed String 64)
     Height(0x2A8E, ValueType.Number),

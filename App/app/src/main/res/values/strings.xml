@@ -25,7 +25,7 @@
     <string name="valueTooBig">Value too big. Max =</string>
     <string name="refresh">Refresh</string>
     <string name="userdata_string">User data string</string>
-    <string name="battery_level">Battery level</string>
+    <string name="battery_energy">Battery energy status</string>
     <string name="loc_latitude">Location Latitude</string>
     <string name="phone_id">Phone ID</string>
     <string name="broadcast_string">Broadcast String</string>

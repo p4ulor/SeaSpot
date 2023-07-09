@@ -26,7 +26,7 @@
     <string name="valueTooBig">Valor muito . Max =</string>
     <string name="refresh">Atualizar</string>
     <string name="userdata_string">Data do utilizador</string>
-    <string name="battery_level">Nível da bateria</string>
+    <string name="battery_energy">Estado de energia da bateria</string>
     <string name="loc_latitude">Localização: Latitude</string>
     <string name="phone_id">ID do telemóvel</string>
     <string name="broadcast_string">Mensagem geral</string>
