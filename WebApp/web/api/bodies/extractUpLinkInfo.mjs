@@ -16,7 +16,7 @@ export function extractUplinkInfo(body) {
     if(locations!=undefined){
         const loc = locations['frm-payload'] //using locaitons.user will get the hardcoded location (done in the TTN)
         if(loc){
-            console.log("Location source =", loc.source)
+            console.log("Location source =\n", loc.source)
             location = new Location(loc.latitude, loc.longitude)  
         } else console.log("Warning: No GPS location provided")
     }
@@ -24,7 +24,7 @@ export function extractUplinkInfo(body) {
     const payload = body.uplink_message.frm_payload
     const decodedPayload = base64ToHex(payload)
     const fPort = body.uplink_message.f_port
-    const characID = getCharacteristicID(fPort)
+    const characID = getCharacteristicID(fPort, true)
 
     // characteristic can be read from the f_port, so no ExtratCharar
 

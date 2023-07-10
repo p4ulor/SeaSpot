@@ -68,13 +68,18 @@ export default function webApi(config) {
      * @param {express.Response} rsp 
      */
     async function upLinkWebHook(req, rsp) {
-        console.log(`BODY = ${JSON.stringify(req.body)}\n`)
+        console.log(`\nBODY = ${JSON.stringify(req.body)}\n`)
         console.log(`HEADERS = ${JSON.stringify(req.headers)}\n`)
         if(req.headers["x-downlink-apikey"]!=ourApplicationApiKey)
             throw new codes.Unauthorized(errorMessages.noPermissions(req.headers['user-agent']))
 
         const upLinkMessage = extractUplinkInfo(req.body)
         console.log("upLinkWebHook message =", JSON.stringify(upLinkMessage))
+
+        if(upLinkMessage.msg.characteristic==undefined){
+            console.log("\nUnknown characteritic (fport) provided, ignoring message\n")
+            return
+        }
 
         services.addMessage(upLinkMessage)
 

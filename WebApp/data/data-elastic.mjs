@@ -72,9 +72,7 @@ function elasticDB(config){
      */
     async function addMessage(messageObj){
         console.log("Adding message -> ", JSON.stringify(messageObj))
-        
         return elasticFetx.createDoc(ourIndexes.messages, messageObj).then(obj => {
-            console.log("Msg source:", obj._source)
             return {id: obj._id}
         })
     }
@@ -188,6 +186,7 @@ function elasticDB(config){
         if(obj.found==false) throw new NotFound(errorMsgs.deviceNotFound(id))
 
         const device = new Device(obj._id, obj._source)
+        device.deviceObj.setCharacteristic = new DeviceObj("", "").setCharacteristic //get the setCharacteristic method
         const wasSet = device.deviceObj.setCharacteristic(characteristic, value)
         if(wasSet) await elasticFetx.updateDoc(ourIndexes.devices, device.id, device.deviceObj)
     }

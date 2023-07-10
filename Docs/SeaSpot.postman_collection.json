@@ -204,13 +204,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:9200/device/_doc/eui-70b3d57ed005bfb0",
+							"raw": "localhost:9200/devices/_doc/eui-70b3d57ed005bfb0",
 							"host": [
 								"localhost"
 							],
 							"port": "9200",
 							"path": [
-								"device",
+								"devices",
 								"_doc",
 								"eui-70b3d57ed005bfb0"
 							]
