@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import isel.seaspot.R
 import isel.seaspot.activities.MainViewModel
 import isel.seaspot.bluetooth.*
@@ -191,7 +192,11 @@ fun CharacteristicDisplay(
                                 if(r_id!=null) characName = "${stringResource(r_id.characName_R_ID)}"
                                 else characName += " (ID = ${characteristic.value[0]})"
                             }*/
-                            Text("${stringResource(R.string.value)}: ${characteristic.value[0]}")
+                            if (characteristic.value.decodeToString().isDigitsOnly())
+                                Text("${stringResource(R.string.value)}: ${characteristic.value[0]}")
+                            else{
+                                Text("${stringResource(R.string.value)}: ${characteristic.value.decodeToString()}")
+                            }
                         } else {
                             log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
                             var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }
