@@ -1,15 +1,21 @@
 import { BadRequest, Conflict, Forbidden, NotFound, ServerError } from '../web/api/bodies/errors-and-codes.mjs'
 import { Message, MessageObj } from './Message.mjs';
 import { Device, DeviceObj } from './Device.mjs';
-import elasticFetch, { searchObjToObjArray } from '../utils/elastic-fetch.mjs'
+import elasticFetch, { searchObjToObjArray as searchObjToMessageArray } from '../utils/elastic-fetch.mjs'
 import * as bodies from '../web/api/bodies/req-resp-bodies.mjs'
 import * as utils from '../utils/utils.mjs'
 import errorMsgs from '../web/api/bodies/error-messages.mjs'
 import { Characteristic } from './services-characteristics.mjs';
+import { devices, messages } from '../data/data-mem.mjs';
 let dataMem = await import('../data/data-mem.mjs') //to insert sample data
 
 var indexedCreated = false
 const insertSampleData = true
+
+export const ourIndexes = {
+    devices: "devices",
+    messages: "messages"
+}
 
 /** 
  * Note: It's not recommended to throw exceptions inside .then() statements because they wont be catched, use await instead
@@ -18,11 +24,6 @@ const insertSampleData = true
 function elasticDB(config){
 
     const elasticFetx = elasticFetch(config)
-
-    const ourIndexes = {
-        devices: "devices",
-        messages: "messages"
-    }
 
     function addSampleDataMessages(){
         dataMem.messages.forEach(msg => {
@@ -41,12 +42,18 @@ function elasticDB(config){
             console.log("Will create index", indexName, "if it doesn't exist")
             await elasticFetx.doesIndexExist(indexName).then(async doesExist =>{
                 if(! doesExist){
-                    await elasticFetx.createIndex(indexName)
-                    console.log("created index:", indexName)
-                     if(insertSampleData){
+                    if(insertSampleData){
                         try {
-                            if(indexName==ourIndexes.messages) addSampleDataMessages()
-                            if(indexName==ourIndexes.devices) addSampleDataDevices()
+                            if(indexName==ourIndexes.messages) {
+                                await elasticFetx.createIndex(indexName)
+                                addSampleDataMessages()
+                                console.log("created index:", indexName)
+                            }
+                            if(indexName==ourIndexes.devices) {
+                                await elasticFetx.createIndex(indexName)
+                                addSampleDataDevices()
+                                console.log("created index:", indexName)
+                            }
                         } catch(e){}
                     }
                 }
@@ -73,18 +80,18 @@ function elasticDB(config){
     }
 
     /**
-     * @param {String} dev_id (endDeviceID)
-     * @param {String} app_id (applicationId)
+     * @param {String | undefined} dev_id (endDeviceID)
+     * @param {String | undefined} app_id (applicationId)
      * @param {Int} skip
      * @param {Int} limit
      * @param {Characteristic | undefined} characteristic
-     * @returns {Array<Message>} 
+     * @returns {Array<Message>} returns sorted by date
      */
     async function getAllMessages(dev_id, app_id, skip, limit, characteristic){
         let messagesFound
         if(! dev_id && ! app_id && ! characteristic){
-            messagesFound = await elasticFetx.searchDocPaged(ourIndexes.messages, skip, limit).then(obj => {
-                return searchObjToObjArray(obj).map(msgObj => {
+            messagesFound = await elasticFetx.searchDocPaged(ourIndexes.messages, skip, limit, "receivedAt").then(obj => {
+                return searchObjToMessageArray(obj).map(msgObj => {
                     return new Message(msgObj.id, msgObj.obj)
                 })
             })
@@ -94,12 +101,14 @@ function elasticDB(config){
             const values = []
             if(dev_id) { fields.push("endDeviceID"); values.push(dev_id) }
             if(app_id) { fields.push("applicationId"); values.push(app_id) }
-            if(characteristic) { fields.push("characteristic"); values.push(characteristic) }
+            if(characteristic) { fields.push("characteristic.code"); values.push(characteristic.code) }
             messagesFound = await elasticFetx.searchDocWithValuesPaged(
                 ourIndexes.messages,
-                fields, values, skip, limit
+                fields, values, 
+                skip, limit, 
+                "receivedAt"
             ).then(obj => {
-                return searchObjToObjArray(obj).map(msgObj => {
+                return searchObjToMessageArray(obj).map(msgObj => {
                     return new Message(msgObj.id, msgObj.obj)
                 })
             })
@@ -126,7 +135,7 @@ function elasticDB(config){
      */
     async function deleteAllMessages(dev_id){ //TODO
         const obj = await elasticFetx.deleteByQuery(ourIndexes.messages, 
-            ["endDeviceID"], [dev_id]
+            ["endDeviceId"], [dev_id]
         )
         if (obj.result == "deleted") return true
         else return false

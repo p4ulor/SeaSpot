@@ -12,16 +12,18 @@
         {{> messageItem}} {{!-- The '> messageItem' says that this variable is to be interpreted as a .hbs view --}}
     {{/each}}
 
-    <form method="GET" action={{submitUrl}}>
-        <input type="submit" name="characteristic" value="3333" hidden="true"></input>
-        <button class="btn btn-primary btn-block" type="submit" name="page" value={{pageNumber}}>
-            Next page
-        </button>
-    </form>
+    
+    <button class="btn btn-primary btn-block" type="submit" 
+            name="page" value={{pageNumber}}
+            onclick="nextPage(this.value)"
+            >
+        Next page
+    </button>
 
     <button style="margin: 20px; width: 200px;" class="btn btn-primary btn-danger" 
            type="submit" id="deleteAllMessagesButton"
-           onclick="deleteAllMessages()">Delete ALL messages</button>
+           onclick="deleteAllMessages()">Delete ALL messages
+    </button>
 
     <script>
 
@@ -34,8 +36,18 @@
             selector.value = syncronizedSelectorValue
         }
 
+        function nextPage(value){
+            console.log("page:", value)
+            let newQuery = "?page=" + value
+
+            let query = window.location.search //gets query params client side
+            if(query.includes("characteristic")) newQuery = newQuery + "&characteristic=" + selector.value //TODO fix harcoded
+
+            window.location.href = window.location.pathname + newQuery 
+        }
+
         function updateQueryCharacteristic(code){
-            console.log("code", code)
+            console.log("characteristic code", code)
             let query = window.location.search //gets query params client side
             if(! query.includes("characteristic")) query = query + "?characteristic=" //TODO fix harcoded
 

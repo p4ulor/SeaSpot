@@ -40,10 +40,14 @@ function elasticFetch(config){
      * @param {string} index Unique index identifier
      * @param {Int} skip
      * @param {Int} limit
+     * @param {String | undefined} orderByDateField
      */
-    async function searchDocPaged(index, skip, limit){
+    async function searchDocPaged(index, skip, limit, orderByDateField){
         const uri = searchDocPagedUri(index, skip, limit)
-        return easyFetch(uri)
+        const bodyQuery = {}
+        if(orderByDateField != undefined) 
+            bodyQuery.sort = addSortingByDate(orderByDateField)
+        return easyFetch(uri, "POST", bodyQuery) //it's a POST because this request might have a body
     }
 
     /**
@@ -52,10 +56,14 @@ function elasticFetch(config){
      * @param {Object} value
      * @param {Int} skip
      * @param {Int} limit
+     * @param {String | undefined} orderByDateField
      */
-    async function searchWithValDocPaged(index, field, value, skip, limit){
+    async function searchWithValDocPaged(index, field, value, skip, limit, orderByDateField){
         const uri = searchDocWithValPagedUri(index, field, value, skip, limit)
-        return easyFetch(uri)
+        const bodyQuery = {}
+        if(orderByDateField != undefined) 
+            bodyQuery.sort = addSortingByDate(orderByDateField)
+        return easyFetch(uri, "POST", bodyQuery)  //it's a POST because this request might have a body
     }
 
     /**
@@ -64,15 +72,18 @@ function elasticFetch(config){
      * @param {Array<Object>} values the values of the fields
      * @param {Int} skip
      * @param {Int} limit
+     * @param {String | undefined} orderByDateField
      */
-    async function searchDocWithValuesPaged(index, fields, values, skip, limit){
+    async function searchDocWithValuesPaged(index, fields, values, skip, limit, orderByDateField){
         if(fields.length!=values.length) throw new Error("Invalid usage of searchDocWithValuesPaged")
         const query = makeQuery(fields, values)
 
         const bodyQuery = makeQueryObjWithPaging(skip, limit, query)
-
+        if(orderByDateField != undefined) 
+            bodyQuery.sort = addSortingByDate(orderByDateField)
+        
         const uri = searchDocPlainUri(index)
-        return easyFetch(uri, "GET", bodyQuery)
+        return easyFetch(uri, "POST", bodyQuery)
     }
     
     /**
@@ -141,9 +152,11 @@ function elasticFetch(config){
     const createIndexUri = (index) => `${ELASTIC_SEARCH_URL}/${index}?refresh=true`
     const updateDocUri = (index, id) => `${ELASTIC_SEARCH_URL}/${index}/_update/${id}?refresh=wait_for`
     const deleteDocUri = (index, id) => `${ELASTIC_SEARCH_URL}/${index}/_doc/${id}?refresh=wait_for`
-    const deleteDocsUri = (index) => `${ELASTIC_SEARCH_URL}/${index}/_delete_by_query` // [3]
+    const deleteDocsUri = (index) => `${ELASTIC_SEARCH_URL}/${index}/_delete_by_query?refresh=true` // [3]
     
     const updateBody = (body) => { return {doc: body}} // [4]
+
+    //Utils
 
     function makeQueryObjWithPaging(skip, limit, query){
         return {
@@ -153,20 +166,38 @@ function elasticFetch(config){
         }
     }
 
-    //Utils
     /**
-     * Aids in making a valid body to delete doc's with fields equal to the values indicaded [3]
+     * https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html
+     * Aids in making a valid body to delete or search doc's with fields equal to the values indicaded [3]
+     * Note: match[field] and values[index] must point to a number or string, not a complex object!
      * @param {Array<string>} fields the name of the fields
      * @param {Array<Object>} values the values of the fields
      * @returns {{match: { }}}
      */
     function makeQuery(fields, values){
+        if(fields.length!=values.length) throw new Error("Invalid usage of makeQuery")
         const match = {}
 
         fields.forEach((field, index) => {
             match[field] = values[index]
         })
-        return match
+        return {
+            match: match
+        }
+    }
+
+    /**
+     * @param {String} fieldName
+     */
+    function addSortingByDate(fieldName){
+        const sort = []
+        const prop = {}
+        prop[`${fieldName}`] = {
+            order : "desc", 
+            format: "strict_date_optional_time_nanos"
+        }
+        sort.push(prop)
+        return sort
     }
 
     return {
@@ -190,7 +221,7 @@ export default elasticFetch
 
 /**
  * @param {Object} obj search result obj returned by elasticsearch
- * @returns {Array<{id: string, obj: object}>}
+ * @returns {Array<{id: string, obj: object}>} returns array of a simplified Object with id and obj
  */
 export function searchObjToObjArray(obj){
     const arr = []

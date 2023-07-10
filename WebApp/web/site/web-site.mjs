@@ -93,11 +93,11 @@ function webSite(config) {
             const skip = new Number(view.options.pageNumber) * DEFAULT_ITEMS_PAGE_LIMIT - DEFAULT_ITEMS_PAGE_LIMIT
             
             const characteristic = req.query[webPages.allMessages.queryParams.characteristic] //TODO
-            console.log("aaaaaaaaaaa", characteristic)
+            console.log("Characteristic query param:", characteristic)
             
             const messages = await services.getAllMessages(skip, DEFAULT_ITEMS_PAGE_LIMIT, characteristic)
 
-            view.options.submitUrl = webPages.allMessages.url
+            //view.options.submitUrl = webPages.allMessages.url
 
             view.options.characteristics = [undefined]
             Object.values(service_characteristics).forEach(v => {

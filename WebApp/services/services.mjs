@@ -53,18 +53,14 @@ export default function service(config) {
     /**
      * @param {Int} skip 
      * @param {Int} limit
-     * @param {Characteristic | undefined} characteristic
+     * @param {Int | undefined} characteristic dont forget to validate this param
      * @returns 
      */
     async function getAllMessages(skip, limit, characteristic) {
         console.log("Services getAllMessages() skip", skip, "limit", limit)
         const paging = utils.validatePaging(skip, limit, defaultSkip, defautLimit, maxLimit)
-        const messages = await data.getAllMessages(null, null, paging.skip, paging.limit, characteristic)
-        return messages.sort((a, b) => {
-            const d1 = new Date(a.messageObj.receivedAt)
-            const d2 = new Date(b.messageObj.receivedAt)
-            return d2 - d1
-        })
+        const charac = utils.getCharacteristicID(characteristic, true)
+        return await data.getAllMessages(null, null, paging.skip, paging.limit, charac)
     }
 
     async function getMessage(id) {

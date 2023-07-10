@@ -29,10 +29,14 @@ export let messages = [
                                                         new Location(38.75625860392359, -9.115897715091707), 
                                                         service_characteristics.ID_BROADCAST_STRING,
                                                         "67 68 69", new Date("2023-06-02T19:27:27.931957874Z"))),
-    new Message("47c87c28-31fe-4a97-8a18-62a8d312a41b", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
+    new Message("47c87c28-31fe-4a97-8a18-62a8d312a41c", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
                                                         new Location(38.75625860392359, -9.115897715091707), 
                                                         service_characteristics.ID_BATTERY_LEVEL, //248
                                                         "32 34 38", new Date("2023-07-09T19:27:27.931957874Z"))),
+    new Message("47c87c28-31fe-4a97-8a18-62a8d312a41d", new MessageObj("ttgo-test-g10", "eui-70b3d57ed005bfb0", "260B893E", 
+                                                        new Location(38.7568979714452, -9.113342113098042), //macdonalds chelas (o GPS tem uma margem de erro)
+                                                        service_characteristics.ID_LOCATION,
+                                                        "B7 1F 7F 79 85 1D 00 3E 36 06", new Date("2023-07-09T15:27:27.931957874Z"))), //payload is the compressed lati, longi, height and other things
     
 ]
 
@@ -62,13 +66,13 @@ export async function addMessage(messageObj) {
  * @param {Int} skip
  * @param {Int} limit
  * @param {Characteristic | undefined} characteristic
- * @returns {Array<Message>} 
+ * @returns {Array<Message>} returns sorted by date
  */
 export async function getAllMessages(dev_id, app_id, skip, limit, characteristic) {
     let msgs = messages
     if(characteristic!=undefined){
         msgs = messages.filter(m => {
-            return m.messageObj.characteristic.code == characteristic
+            return m.messageObj.characteristic.code == characteristic.code
         })
     }
     if(dev_id || app_id){
@@ -76,7 +80,11 @@ export async function getAllMessages(dev_id, app_id, skip, limit, characteristic
             return m.messageObj.deviceAddress==dev_id && m.messageObj.applicationId==app_id
         })
     }
-    return msgs.slice(skip, skip+limit)
+    return msgs.sort((a, b) => {
+        const d1 = a.messageObj.receivedAt
+        const d2 = b.messageObj.receivedAt
+        return d2 - d1
+    }).slice(skip, skip+limit)
 }
 
 /**

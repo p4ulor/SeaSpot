@@ -48,12 +48,14 @@ export function byteArrayTobase64(bytearray){
 }
 
 /**
- * @param {integer} f_port 
- * @return {Characteristic} characteristic
+ * @param {Int} f_port 
+ * @param {Boolean} returnUndefinedOnNotValid if true, will return undefined if it wasn't found in our expected list of characteristics
+ * @return {Characteristic | undefined} characteristic
  */
-export function getCharacteristicID(f_port){
+export function getCharacteristicID(f_port, returnUndefinedOnNotValid){
     const characs = Object.values(service_characteristics)
     let service_charac = service_characteristics.ID_BROADCAST_STRING // publishing the message in BROADCAST_STRING by default if the f_port didn't identify any of our characteristics
+    if(returnUndefinedOnNotValid) service_charac = undefined
     characs.forEach(value => {
         if(value.code==f_port)
             service_charac = value
