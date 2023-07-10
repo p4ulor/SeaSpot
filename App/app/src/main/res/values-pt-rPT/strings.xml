@@ -32,4 +32,8 @@
     <string name="broadcast_string">Mensagem geral</string>
     <string name="loc_longitude">Localização: Longitude</string>
     <string name="loc_refresh">Atualizar Localização</string>
+    <string name="expected_device_addr">Endereço do dispositivo preferido</string>
+    <string name="cancel">Cancelar</string>
+    <string name="ok">Ok</string>
+    <string name="note_dev_addr">Nota: O dispositivo escolhido é differente do esperado</string>
 </resources>

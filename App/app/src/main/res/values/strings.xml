@@ -31,4 +31,8 @@
     <string name="broadcast_string">Broadcast String</string>
     <string name="loc_longitude">Location Longitude</string>
     <string name="loc_refresh">Refresh Location</string>
+    <string name="expected_device_addr">Expected Device Address</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
+    <string name="note_dev_addr">Note: Registred device address is different than selected</string>
 </resources>

@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import isel.seaspot.currTTGOdevID
 import isel.seaspot.screens.NavGraph
 import isel.seaspot.screens.Screens
 import isel.seaspot.screens.checkIfScreenNamesAreGood
@@ -39,6 +40,10 @@ class MainActivity : ComponentActivity() {
             navController = rememberNavController()
             NavGraph(viewModel, navController)
         }
+
+        val currDevID = readExpectedDeviceAddress(application)
+        if(currDevID.isEmpty())
+            writeExpectedDeviceAddress(application, currTTGOdevID)
     }
 
     override fun onStart() {

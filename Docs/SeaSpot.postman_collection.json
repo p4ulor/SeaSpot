@@ -11,10 +11,130 @@
 			"name": "Elastic Requests",
 			"item": [
 				{
+					"name": "Consult messages mapping",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:9200/messages/_mapping",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_mapping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get all messages",
 					"request": {
 						"method": "GET",
 						"header": [],
+						"url": {
+							"raw": "localhost:9200/messages/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all messages sort by date desc",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"size\": 2,\r\n    \"sort\" : [\r\n        { \r\n            \"receivedAt\" : {\r\n                \"order\" : \"desc\", \r\n                \"format\": \"strict_date_optional_time_nanos\"\r\n            }\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/messages/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all messages sort by date desc with certain payload",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sort\" : [\r\n        { \r\n            \"receivedAt\" : {\r\n                \"order\" : \"desc\", \r\n                \"format\": \"strict_date_optional_time_nanos\"\r\n            }\r\n        }\r\n    ],\r\n    \"query\": {\r\n        \"match\": {\r\n            \"payload\": \"67 68 69\"\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:9200/messages/_search",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_search"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all messages sort by date desc with certain characteristic (nested query must be done)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sort\" : [\r\n        { \r\n            \"receivedAt\" : {\r\n                \"order\" : \"desc\", \r\n                \"format\": \"strict_date_optional_time_nanos\"\r\n            }\r\n        }\r\n    ],\r\n    \"query\": {\r\n        \"match\": {\r\n            \"characteristic.code\": \"9\"\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
 							"raw": "localhost:9200/messages/_search",
 							"host": [
@@ -194,6 +314,35 @@
 							"path": [
 								"messages",
 								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete by query",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"query\": {\r\n    \"match\": {\r\n      \"endDeviceId\": \"eui-70b3d57ed005bfb0\"\r\n    }\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9200/messages/_delete_by_query",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9200",
+							"path": [
+								"messages",
+								"_delete_by_query"
 							]
 						}
 					},
@@ -501,6 +650,38 @@
 						"eui-70b3d57ed005bfb0",
 						"down",
 						"push"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Simulate TTN webhook triggered request",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-downlink-apikey",
+						"value": "NNSXS.X5XMG64FN6MRORA3IO5S7BMB4KAEBQE5RMDHENI.QOLJRUL2L2NS7E3EQEVWFM5RZRUDNAO7CSTKCOGN73SEOJHTD6TQ",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"end_device_ids\": {\r\n    \"device_id\": \"eui-70b3d57ed005bfb0\",\r\n    \"application_ids\": {\r\n      \"application_id\": \"ttgo-test-g10\"\r\n    },\r\n    \"dev_eui\": \"70B3D57ED005BFB0\",\r\n    \"dev_addr\": \"260B893E\"\r\n  },\r\n  \"correlation_ids\": [\r\n    \"as🆙01H4RWG5ZZGGBG6PECEMM1QTQH\",\r\n    \"gs:conn:01H4QXZDEKAXBZA8T1MBKZ1J12\",\r\n    \"gs🆙host:01H4QXZDEQSQSBRY62J7AHHBQR\",\r\n    \"gs:uplink:01H4RWG5SGSG5K4RQXZ9Q56GRK\",\r\n    \"ns:uplink:01H4RWG5SHX1ZR50NJVNS8J2AW\",\r\n    \"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H4RWG5SH3V08C3VQPBXVMA7K\",\r\n    \"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H4RWG5ZYGF162JJY93YRPWSR\"\r\n  ],\r\n  \"received_at\": \"2023-07-07T19:15:44.254855747Z\",\r\n  \"uplink_message\": {\r\n    \"f_port\": 9,\r\n    \"frm_payload\": \"tx6XeYQtAGEPBQ==\",\r\n    \"decoded_payload\": {\r\n      \"altitude\": 97,\r\n      \"gpsfix\": true,\r\n      \"hdop\": 1.5,\r\n      \"latitude\": 38.7559001896322,\r\n      \"longitude\": -9.117676563124462,\r\n      \"sats\": 5\r\n    },\r\n    \"rx_metadata\": [\r\n      {\r\n        \"gateway_ids\": {\r\n          \"gateway_id\": \"fit-1\",\r\n          \"eui\": \"00F142122877FC0D\"\r\n        },\r\n        \"timestamp\": 1941607835,\r\n        \"rssi\": -92,\r\n        \"signal_rssi\": -92,\r\n        \"channel_rssi\": -92,\r\n        \"snr\": 14,\r\n        \"frequency_offset\": \"-2602\",\r\n        \"location\": {\r\n          \"latitude\": 38.75625860392359,\r\n          \"longitude\": -9.115897715091707,\r\n          \"altitude\": 100,\r\n          \"source\": \"SOURCE_REGISTRY\"\r\n        },\r\n        \"uplink_token\": \"ChMKEQoFZml0LTESCADxQhIod/wNEJur6p0HGgsI4MihpQYQl7qYFyD4yuGGwaMH\",\r\n        \"received_at\": \"2023-07-07T19:15:44.023473865Z\"\r\n      },\r\n      {\r\n        \"gateway_ids\": {\r\n          \"gateway_id\": \"fit-1\",\r\n          \"eui\": \"00F142122877FC0D\"\r\n        },\r\n        \"antenna_index\": 1,\r\n        \"timestamp\": 1941607835,\r\n        \"rssi\": -93,\r\n        \"signal_rssi\": -93,\r\n        \"channel_rssi\": -93,\r\n        \"snr\": 15,\r\n        \"frequency_offset\": \"-2602\",\r\n        \"downlink_path_constraint\": \"DOWNLINK_PATH_CONSTRAINT_NEVER\",\r\n        \"channel_index\": 16,\r\n        \"received_at\": \"2023-07-07T19:15:44.023473865Z\"\r\n      }\r\n    ],\r\n    \"settings\": {\r\n      \"data_rate\": {\r\n        \"lora\": {\r\n          \"bandwidth\": 125000,\r\n          \"spreading_factor\": 7,\r\n          \"coding_rate\": \"4/5\"\r\n        }\r\n      },\r\n      \"frequency\": \"868100000\",\r\n      \"timestamp\": 1941607835\r\n    },\r\n    \"received_at\": \"2023-07-07T19:15:44.049683435Z\",\r\n    \"consumed_airtime\": \"0.061696s\",\r\n    \"locations\": {\r\n      \"frm-payload\": {\r\n        \"latitude\": 38.7559001896322,\r\n        \"longitude\": -9.117676563124462,\r\n        \"altitude\": 97,\r\n        \"source\": \"SOURCE_GPS\"\r\n      },\r\n      \"user\": {\r\n        \"latitude\": 38.75677438489383,\r\n        \"longitude\": -9.11666073056685,\r\n        \"altitude\": 100,\r\n        \"source\": \"SOURCE_REGISTRY\"\r\n      }\r\n    },\r\n    \"network_ids\": {\r\n      \"net_id\": \"000013\",\r\n      \"tenant_id\": \"ttn\",\r\n      \"cluster_id\": \"eu1\",\r\n      \"cluster_address\": \"eu1.cloud.thethings.network\"\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}{{apiPath}}/uplink",
+					"host": [
+						"{{host}}{{apiPath}}"
+					],
+					"path": [
+						"uplink"
 					]
 				}
 			},
