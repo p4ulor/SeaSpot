@@ -42,34 +42,41 @@ def receive_data(characteristicPort):
     data = ""
     joiner.send_data_bytes(bytes([1]), characteristicPort) # makes uplink, necessary to make an downlink after. Fport will be 2 by default
     # time.sleep(2.5)
-    data, fport = joiner.receive_data_blocking(characteristicPort) # receive the latest downlink that put in our applciation
+    data, fport = joiner.receive_data_blocking() # receive the latest downlink that put in our applciation
+    find_port= 0x1
     print('receive_data: ', data)
     print("received fport: {}".format(fport))
-    # Write the fport value to the ObjectTranfer (service) -> Refresh (charac)
-    chr7.value(fport)
     if fport==ID_USERDATA_STRING:
+        find_port=fport
         chr1.value(data) # https://docs.pycom.io/firmwareapi/pycom/network/bluetooth/gattscharacteristic/
         print('ID_USERDATA_STRING: ', chr1.value())
     elif fport==ID_BATTERY_ENERGY_STATUS:
+        find_port=fport
         chr2.value(data)
         print('ID_BATTERY_ENERGY_STATUS: ', chr2.value())
 
     elif fport==ID_LOCATION_LATITUDE:
+        find_port=fport
         chr3.value(data)
         print('ID_LOCATION_LATITUDE: ', chr3.value())
     elif fport==ID_LOCATION_LONGITUDE:
+        find_port=fport
         chr4.value(data)
         print('ID_LOCATION_LONGITUDE: ', chr4.value())
 
     elif fport==ID_PHONE_ID:
+        find_port=fport
         chr5.value(data)
         print('ID_PHONE_ID: ', chr5.value())
     elif fport==ID_BROADCAST_STRING:
+        find_port=fport
         chr6.value(data)
         print('ID_BROADCAST_STRING: ', chr6.value())
 
     else:
         print('Unregistered port was set upon the scheduled downlink, ignoring')
+    # Write the fport value to the ObjectTranfer (service) -> Refresh (charac)
+    chr7.value(find_port)
     
 
 def encodePayloadWithCharacIdentifier(value, id): # no longer in use, it was used to add the characteristic identifier in the payload, but now we use Fport. The identifiers were previously byte arrays like: ID_USERDATA_STRING = [0x1]
@@ -101,6 +108,7 @@ CHARACTERISTIC_REFRESH_LOCATION = 0x2A5D # Sensor Location, only relevant betwee
 
 # List of unique identifiers for each variable that's displayed by the TTGO
 # _Service _ Characteristic
+ID_DEFAULT = 0x2
 ID_USERDATA_STRING = 0x3
 ID_BATTERY_ENERGY_STATUS = 0x4
 ID_LOCATION_LATITUDE = 0x5
@@ -173,7 +181,7 @@ def char7_cb_handler(chr, data): # OBJECT_TRANSFER -> REFRESH
     print('char7_cb_handler')
     if events & Bluetooth.CHAR_WRITE_EVENT:
         print("On char 7 Write request with value = {}".format(value))
-        _thread.start_new_thread(receive_data, (ID_PHONE_ID,))
+        _thread.start_new_thread(receive_data, (ID_DEFAULT,))
 
 def char8_cb_handler(chr, data):
     events, value = data
@@ -201,7 +209,7 @@ chr1 = srv1.characteristic(uuid=CHARACTERISTIC_NAME, value='LilyGo') # By defaul
 chr1_cb = chr1.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char1_cb_handler)
 
 srv2 = bluetooth.service(uuid=SERVICE_BATTERY, isprimary=True, nbr_chars=1)
-chr2 = srv2.characteristic(uuid=CHARACTERISTIC_BATTERY_ENERGY_STATUS, properties=Bluetooth.PROP_READ, value='0') # Default value
+chr2 = srv2.characteristic(uuid=CHARACTERISTIC_BATTERY_ENERGY_STATUS, properties=Bluetooth.PROP_READ, value='') # Default value
 chr2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)
 
 srv3 = bluetooth.service(uuid=SERVICE_LOCATION, isprimary=True, nbr_chars=3)
@@ -215,7 +223,7 @@ chr5 = srv4.characteristic(uuid=CHARACTERISTIC_PHONE_ID, value='+351')
 chr5_cb = chr5.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char5_cb_handler)
 
 srv5 = bluetooth.service(uuid=SERVICE_PUBLIC_BROADCAST, isprimary=True)
-chr6 = srv5.characteristic(uuid=CHARACTERISTIC_STRING, value='Write Any Message') #it seems that lengthy values will not work well, and it will trigger the callback in an infinite looo on the read operation, At if the value has a lenght of 'Write Any Message1234' it will no longer write
+chr6 = srv5.characteristic(uuid=CHARACTERISTIC_STRING, value='') #it seems that lengthy values will not work well, and it will trigger the callback in an infinite looo on the read operation, At if the value has a lenght of 'Write Any Message1234' it will no longer write
 chr6_cb = chr6.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char6_cb_handler)
 
 srv6 = bluetooth.service(uuid=SERVICE_OBJECT_TRANSFER, isprimary=True)

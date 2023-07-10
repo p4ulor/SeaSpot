@@ -51,17 +51,12 @@ class TTNJoiner: #note: "self" is similar to "this" keyword in java
         lpp.set_payload_string(data)
         lpp.send(reset_payload=True)
 
-    def receive_data_blocking(self, characteristicPort):
+    def receive_data_blocking(self):
         socket = self.socket
         byte_size = 64
         # Create a buffer to hold incoming data, must be power of 8?
         # Receive data from the socket
         
-        if characteristicPort != None:
-            # socket.bind(characteristicPort)
-            print("Set Fport: {}".format(characteristicPort)) ## Note: indicating the port doesnt really indicate to only get a downlink whose port is equal to this, it's just to register what characteritic update request was associated to this downlink
-        else:
-            print("characteristicPort is null?: {}".format(characteristicPort))
         data, fport = socket.recvfrom(byte_size)
         # Parse the received data
         print("receive_data_blocking string: {}".format(data))
