@@ -7,14 +7,14 @@ import json
 from network import LoRa
 from network import Bluetooth
 from machine import Timer
+
 from machine import ADC
-
-import gps_data
-
-import axp202
 from machine import UART
 
+from lib import gps_data
+from lib import axp202
 
+# Note: in VSC some imports are underlined with red, this is from VSC and python extensions, but the libraries are present in the TTGO
 
 def uuid2bytes(uuid):
     uuid = uuid.encode().replace(b'-',b'')
@@ -43,40 +43,32 @@ def receive_data(characteristicPort):
     joiner.send_data_bytes(bytes([1]), characteristicPort) # makes uplink, necessary to make an downlink after. Fport will be 2 by default
     # time.sleep(2.5)
     data, fport = joiner.receive_data_blocking() # receive the latest downlink that put in our applciation
-    find_port= 0x1
     print('receive_data: ', data)
     print("received fport: {}".format(fport))
     if fport==ID_USERDATA_STRING:
-        find_port=fport
         chr1.value(data) # https://docs.pycom.io/firmwareapi/pycom/network/bluetooth/gattscharacteristic/
         print('ID_USERDATA_STRING: ', chr1.value())
     elif fport==ID_BATTERY_ENERGY_STATUS:
-        find_port=fport
         chr2.value(data)
         print('ID_BATTERY_ENERGY_STATUS: ', chr2.value())
-
     elif fport==ID_LOCATION_LATITUDE:
-        find_port=fport
         chr3.value(data)
         print('ID_LOCATION_LATITUDE: ', chr3.value())
     elif fport==ID_LOCATION_LONGITUDE:
-        find_port=fport
         chr4.value(data)
         print('ID_LOCATION_LONGITUDE: ', chr4.value())
-
     elif fport==ID_PHONE_ID:
-        find_port=fport
         chr5.value(data)
         print('ID_PHONE_ID: ', chr5.value())
     elif fport==ID_BROADCAST_STRING:
-        find_port=fport
         chr6.value(data)
         print('ID_BROADCAST_STRING: ', chr6.value())
-
     else:
         print('Unregistered port was set upon the scheduled downlink, ignoring')
     # Write the fport value to the ObjectTranfer (service) -> Refresh (charac)
-    chr7.value(find_port)
+    fport_str = str(fport)
+    print("fport_str for chr7: {}".format(fport_str))
+    chr7.value(fport_str)
     
 
 def encodePayloadWithCharacIdentifier(value, id): # no longer in use, it was used to add the characteristic identifier in the payload, but now we use Fport. The identifiers were previously byte arrays like: ID_USERDATA_STRING = [0x1]
@@ -233,7 +225,7 @@ chr6_cb = chr7.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE
 chr8 = srv3.characteristic(uuid=CHARACTERISTIC_REFRESH_LOCATION, value="Default")
 chr7_cb = chr8.callback(trigger=Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_WRITE_EVENT, handler=char8_cb_handler)
 
-print('Start BLE Service')
+print('Started BLE Service')
 
 """
 Micropython code for TTGO T-Beam V1.0 and V1.1 to enable GPS in micropython pycom variant
@@ -248,11 +240,14 @@ Inspired by:
 For T22_v1.0 20190612 and the T22_v1.1 20191212 and T22_v1.1 2021
 """
 
+# GPS & Battery Voltage methods
+gpsPins = ('G12','G34')
+
 axp=axp202.PMU(address=axp202.AXP192_SLAVE_ADDRESS)
 axp.setLDO3Voltage(3300)   # T-Beam GPS  VDD    3v3
 axp.enablePower(axp202.AXP192_LDO3)
 
-dev = UART(1, 9600, pins=('G12','G34'))
+dev = UART(1, 9600, pins=gpsPins)
 msg = b'\xb5b\x06\x00\x14\x00\x01\x00\x00\x00\xd0\x08\x00\x00\x80%\x00\x00\x07\x00\x03\x00\x00\x00\x00\x00\xa2\xb5'
 dev.write(msg)
 
@@ -268,13 +263,13 @@ def updateBatteryVoltage(): # https://docs.pycom.io/tutorials/expansionboards/vb
     return level
 
 def getGPSCoordinates():
-    gps = gps_data.GPS_data(['G12', 'G34'])
+    gps = gps_data.GPS_data(gpsPins) # The same pins indicaded on the side where the brick colored & shaped chip is placed at 
     gps_array, timestamp, valid = gps.get_loc()
 
     # decoded_gps = decode_gps_array(gps_array)
 
     # print("decoded gps ", decoded_gps["data"])
-    return {'gps_array': gps_array, 'timestamp':timestamp, 'valid':valid}
+    return {'gps_array': gps_array, 'timestamp': timestamp, 'valid': valid}
 
 def decode_gps_array(input):
     bytes = input

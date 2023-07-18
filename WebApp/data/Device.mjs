@@ -30,6 +30,7 @@ export class Device {
     constructor(id, deviceObj){ 
         this.id = id
         this.deviceObj = deviceObj
+        this.deviceObj.setCharacteristic = new DeviceObj("", "").setCharacteristic //get the setCharacteristic method
     }
 }
 

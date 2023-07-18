@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.ui.res.stringResource
+import androidx.core.os.postDelayed
 import isel.seaspot.R
 import isel.seaspot.utils.*
 import java.util.*
@@ -28,7 +30,8 @@ import kotlin.concurrent.withLock
  * @see bluetoothGattCallback - [8] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=int%20bondstate%20%3D-,device.getBondState()%3B,-The%20bond%20state
  * @see bluetoothGattCallback - [9] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=have%20to%20add%20a%201000%E2%80%931500%20ms%20delay.
  * @see bluetoothGattCallback - [10] https://developer.android.com/reference/android/bluetooth/BluetoothGatt#discoverServices()
- * @see bluetoothGattCallback - [11] https://issuetracker.google.com/issues/228984309 https://stackoverflow.com/q/32363931
+ * @see bluetoothGattCallback - [11] https://issuetracker.google.com/issues/228984309 / https://stackoverflow.com/q/32363931
+ * @see bluetoothGattCallback - [11.b] https://stackoverflow.com/q/41434555
  * @see clearServicesCache - [12] https://medium.com/@martijn.van.welie/making-android-ble-work-part-2-47a3cdaade07#:~:text=the%20services%0A...-,Caching%20of%20services,-The%20Android%20stack
  * @see setCharacteristicNotification - [13] https://developer.android.com/guide/topics/connectivity/bluetooth/transfer-ble-data#notification
  */
@@ -173,9 +176,12 @@ class BLE_Manager(
                         if(bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.BOND_BONDED) { //consider [9]
                             onConnectionSuccessful()
                             log("BOND_BONDED")
-                            val areThereServices = gatt?.discoverServices() //[10]
-                            if(areThereServices == true) log("Started onServicesDiscovered()")
-                            else log("Couldn't call onServicesDiscovered()")
+
+                            handler.postDelayed({ //Sometimes service discovery shouldn't be made immediately will not be called [11.b]
+                                val areThereServices = gatt?.discoverServices() //[10]
+                                if(areThereServices == true) log("Started onServicesDiscovered()")
+                                else log("Couldn't call onServicesDiscovered()")
+                            }, 1000)
                         } else if (bondState == BluetoothDevice.BOND_BONDING) {
                             log("waiting for bonding to complete")
                         }
@@ -208,6 +214,7 @@ class BLE_Manager(
 
         //This method sometimes will have gatt?.services empty [11]
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+            log("onServicesDiscovered()")
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 log("onServicesDiscovered received -> GATT_SUCCESS, ${currThread()}")
                 log("Services = ${gatt?.services?.map { "${it.uuid} (${AssignedNumbersService.uuidToEnum(it.uuid).name})" } }")
@@ -216,6 +223,7 @@ class BLE_Manager(
                     onServicesDiscovered()
                 } else {
                     log("SERVICES NOT FOUND")
+                    //toast(R.string.servicesNotFound, ctx)
                 }
             }
             else log("onServicesDiscovered received: $status")

@@ -192,11 +192,10 @@ fun CharacteristicDisplay(
                                 if(r_id!=null) characName = "${stringResource(r_id.characName_R_ID)}"
                                 else characName += " (ID = ${characteristic.value[0]})"
                             }*/
-                            if (characteristic.value.decodeToString().isDigitsOnly())
-                                Text("${stringResource(R.string.value)}: ${characteristic.value[0]}")
-                            else{
-                                Text("${stringResource(R.string.value)}: ${characteristic.value.decodeToString()}")
-                            }
+                            val characValue = characteristic.value.decodeToString()
+                            log("CharacValue = $characValue") // note, even if you do characteristic.value[0] you will obtain the byte of the UTF character!!! not the 'value' itself!
+                            Text("${stringResource(R.string.value)}: $characValue")
+
                         } else {
                             log("Text raw = ${characteristic.value.toList()}. String = ${characteristic.value.decodeToString()}")
                             var text by rememberSaveable { mutableStateOf(characteristic.value.decodeToString()) }

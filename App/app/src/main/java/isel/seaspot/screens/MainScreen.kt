@@ -40,8 +40,6 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
     var isSnackbarOpen by remember { mutableStateOf(false) }
     var onSnackbarOk: () -> Unit by remember { mutableStateOf({}) }
 
-    var registredDevAddr by remember { mutableStateOf(readExpectedDeviceAddress(ctx)) }
-
     Column {
         TopAppBar(
             title = {
@@ -88,7 +86,7 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
             if (vm.devicesFound.isNotEmpty()) {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(vm.devicesFound.toList().sortedByDescending { it.second.name!=null }) {
-                        ListOfDevices({
+                        ListOfDevices({ //it -> Pair.first = deviceAddress, Pair.second = BluetoothDevice
                             val onClick = {
                                 log("will connect to device")
                                 toast(R.string.connecting, ctx)
@@ -103,7 +101,8 @@ fun MainScreen(vm: MainViewModel, navController: NavController) {
                                 Unit
                             }
 
-                            if(it.first!=registredDevAddr){
+                            if(it.first!=readExpectedDeviceAddress(ctx)){
+                                log("Clicked on unregistered device")
                                 onSnackbarOk = onClick
                                 isSnackbarOpen = true
                             } else onClick()

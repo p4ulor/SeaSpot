@@ -36,4 +36,5 @@
     <string name="cancel">Cancelar</string>
     <string name="ok">Ok</string>
     <string name="note_dev_addr">Nota: O dispositivo escolhido é differente do esperado</string>
+    <string name="servicesNotFound">Serviços não encontrados</string>
 </resources>

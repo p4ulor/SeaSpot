@@ -1,9 +1,12 @@
 package isel.seaspot.utils
 
-import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import java.io.FileNotFoundException
+
+/**
+ * Contains code related to double checking the connection to a not expected device (soft security)
+ */
 
 const val expectedDeviceAddressFile = "expectedDeviceAddress.txt"
 

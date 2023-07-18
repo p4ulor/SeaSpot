@@ -1,5 +1,4 @@
-
-from micropygps import MicropyGPS
+from micropyGPS import MicropyGPS
 from machine import UART
 import array
 import time
@@ -7,7 +6,7 @@ import time
 
 class GPS_data():
 
-    def __init__(self,uart_pins):
+    def __init__(self, uart_pins):
         self.uart = UART(1, 9600, pins=uart_pins)
         time.sleep(0.5)
         self.gps_dev = MicropyGPS(location_formatting='dd')
