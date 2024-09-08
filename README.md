@@ -8,22 +8,44 @@
 - **Pycom** -> All the MicroPython files to install the scripts that will be running in the device, which should be flashed into the device via the Pycom ecosystem/interface (with Pymakr)
 - **WebApp** -> Contains the back-end
 
-## Technologies :computer: 
-<img width="60" src='https://raw.githubusercontent.com/devicons/devicon/master/icons/android/android-original.svg'>
-<img width="60" src='https://raw.githubusercontent.com/devicons/devicon/master/icons/jetpackcompose/jetpackcompose-original.svg'>
-<img width="60" src='https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Kotlin_Icon.png/480px-Kotlin_Icon.png'>
-<img width="45" src='https://seeklogo.com/images/B/bluetooth-logo-FF6A94E806-seeklogo.com.png'>
-<img width="70" src='https://aptinex.com/wp-content/uploads/2017/09/iot-lora-alliance-logo.svg.png'>
-<img width="75" src='https://www.thethingsnetwork.org/spa/static/img/3e781f4.svg'>
-<img width="75" src="./Docs/images/pycom(will_become_SG Wireless).png">
-<img width="60" src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Micropython-logo.svg'>
-<img width="60" src='https://github.com/tandpfun/skill-icons/raw/main/icons/ExpressJS-Light.svg'>
-<img width="60" src='https://github.com/devicons/devicon/raw/master/icons/nodejs/nodejs-plain-wordmark.svg'>
-<img width="60" src='https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/Elasticsearch-Light.svg'>
-<img width="60" src='https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Openstreetmap_logo.svg/800px-Openstreetmap_logo.svg.png'>
+## Technologies 🖥️
 
-
-Android | Compose | Kotlin | Bluetooth | LoRa | The Things Network | PyCom | MicroPython | ExpressJS | NodeJS | Elasticsearch | OpenStreetMap
+<table>
+  <tr>
+    <th>Android</th>
+    <th>Compose</th>
+    <th>Kotlin</th>
+    <th>Bluetooth</th>
+    <th>LoRa</th>
+    <th>Things Network</th>
+    <th>Pycom</th>
+    <th>MicroPython</th>
+    <th>ExpressJS</th>
+    <th>NodeJS</th>
+    <th>JavaScript</th>
+    <th>Bootstrap</th>
+    <th>Handlebars</th>
+    <th>Elasticsearch</th>
+    <th>Leaflet</th>
+  </tr>
+  <tr>
+    <td><img width="60" src='https://raw.githubusercontent.com/devicons/devicon/master/icons/android/android-original.svg'></td>
+    <td><img width="60" src='https://raw.githubusercontent.com/devicons/devicon/master/icons/jetpackcompose/jetpackcompose-original.svg'></td>
+    <td><img width="60" src='https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Kotlin_Icon.png/480px-Kotlin_Icon.png'></td>
+    <td><img width="55" src='https://seeklogo.com/images/B/bluetooth-logo-FF6A94E806-seeklogo.com.png'></td>
+    <td><img width="60" src='https://aptinex.com/wp-content/uploads/2017/09/iot-lora-alliance-logo.svg.png'></td>
+    <td><img width="75" src='https://static.wikia.nocookie.net/iot-fpms/images/d/d7/Ttn-logo.png/revision/latest/scale-to-width-down/1000?cb=20170515163520'></td>
+    <td><img width="75" src="./Docs/images/pycom(will_become_SG Wireless).png"></td>
+    <td><img width="60" src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Micropython-logo.svg'></td>
+    <td><img width="60" src='https://github.com/tandpfun/skill-icons/raw/main/icons/ExpressJS-Light.svg'></td>
+    <td><img width="60" src='https://github.com/devicons/devicon/raw/master/icons/nodejs/nodejs-plain-wordmark.svg'></td>
+    <td><img width="60" src='https://github.com/tandpfun/skill-icons/raw/main/icons/JavaScript.svg'></td>
+    <td><img width="60" src='https://github.com/devicons/devicon/raw/master/icons/bootstrap/bootstrap-original.svg'></td>
+    <td><img width="60" src='https://github.com/devicons/devicon/raw/master/icons/handlebars/handlebars-original-wordmark.svg'></td>
+    <td><img width="60" src='https://raw.githubusercontent.com/tandpfun/skill-icons/main/icons/Elasticsearch-Light.svg'></td>
+    <td><img width="60" src='./Docs/images/Leaflet.jpg'></td>
+  </tr>
+</table>
 
 ## Full Video demo 🎥
 [![](https://drive.google.com/thumbnail?id=1r2sCZwmqTKcbPIIBwoCWpv1_7TU3zCZ4)](https://drive.google.com/file/d/1r2sCZwmqTKcbPIIBwoCWpv1_7TU3zCZ4/view?usp=drive_link)
@@ -32,8 +54,6 @@ Android | Compose | Kotlin | Bluetooth | LoRa | The Things Network | PyCom | Mic
 <img width="720" src='./Docs/Diagrams/Project_Structure_Detailed.png'>
 
 
-## Note 📰
-It's recomended to open this root folder as a workspace using [Visual Studio Code](https://code.visualstudio.com/), thus the `open in VSC.code-workspace`
 ## VSC extensions recommended 🔌 
 - [Pymakr](https://marketplace.visualstudio.com/items?itemName=pycom.Pymakr)
 - [vscode-icons](https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons)
