@@ -38,6 +38,9 @@ O sistema será assim composto por três componentes:
 ## Developed project (resume) 🛠️
 The project consists of a communication and tracking system that allows a user with an Android phone to read and write properties from an IoT device (in this case a LILYGO TTGO T-Beam) via Bluetooth Low Energy (BLE). In turn, this device, that was programmed with MicroPython, communicated  via LoRa (a low-power & long-range radio communication technique) to a LoRaWAN network, hosted by The Things Network (TTN), to register the location of the device (via it's GPS) along with the latest messages being sent by the user or automatically by the device. These write operations trigger a Webhook (by TTN) which communicates with our back-end, in the form of a RESTful API, to store this information in our Elasticsearch database. For the back-end, we used the ExpressJS framework and Handlebars to generate the HTML (via server-side rendering). To expose our back-end to the TTN's Webhook in a simple way, we used ngrok to expose a public URL address, instead of deploying the back-end to a cloud provider. The front-end allows user's to consult and filter the list of messages. Each message has the location of the device at the time it was sent. And the device's page displays the latest location. Both of these pages display an interactive map in the browser. The Android application was programed with Kotlin and Jetpack Compose.
 
+## Project poster 🖼️
+<img width="360" src='./Docs/Report, Slides & Banner/Project_Banner.jpg'>
+
 ## Authors:
 - Paulo Rosa 44873
 - Raul Santos 44806
